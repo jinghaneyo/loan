@@ -1,7 +1,7 @@
 #ifdef _BIN
 #include <string>
 #include <glog/logging.h>
-#include "Rigi_Server.hpp"
+#include "Rigi_TServer.hpp"
 
 int main()
 {
@@ -11,7 +11,7 @@ int main()
 
 	LOG(INFO) << "Found " << 1 << " cookies";
 
-	Rigitaeda::Rigi_Server server;
+	Rigitaeda::Rigi_TServer server;
 	server.Run(3333, 100);
 
 	return 1;

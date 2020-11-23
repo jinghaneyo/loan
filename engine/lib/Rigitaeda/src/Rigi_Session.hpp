@@ -10,7 +10,6 @@
 #include <boost/system/error_code.hpp>
 
 #include "Rigi_Def.hpp"
-#include "Rigi_Socket.hpp"
 
 namespace Rigitaeda
 {
@@ -29,7 +28,6 @@ namespace Rigitaeda
 		std::array<char, MAX_MESSAGE_LEN> m_ReceiveBuffer;
 		boost::asio::ip::tcp::socket *	m_pSockTCP = nullptr;
 		boost::asio::ip::udp::socket *	m_pSockUDP = nullptr;
-		//Rigi_Socket *m_pSocket = nullptr;
 		PROTOCOL	 m_eProtocol = PROTOCOL::TCP;
 
 		void Handler_Send( 	__in const boost::system::error_code& _error, 
@@ -50,9 +48,14 @@ namespace Rigitaeda
 			return m_eProtocol;
 		}
 
-		boost::asio::ip::tcp::socket *GetSocket( )
+		boost::asio::ip::tcp::socket *GetSocket_TCP( )
 		{
 			return m_pSockTCP;
+		}
+
+		boost::asio::ip::udp::socket *GetSocket_UDP( )
+		{
+			return m_pSockUDP;
 		}
 
 		std::string && GetIP_Remote()

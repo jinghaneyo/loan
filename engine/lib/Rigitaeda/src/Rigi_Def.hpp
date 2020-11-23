@@ -27,3 +27,13 @@
 	#endif
 
 #endif
+
+#ifndef DEF_PTOTOCOL
+#define DEF_PTOTOCOL
+enum class PROTOCOL
+{
+	TCP,
+	UDP,
+	MAX
+};
+#endif
