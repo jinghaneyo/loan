@@ -13,49 +13,56 @@
 
 namespace Rigitaeda
 {
-class Rigi_Session
-{
-public:
-	Rigi_Session( __in boost::asio::io_service& _io_service, 
-				  __in boost::asio::ip::tcp::socket *_pSocket);
+	enum class PROTOCOL
+	{
+		TCP,
+		UDP,
+		MAX
+	};
 
-	virtual ~Rigi_Session();
+	class Rigi_Session
+	{
+	public:
+		Rigi_Session( __in boost::asio::io_service& _io_service, 
+					__in boost::asio::ip::tcp::socket *_pSocket);
 
-private:
-	std::array<char, MAX_MESSAGE_LEN> m_ReceiveBuffer;
-	boost::asio::ip::tcp::socket *m_pSocket = nullptr;
+		virtual ~Rigi_Session();
 
-	void Handler_Send( __in const boost::system::error_code& _error, 
-						__in size_t _bytes_transferred);
+	private:
+		std::array<char, MAX_MESSAGE_LEN> m_ReceiveBuffer;
+		boost::asio::ip::tcp::socket *m_pSocket = nullptr;
 
-	void Handler_Receive( __in const boost::system::error_code& _error, 
+		void Handler_Send( __in const boost::system::error_code& _error, 
 							__in size_t _bytes_transferred);
 
-public:
-	void Init();
+		void Handler_Receive( __in const boost::system::error_code& _error, 
+								__in size_t _bytes_transferred);
 
-	void PostReceive();
+	public:
+		void Init();
 
-	void PostSend( __in const char* _pData, __in size_t _nSize);
+		void PostReceive();
 
-	boost::asio::ip::tcp::socket *GetSocket()
-	{
-		return m_pSocket;
-	}
+		void PostSend( __in const char* _pData, __in size_t _nSize);
 
-	std::string && GetIP_Remote()
-	{
-		boost::asio::ip::tcp::endpoint remote_ep = m_pSocket->remote_endpoint();
-		boost::asio::ip::address remote_ad = remote_ep.address();
-		std::string s = remote_ad.to_string();
+		boost::asio::ip::tcp::socket *GetSocket()
+		{
+			return m_pSocket;
+		}
 
-		return std::move(s);
-	}
+		std::string && GetIP_Remote()
+		{
+			boost::asio::ip::tcp::endpoint remote_ep = m_pSocket->remote_endpoint();
+			boost::asio::ip::address remote_ad = remote_ep.address();
+			std::string s = remote_ad.to_string();
 
-	void Close( __in const boost::system::error_code& _error );
+			return std::move(s);
+		}
 
-	void Close();
-};
+		void Close( __in const boost::system::error_code& _error );
+
+		void Close();
+	};
 }
 
 #endif
