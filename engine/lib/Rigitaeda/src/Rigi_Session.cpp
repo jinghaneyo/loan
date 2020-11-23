@@ -1,5 +1,7 @@
 #include "Rigi_Session.hpp"
 
+using namespace Rigitaeda;
+
 Rigi_Session::Rigi_Session( __in boost::asio::io_service& _io_service, 
 							__in boost::asio::ip::tcp::socket *_pSocket )
 	: m_pSocket(_pSocket)
@@ -94,8 +96,6 @@ void Rigi_Session::Close( __in const boost::system::error_code& _error )
 		LOG(INFO) << "[CLOSE] " << strClientIP;
 
 		//*AfxGetPtr::Current_Session_Count() -= 1;
-
-		m_bIsAbleSocket = false;
 	}
 }
 

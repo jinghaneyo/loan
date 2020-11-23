@@ -12,6 +12,15 @@
 #include "Rigi_Def.hpp"
 #include "Rigi_Session.hpp"
 
+namespace Rigitaeda
+{
+enum class PROTOCOL
+{
+    TCP,
+    UDP,
+    MAX
+};
+
 class Rigi_Server
 {
 public:
@@ -40,5 +49,6 @@ public:
 
     void Handle_accept(Rigi_Session* pSession, const boost::system::error_code& error);
 };
+}
 
 #endif

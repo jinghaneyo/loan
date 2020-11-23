@@ -1,11 +1,14 @@
 #include "Rigi_Server.hpp"
 
+using namespace Rigitaeda;
+
 Rigi_Server::Rigi_Server() : m_acceptor(m_io_service)
 {
 }
 
 Rigi_Server::~Rigi_Server()
 {
+    Stop();
 }
 
 bool Rigi_Server::Run(int nPort, int nMaxClient)
@@ -16,7 +19,6 @@ bool Rigi_Server::Run(int nPort, int nMaxClient)
     m_io_service.reset();
 
     boost::asio::ip::tcp::endpoint endpoint(boost::asio::ip::tcp::v4(), m_nPort);
-    //boost::asio::ip::tcp::endpoint endpoint( boost::asio::ip::address::from_string("127.0.0.1"), m_nPort);
 
     m_acceptor.open(endpoint.protocol());
     m_acceptor.bind(endpoint);

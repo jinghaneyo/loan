@@ -11,7 +11,7 @@ int main()
 
 	LOG(INFO) << "Found " << 1 << " cookies";
 
-	Rigi_Server server;
+	Rigitaeda::Rigi_Server server;
 	server.Run(3333, 100);
 
 	return 1;
