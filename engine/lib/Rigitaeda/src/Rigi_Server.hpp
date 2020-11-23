@@ -21,9 +21,6 @@ namespace Rigitaeda
         ~Rigi_Server();
 
     private:
-        std::array<char, MAX_MESSAGE_LEN> m_ReceiveBuffer;
-        boost::asio::ip::tcp::socket *m_pSocket = nullptr;
-
         int m_nPort = 3333;
         int m_nMaxClient = 1000;
 

@@ -10,28 +10,27 @@
 #include <boost/system/error_code.hpp>
 
 #include "Rigi_Def.hpp"
+#include "Rigi_Socket.hpp"
 
 namespace Rigitaeda
 {
-	enum class PROTOCOL
-	{
-		TCP,
-		UDP,
-		MAX
-	};
-
 	class Rigi_Session
 	{
 	public:
-		Rigi_Session( 	__in PROTOCOL _eProtocol,
-						__in boost::asio::io_service& _io_service, 
+		Rigi_Session( 	__in boost::asio::io_service& _io_service, 
 						__in boost::asio::ip::tcp::socket *_pSocket);
+
+		Rigi_Session( 	__in boost::asio::io_service& _io_service, 
+						__in boost::asio::ip::udp::socket *_pSocket);
 
 		virtual ~Rigi_Session();
 
 	private:
 		std::array<char, MAX_MESSAGE_LEN> m_ReceiveBuffer;
-		boost::asio::ip::tcp::socket *m_pSocket = nullptr;
+		boost::asio::ip::tcp::socket *	m_pSockTCP = nullptr;
+		boost::asio::ip::udp::socket *	m_pSockUDP = nullptr;
+		//Rigi_Socket *m_pSocket = nullptr;
+		PROTOCOL	 m_eProtocol = PROTOCOL::TCP;
 
 		void Handler_Send( 	__in const boost::system::error_code& _error, 
 							__in size_t _bytes_transferred);
@@ -46,18 +45,34 @@ namespace Rigitaeda
 
 		void PostSend( __in const char* _pData, __in size_t _nSize);
 
-		boost::asio::ip::tcp::socket *GetSocket()
+		PROTOCOL GetProtocol()
 		{
-			return m_pSocket;
+			return m_eProtocol;
+		}
+
+		boost::asio::ip::tcp::socket *GetSocket( )
+		{
+			return m_pSockTCP;
 		}
 
 		std::string && GetIP_Remote()
 		{
-			boost::asio::ip::tcp::endpoint remote_ep = m_pSocket->remote_endpoint();
-			boost::asio::ip::address remote_ad = remote_ep.address();
-			std::string s = remote_ad.to_string();
+			std::string strIP = "0.0.0.0";
 
-			return std::move(s);
+			//if( PROTOCOL::TCP ==  m_eProtocol )
+			{
+				boost::asio::ip::tcp::endpoint remote_ep = m_pSockTCP->remote_endpoint();
+				boost::asio::ip::address remote_ad = remote_ep.address();
+				strIP = remote_ad.to_string();
+			}
+			// else
+			// {
+			// 	boost::asio::ip::udp::endpoint remote_ep = m_pSockUDP->remote_endpoint();
+			// 	boost::asio::ip::address remote_ad = remote_ep.address();
+			// 	strIP = remote_ad.to_string();
+			// }
+
+			return std::move(strIP);
 		}
 
 		void Close( __in const boost::system::error_code& _error );

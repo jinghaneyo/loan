@@ -22,7 +22,7 @@ bool Rigi_Server::Run( __in int _nPort, __in int _nMaxClient)
 
     m_acceptor.open(endpoint.protocol());
     m_acceptor.bind(endpoint);
-    m_acceptor.listen(nMaxClient);
+    m_acceptor.listen(_nMaxClient);
 
     StartAccept();
 
