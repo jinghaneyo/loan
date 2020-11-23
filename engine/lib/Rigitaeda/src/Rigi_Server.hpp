@@ -32,7 +32,7 @@ namespace Rigitaeda
 
         std::vector<Rigi_Session *> m_vecSession;
     public:
-        bool Run(int nPort, int nMaxClient);
+        bool Run( __in int _nPort, __in int _nMaxClient);
 
         void Stop();
 
@@ -40,7 +40,8 @@ namespace Rigitaeda
 
         void AsyncAccept();
 
-        void Handle_accept(Rigi_Session* pSession, const boost::system::error_code& error);
+        void Handle_accept( __in Rigi_Session* _pSession, 
+                            __in const boost::system::error_code& _error);
     };
 }
 

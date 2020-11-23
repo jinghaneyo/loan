@@ -11,10 +11,10 @@ Rigi_Server::~Rigi_Server()
     Stop();
 }
 
-bool Rigi_Server::Run(int nPort, int nMaxClient)
+bool Rigi_Server::Run( __in int _nPort, __in int _nMaxClient)
 {
-    m_nPort = nPort;
-    m_nMaxClient = nMaxClient;
+    m_nPort = _nPort;
+    m_nMaxClient = _nMaxClient;
 
     m_io_service.reset();
 
@@ -59,26 +59,27 @@ void Rigi_Server::AsyncAccept()
                                 boost::asio::placeholders::error));
 }
 
-void Rigi_Server::Handle_accept(Rigi_Session* pSession, const boost::system::error_code& error)
+void Rigi_Server::Handle_accept(    __in Rigi_Session* _pSession, 
+                                    __in const boost::system::error_code& _error)
 {
-    if (!error)
+    if (!_error)
     {
-        if (nullptr != pSession)
+        if (nullptr != _pSession)
         {
             //if (m_nMaxClient < *AfxGetPtr::Current_Session_Count())
             if (m_nMaxClient < (int)m_vecSession.size())
             {
                 char szClose[] = "Connection Full !!";
-                pSession->PostSend(szClose, sizeof(szClose));
+                _pSession->PostSend(szClose, sizeof(szClose));
 
-                pSession->Close();
+                _pSession->Close();
             }
             else
             {
-                std::string strClientIP = pSession->GetIP_Remote();
+                std::string strClientIP = _pSession->GetIP_Remote();
                 LOG(INFO) << "[ACCEPT] " << strClientIP;
 
-                pSession->PostReceive();
+                _pSession->PostReceive();
             }
         }
 

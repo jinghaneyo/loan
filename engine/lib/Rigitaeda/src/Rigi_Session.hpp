@@ -23,8 +23,9 @@ namespace Rigitaeda
 	class Rigi_Session
 	{
 	public:
-		Rigi_Session( __in boost::asio::io_service& _io_service, 
-					__in boost::asio::ip::tcp::socket *_pSocket);
+		Rigi_Session( 	__in PROTOCOL _eProtocol,
+						__in boost::asio::io_service& _io_service, 
+						__in boost::asio::ip::tcp::socket *_pSocket);
 
 		virtual ~Rigi_Session();
 
@@ -32,10 +33,10 @@ namespace Rigitaeda
 		std::array<char, MAX_MESSAGE_LEN> m_ReceiveBuffer;
 		boost::asio::ip::tcp::socket *m_pSocket = nullptr;
 
-		void Handler_Send( __in const boost::system::error_code& _error, 
+		void Handler_Send( 	__in const boost::system::error_code& _error, 
 							__in size_t _bytes_transferred);
 
-		void Handler_Receive( __in const boost::system::error_code& _error, 
+		void Handler_Receive( 	__in const boost::system::error_code& _error, 
 								__in size_t _bytes_transferred);
 
 	public:
