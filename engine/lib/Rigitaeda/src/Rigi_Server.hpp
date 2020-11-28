@@ -1,44 +1,54 @@
 #ifndef _RIGI_SERVER_H_
 #define _RIGI_SERVER_H_
 
-#include <iostream>
-#include <algorithm>
-#include <string>
-#include <boost/bind.hpp>
-#include <boost/asio.hpp>
-#include <boost/system/error_code.hpp>
-#include <vector>
-
 #include "Rigi_Def.hpp"
-#include "Rigi_Session.hpp"
+#include "Rigi_TCPMgr.hpp"
+#include "Rigi_TCPSession.hpp"
 
 namespace Rigitaeda
 {
+    class Rigi_UDPServer;
+
+    class TCPSession final : public Rigi_TCPSession 
+    {
+    public:
+        TCPSession() { }
+        ~TCPSession(){ }
+    };
+
     class Rigi_Server
     {
     public:
         Rigi_Server();
-        ~Rigi_Server();
-
+        virtual ~Rigi_Server();
     private:
-        int m_nPort = 3333;
-        int m_nMaxClient = 1000;
+        Rigi_TCPMgr<TCPSession> *m_pTCP_Mgr;
 
-        boost::asio::io_service m_io_service;
-        boost::asio::ip::tcp::acceptor m_acceptor;
-
-        std::vector<Rigi_Session *> m_vecSession;
+        Rigi_UDPServer *m_pUDP_Server;
     public:
-        bool Run( __in int _nPort, __in int _nMaxClient);
+        template <typename T>
+        bool Run(   __in int _nPort, 
+                    __in int _nMaxClient,
+                    __in Rigi_TCPMgr<T> *_pMgr = nullptr )
+        {
+            if(nullptr == _pMgr)
+            {
+                assert(0 && "Rigi_TCPMgr is not nullptr!!!");
+                return false;
+            }
+
+            _pMgr->Run( nullptr, _nPort, _nMaxClient );
+            // if(nullptr == _pMgr)
+            // {
+            //     m_pTCP_Mgr = new Rigi_TCPMgr<TCPSession>();
+            //     m_pTCP_Mgr->Run( nullptr, _nPort, _nMaxClient );
+            // }
+            // else
+
+            return true;
+        }
 
         void Stop();
-
-        void StartAccept();
-
-        void AsyncAccept();
-
-        void Handle_accept( __in Rigi_Session* _pSession, 
-                            __in const boost::system::error_code& _error);
     };
 }
 
