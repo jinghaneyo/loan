@@ -2,11 +2,8 @@
 
 using namespace Rigitaeda;
 
-Rigi_TCPSession::Rigi_TCPSession( 	__in boost::asio::io_service& _io_service, 
-									__in SOCKET_TCP *_pSocket )
-	: m_pSocket(_pSocket)
+Rigi_TCPSession::Rigi_TCPSession()
 {
-	assert(m_pSocket && "Do not nullptr m_pSockTCP !!!");
 	m_Event_Receive = nullptr;
 }
 
@@ -15,6 +12,18 @@ Rigi_TCPSession::~Rigi_TCPSession()
 	Close(boost::asio::error::eof);
 
 	m_Event_Receive = nullptr;
+}
+
+void Rigi_TCPSession::Event_Receive(__in SOCKET_TCP *_pSocket,
+									__in char *_pData,
+									__in size_t _nData_len )
+{
+	std::cout << "[HANDLER RECV][" << m_ReceiveBuffer.data() << std::endl;
+	// receive 콜백 함수 호출 
+	if(nullptr != m_Event_Receive)
+	{
+		m_Event_Receive( _pSocket, _pData, _nData_len );
+	}
 }
 
 void Rigi_TCPSession::Handler_Receive( 	__in const boost::system::error_code& _error, 
@@ -32,9 +41,7 @@ void Rigi_TCPSession::Handler_Receive( 	__in const boost::system::error_code& _e
 	}
 	else
 	{
-		// receive 콜백 함수 호출 
-		if(nullptr != m_Event_Receive)
-			m_Event_Receive( m_pSocket, m_ReceiveBuffer.data(), _bytes_transferred );
+		Event_Receive( m_pSocket, m_ReceiveBuffer.data(), _bytes_transferred );
 
 		Async_Receive();
 	}
