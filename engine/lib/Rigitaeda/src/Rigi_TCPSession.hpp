@@ -8,8 +8,7 @@ namespace Rigitaeda
 	class Rigi_TCPSession
 	{
 	public:
-		Rigi_TCPSession( 	__in boost::asio::io_service& _io_service, 
-							__in SOCKET_TCP *_pSocket);
+		Rigi_TCPSession();
 		virtual ~Rigi_TCPSession();
 
 	private:
@@ -19,18 +18,22 @@ namespace Rigitaeda
 
 		Event_Received_TCP m_Event_Receive;
 
-		void Handler_Send( 	__in const boost::system::error_code& _error, 
-							__in size_t _bytes_transferred);
-
 		void Handler_Receive( 	__in const boost::system::error_code& _error, 
 								__in size_t _bytes_transferred);
+
+		void Handler_Send( 	__in const boost::system::error_code& _error, 
+							__in size_t _bytes_transferred);
 
 	public:
 		void Init();
 
-		void SetEvent_Receive( __in Event_Received_TCP &&_Event );
+		virtual void Event_Receive(	__in SOCKET_TCP *_pSocket,
+									__in char *_pData,
+									__in size_t _nData_len );
 
 		void Async_Receive();
+
+		void SetEvent_Receive( __in Event_Received_TCP &&_Event );
 
 		void PostSend( __in const char* _pData, __in size_t _nSize);
 
@@ -39,7 +42,17 @@ namespace Rigitaeda
 			return m_pSocket;
 		}
 
+		void SetSocket( __in SOCKET_TCP *_pSocket )
+		{
+			m_pSocket = _pSocket;
+		}
+
 		std::string && GetIP_Remote();
+
+		const char *GetPacket_Receive()
+		{
+			return m_ReceiveBuffer.data();
+		}
 
 		void Close( __in const boost::system::error_code& _error );
 
