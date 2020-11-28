@@ -27,9 +27,13 @@ namespace Rigitaeda
 	public:
 		void Init();
 
-		virtual void Event_Receive(	__in SOCKET_TCP *_pSocket,
-									__in char *_pData,
-									__in size_t _nData_len );
+		// -----------------------------------------------------------
+		// Event(콜백)
+		virtual void OnEvent_Receive(	__in char *_pData,
+										__in size_t _nData_len );
+
+		virtual void OnEvent_Close(){};
+		// -----------------------------------------------------------
 
 		void Async_Receive();
 

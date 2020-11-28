@@ -14,15 +14,14 @@ Rigi_TCPSession::~Rigi_TCPSession()
 	m_Event_Receive = nullptr;
 }
 
-void Rigi_TCPSession::Event_Receive(__in SOCKET_TCP *_pSocket,
-									__in char *_pData,
-									__in size_t _nData_len )
+void Rigi_TCPSession::OnEvent_Receive(	__in char *_pData,
+										__in size_t _nData_len )
 {
 	std::cout << "[HANDLER RECV][" << m_ReceiveBuffer.data() << std::endl;
 	// receive 콜백 함수 호출 
 	if(nullptr != m_Event_Receive)
 	{
-		m_Event_Receive( _pSocket, _pData, _nData_len );
+		m_Event_Receive( m_pSocket, _pData, _nData_len );
 	}
 }
 
@@ -37,11 +36,13 @@ void Rigi_TCPSession::Handler_Receive( 	__in const boost::system::error_code& _e
 
 	if (_error)
 	{	
+		OnEvent_Close();
+
 		Close(_error);
 	}
 	else
 	{
-		Event_Receive( m_pSocket, m_ReceiveBuffer.data(), _bytes_transferred );
+		OnEvent_Receive( m_ReceiveBuffer.data(), _bytes_transferred );
 
 		Async_Receive();
 	}

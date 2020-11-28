@@ -11,11 +11,15 @@ public:
 	TCPSessionTest() { }
 	virtual ~TCPSessionTest() { }
 
-	void Event_Receive(	__in SOCKET_TCP *_pSocket,
-						__in char *_pData,
-						__in size_t _nData_len )
+	void OnEvent_Receive(	__in char *_pData,
+							__in size_t _nData_len )
 	{
-		std::cout << "[TCPSessionTest::Rev] >> " << _pData << std::endl;
+		std::cout << "[TCPSessionTest::OnReceive] >> " << _pData << std::endl;
+	}
+
+	void OnEvent_Close()
+	{
+		std::cout << "[TCPSessionTest::OnClose] >> " << GetIP_Remote() << std::endl;
 	}
 };
 
