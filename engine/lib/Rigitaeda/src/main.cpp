@@ -1,7 +1,23 @@
 #ifdef _BIN
 #include <string>
 #include <glog/logging.h>
-#include "Rigi_TServer.hpp"
+#include "Rigi_Server.hpp"
+
+using namespace Rigitaeda;
+
+class TCPSessionTest : public Rigi_TCPSession
+{
+public:
+	TCPSessionTest() { }
+	virtual ~TCPSessionTest() { }
+
+	void Event_Receive(	__in SOCKET_TCP *_pSocket,
+						__in char *_pData,
+						__in size_t _nData_len )
+	{
+		std::cout << "[TCPSessionTest::Rev] >> " << _pData << std::endl;
+	}
+};
 
 int main()
 {
@@ -9,10 +25,11 @@ int main()
  	google::SetLogDestination( google::GLOG_INFO, "./DUMP." );      // 출력 로그 레벨 설정, 출력 위치 Test. <= 파일 저장시 접두사로 사용됨
 	//google::EnableLogCleaner(3);
 
-	LOG(INFO) << "Found " << 1 << " cookies";
+    std::cout << "[START] << server run" << std::endl;
 
-	Rigitaeda::Rigi_TServer server;
-	server.Run(3333, 100);
+	Rigi_TCPMgr<TCPSessionTest> tcp;
+	Rigi_Server server;
+	server.Run( 3333, 100, &tcp );
 
 	return 1;
 }
