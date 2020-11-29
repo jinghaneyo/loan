@@ -2,9 +2,11 @@
 #define _RIGI_TCP_SERVER_H_
 
 #include <vector>
+#include <map>
 
 #include "Rigi_Def.hpp"
 #include "Rigi_TCPSession.hpp"
+#include "Rigi_SessionPool.hpp"
 
 namespace Rigitaeda
 {
@@ -15,8 +17,6 @@ namespace Rigitaeda
         Rigi_TCPMgr() : m_acceptor(m_io_service)
         {
             m_nPort = 3333;
-            m_nMaxClient = 1000;
-            m_Event_Receive = nullptr;
         }
 
         virtual ~Rigi_TCPMgr()
@@ -26,23 +26,18 @@ namespace Rigitaeda
 
     private:
         int m_nPort;
-        int m_nMaxClient;
 
-        boost::asio::io_service m_io_service;
-        boost::asio::ip::tcp::acceptor m_acceptor;
+        boost::asio::io_service         m_io_service;
+        boost::asio::ip::tcp::acceptor  m_acceptor;
 
-        Event_Received_TCP m_Event_Receive;
-
-        std::vector<T *> m_vecSession;
+        Rigi_SessionPool                m_SessionPool;
     public:
-        bool Run(   __in Event_Received_TCP &&_Callback,
-                    __in int _nPort, 
-                    __in int _nMaxClient)
+        bool Run(   __in int _nPort, 
+                    __in int _nMaxClient )
         {
             m_nPort = _nPort;
-            m_nMaxClient = _nMaxClient;
 
-            m_Event_Receive = std::move(_Callback);
+            m_SessionPool.Set_MaxClient(_nMaxClient);
 
             m_io_service.reset();
 
@@ -67,11 +62,7 @@ namespace Rigitaeda
 
             m_io_service.stop();
 
-            for(auto &pSocket : m_vecSession)
-            {
-                pSocket->Close();
-                delete pSocket;
-            }
+            m_SessionPool.Clear();
         }
 
         void StartAccept()
@@ -83,41 +74,25 @@ namespace Rigitaeda
         {
             SOCKET_TCP * pSocket = new SOCKET_TCP(m_io_service);
 
-            T *pSession = new T();
-            pSession->SetSocket(pSocket);
-            m_vecSession.emplace_back(pSession);
-
-            m_acceptor.async_accept(*(pSession->GetSocket()),
+            m_acceptor.async_accept(    *pSocket,
                                         boost::bind(&Rigi_TCPMgr::Handle_accept,
                                                     this,
-                                                    pSession,
+                                                    pSocket,
                                                     boost::asio::placeholders::error)
             );
         }
 
-        void Handle_accept( __in Rigi_TCPSession* _pSession, 
-                            __in const boost::system::error_code& _error)
+        void Handle_accept( __in SOCKET_TCP *_pSocket,
+                            __in const boost::system::error_code& _error )
         {
             if (!_error)
             {
-                if (nullptr != _pSession)
+                T *pSession = new T();
+                pSession->SetSocket(_pSocket);
+
+                if( false == m_SessionPool.Add_Session(pSession) )
                 {
-                    if (m_nMaxClient < (int)m_vecSession.size())
-                    {
-                        char szClose[] = "Connection Full !!";
-                        std::cout << "[ACCEPT] >> " << szClose << std::endl;
-                        _pSession->PostSend(szClose, sizeof(szClose));
-
-                        _pSession->Close();
-                    }
-                    else
-                    {
-                        std::string strClientIP = _pSession->GetIP_Remote();
-                        LOG(INFO) << "[ACCEPT] " << strClientIP;
-
-                        _pSession->SetEvent_Receive( std::move(m_Event_Receive) );
-                        _pSession->Async_Receive();
-                    }
+                    delete pSession;
                 }
 
                 AsyncAccept();

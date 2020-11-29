@@ -1,28 +1,30 @@
 #include "Rigi_TCPSession.hpp"
+#include "Rigi_TCPMgr.hpp"
 
 using namespace Rigitaeda;
 
 Rigi_TCPSession::Rigi_TCPSession()
 {
-	m_Event_Receive = nullptr;
+	m_pSocket = nullptr;
 }
 
 Rigi_TCPSession::~Rigi_TCPSession()
 {
 	Close(boost::asio::error::eof);
 
-	m_Event_Receive = nullptr;
+	m_pSocket = nullptr;
 }
 
 void Rigi_TCPSession::OnEvent_Receive(	__in char *_pData,
 										__in size_t _nData_len )
 {
 	std::cout << "[HANDLER RECV][" << m_ReceiveBuffer.data() << std::endl;
+
 	// receive 콜백 함수 호출 
-	if(nullptr != m_Event_Receive)
-	{
-		m_Event_Receive( m_pSocket, _pData, _nData_len );
-	}
+	// if(nullptr != m_Event_Receive)
+	// {
+	// 	m_Event_Receive( m_pSocket, _pData, _nData_len );
+	// }
 }
 
 void Rigi_TCPSession::Handler_Receive( 	__in const boost::system::error_code& _error, 
@@ -30,7 +32,7 @@ void Rigi_TCPSession::Handler_Receive( 	__in const boost::system::error_code& _e
 {
 	if (nullptr == m_pSocket)
 	{
-		assert(0 && "m_pSocket is not nullptr!!!");
+		assert(0 && "[Rigi_TCPSession::Handler_Receive] m_pSocket is not nullptr!!!");
 		return;
 	}
 
@@ -64,7 +66,7 @@ void Rigi_TCPSession::Async_Receive()
 
 	if (nullptr == m_pSocket)
 	{
-		assert(0 && "m_pSocket is not nullptr!!!");
+		assert(0 && "[Rigi_TCPSession::Async_Receive] m_pSocket is not nullptr!!!");
 		// todo 에러값 저장 
 		return;
 	}
@@ -76,12 +78,24 @@ void Rigi_TCPSession::Async_Receive()
 											boost::asio::placeholders::bytes_transferred) );
 }
 
-void Rigi_TCPSession::PostSend( __in const char* _pData, 
-							 	__in size_t _nSize)
+void Rigi_TCPSession::Send( __in const char* _pData, 
+							__in size_t _nSize)
 {
 	if (nullptr == m_pSocket)
 	{
-		assert(0 && "m_pSocket is not nullptr!!!");
+		assert(0 && "[Rigi_TCPSession::Send] m_pSocket is not nullptr!!!");
+		return;
+	}
+
+	m_pSocket->send(boost::asio::buffer(_pData, _nSize));
+}
+
+void Rigi_TCPSession::Async_Send( 	__in const char* _pData, 
+							 		__in size_t _nSize)
+{
+	if (nullptr == m_pSocket)
+	{
+		assert(0 && "[Rigi_TCPSession::Async_Send] m_pSocket is not nullptr!!!");
 		return;
 	}
 
@@ -97,10 +111,7 @@ void Rigi_TCPSession::PostSend( __in const char* _pData,
 void Rigi_TCPSession::Close( __in const boost::system::error_code& _error )
 {
 	if (nullptr == m_pSocket)
-	{
-		assert(0 && "m_pSocket is not nullptr!!!");
 		return;
-	}
 
 	if (true == m_pSocket->is_open())
 	{
@@ -110,17 +121,16 @@ void Rigi_TCPSession::Close( __in const boost::system::error_code& _error )
 		m_pSocket->close();
 		m_pSocket = nullptr;
 	}
+
+	if(nullptr != m_pSessionPool)
+		m_pSessionPool->Close_Session(this);
+	m_pSessionPool = nullptr;
 }
 
 void Rigi_TCPSession::Close()
 {
 	boost::system::error_code error;
 	Close(error);
-}
-
-void Rigi_TCPSession::SetEvent_Receive( __in Event_Received_TCP &&_Event )
-{
-	m_Event_Receive = std::move(_Event);
 }
 
 std::string && Rigi_TCPSession::GetIP_Remote()
@@ -135,7 +145,16 @@ std::string && Rigi_TCPSession::GetIP_Remote()
 	}
 	else
 	{
-		std::string strIP = "0.0.0.0";
-		return std::move(strIP);
+		return std::move(m_strIP_Client);
 	}
+}
+
+void Rigi_TCPSession::SetSessionPool( __in Rigi_SessionPool *_pSessionPool )
+{
+	m_pSessionPool = _pSessionPool;
+}
+
+const Rigi_SessionPool *Rigi_TCPSession::GetSessionPool()
+{
+	return m_pSessionPool;
 }

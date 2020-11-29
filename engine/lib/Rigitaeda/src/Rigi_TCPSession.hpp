@@ -5,6 +5,8 @@
 
 namespace Rigitaeda
 {
+	class Rigi_SessionPool;
+
 	class Rigi_TCPSession
 	{
 	public:
@@ -14,15 +16,16 @@ namespace Rigitaeda
 	private:
 		std::array<char, MAX_MESSAGE_LEN> m_ReceiveBuffer;
 		SOCKET_TCP *m_pSocket;
+		Rigi_SessionPool *m_pSessionPool;
 		std::string m_strIP_Client;
-
-		Event_Received_TCP m_Event_Receive;
 
 		void Handler_Receive( 	__in const boost::system::error_code& _error, 
 								__in size_t _bytes_transferred);
 
 		void Handler_Send( 	__in const boost::system::error_code& _error, 
 							__in size_t _bytes_transferred);
+
+		void Close( __in const boost::system::error_code& _error );
 
 	public:
 		void Init();
@@ -37,9 +40,8 @@ namespace Rigitaeda
 
 		void Async_Receive();
 
-		void SetEvent_Receive( __in Event_Received_TCP &&_Event );
-
-		void PostSend( __in const char* _pData, __in size_t _nSize);
+		void Send( __in const char* _pData, __in size_t _nSize);
+		void Async_Send( __in const char* _pData, __in size_t _nSize);
 
 		SOCKET_TCP * GetSocket( )
 		{
@@ -58,7 +60,8 @@ namespace Rigitaeda
 			return m_ReceiveBuffer.data();
 		}
 
-		void Close( __in const boost::system::error_code& _error );
+		void SetSessionPool( __in Rigi_SessionPool *_pSessionPool );
+		const Rigi_SessionPool * GetSessionPool();
 
 		void Close();
 	};

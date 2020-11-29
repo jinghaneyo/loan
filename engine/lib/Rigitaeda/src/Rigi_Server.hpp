@@ -37,7 +37,7 @@ namespace Rigitaeda
                 return false;
             }
 
-            _pMgr->Run( nullptr, _nPort, _nMaxClient );
+            _pMgr->Run( _nPort, _nMaxClient );
             // if(nullptr == _pMgr)
             // {
             //     m_pTCP_Mgr = new Rigi_TCPMgr<TCPSession>();

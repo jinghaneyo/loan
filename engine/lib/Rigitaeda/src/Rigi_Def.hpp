@@ -2,7 +2,7 @@
 #define DEF_COMMON_H_
 
 #ifndef MAX_MESSAGE_LEN
-#define MAX_MESSAGE_LEN		1024	
+#define MAX_MESSAGE_LEN		1024
 #endif
 
 #ifndef VER_MAJOR
@@ -52,6 +52,5 @@ typedef boost::asio::ip::udp::socket 	SOCKET_UDP;
 
 typedef std::function<void(SOCKET_TCP *, char *pData, size_t nSize)> Event_Received_TCP;
 typedef std::function<void(SOCKET_UDP *, char *pData, size_t nSize)> Event_Received_UDP;
-//typedef std::function<void(std::vector<SOCKET_PTR> *pSocketList, SOCKET_PTR, char *pData, size_t nSize)> Event_Received;
 
 #endif
