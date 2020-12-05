@@ -18,13 +18,7 @@ Rigi_TCPSession::~Rigi_TCPSession()
 void Rigi_TCPSession::OnEvent_Receive(	__in char *_pData,
 										__in size_t _nData_len )
 {
-	std::cout << "[HANDLER RECV][" << m_ReceiveBuffer.data() << std::endl;
-
-	// receive 콜백 함수 호출 
-	// if(nullptr != m_Event_Receive)
-	// {
-	// 	m_Event_Receive( m_pSocket, _pData, _nData_len );
-	// }
+	// 재정의하여 데이터 처리 부분을 추가한다.
 }
 
 void Rigi_TCPSession::Handler_Receive( 	__in const boost::system::error_code& _error, 

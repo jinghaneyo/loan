@@ -31,6 +31,41 @@ namespace Rigitaeda
         boost::asio::ip::tcp::acceptor  m_acceptor;
 
         Rigi_SessionPool                m_SessionPool;
+
+        void AsyncAccept()
+        {
+            SOCKET_TCP * pSocket = new SOCKET_TCP(m_io_service);
+
+            m_acceptor.async_accept(    *pSocket,
+                                        boost::bind(&Rigi_TCPMgr::Handle_accept,
+                                                    this,
+                                                    pSocket,
+                                                    boost::asio::placeholders::error)
+            );
+        }
+
+        void Handle_accept( __in SOCKET_TCP *_pSocket,
+                            __in const boost::system::error_code& _error )
+        {
+            if (!_error)
+            {
+                TCP_TMPL *pSession = nullptr;
+                pSession = (TCP_TMPL *)m_SessionPool.Add_Session(_pSocket);
+                if( nullptr == pSession )
+                {
+                    ;
+                }
+                else
+                    OnEvent_Accept_Session( pSession );
+
+                AsyncAccept();
+            }
+            else
+            {
+                //AfxGetPtr::SetLastError(error.message());
+            }
+        }
+
     public:
         bool Run(   __in int _nPort, 
                     __in int _nMaxClient )
@@ -58,7 +93,7 @@ namespace Rigitaeda
             m_acceptor.bind(endpoint);
             m_acceptor.listen(_nMaxClient);
 
-            StartAccept();
+            AsyncAccept();
 
             boost::system::error_code ec;
             m_io_service.run(ec);
@@ -76,47 +111,14 @@ namespace Rigitaeda
             m_SessionPool.Clear();
         }
 
-        void StartAccept()
-        {
-            AsyncAccept();
-        }
-
-        void AsyncAccept()
-        {
-            SOCKET_TCP * pSocket = new SOCKET_TCP(m_io_service);
-
-            m_acceptor.async_accept(    *pSocket,
-                                        boost::bind(&Rigi_TCPMgr::Handle_accept,
-                                                    this,
-                                                    pSocket,
-                                                    boost::asio::placeholders::error)
-            );
-        }
-
-        void Handle_accept( __in SOCKET_TCP *_pSocket,
-                            __in const boost::system::error_code& _error )
-        {
-            if (!_error)
-            {
-                TCP_TMPL *pSession = new TCP_TMPL();
-                pSession->SetSocket(_pSocket);
-
-                if( false == m_SessionPool.Add_Session(pSession) )
-                {
-                    delete pSession;
-                }
-
-                AsyncAccept();
-            }
-            else
-            {
-                //AfxGetPtr::SetLastError(error.message());
-            }
-        }
-
         void Load_Conf( __in const char *_pszPath_Conf )
         {
             m_SessionPool.Load_Conf(_pszPath_Conf);
+        }
+
+        virtual void OnEvent_Accept_Session( __in TCP_TMPL *_pSession )
+        {
+            // 재정의하여 데이터 처리 부분을 추가한다.
         }
     };
 

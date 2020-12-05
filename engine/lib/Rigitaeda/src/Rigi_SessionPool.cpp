@@ -17,34 +17,43 @@ void Rigi_SessionPool::Set_MaxClient( __in int _nMaxClient )
 	m_nMaxClient = _nMaxClient;
 }
 
-bool Rigi_SessionPool::Add_Session( __in Rigi_TCPSession *_pSession )
+Rigi_TCPSession * Rigi_SessionPool::Add_Session( __in SOCKET_TCP *_pSocket )
 {
-	auto find = m_mapTCP.find(_pSession);
+	Rigi_TCPSession *pSession = new Rigi_TCPSession();
+
+	auto find = m_mapTCP.find(pSession);
 	if(find == m_mapTCP.end())
 	{
-		_pSession->SetSessionPool(this);
+		pSession->SetSocket(_pSocket);
+		pSession->SetSessionPool(this);
 
-		m_mapTCP.insert( std::make_pair(_pSession, _pSession) );
+		m_mapTCP.insert( std::make_pair(pSession, pSession) );
 
 		if (m_nMaxClient < (int)m_mapTCP.size())
 		{
 			char szClose[] = "Connection Full !!";
 			std::cout << "[ACCEPT] >> " << szClose << std::endl;
-			_pSession->Send(szClose, sizeof(szClose));
-			_pSession->Close();
+			pSession->Send(szClose, sizeof(szClose));
+			pSession->Close();
+			delete pSession;
+
+			return nullptr;
 		}
 		else
 		{
-			std::string strClientIP = _pSession->GetIP_Remote();
+			std::string strClientIP = pSession->GetIP_Remote();
 			LOG(INFO) << "[ACCEPT] " << strClientIP;
 
-			_pSession->Async_Receive();
+			pSession->Async_Receive();
+			return pSession;
 		}
-
-		return true;
+	}
+	else
+	{
+		delete pSession;
 	}
 
-	return false;
+	return nullptr;
 }
 
 bool Rigi_SessionPool::Close_Session( __in Rigi_TCPSession *_pSession )
