@@ -1,5 +1,5 @@
 #include "Rigi_TCPSession.hpp"
-#include "Rigi_TCPMgr.hpp"
+#include "Rigi_SessionPool.hpp"
 
 using namespace Rigitaeda;
 
@@ -157,4 +157,12 @@ void Rigi_TCPSession::SetSessionPool( __in Rigi_SessionPool *_pSessionPool )
 const Rigi_SessionPool *Rigi_TCPSession::GetSessionPool()
 {
 	return m_pSessionPool;
+}
+
+_OUTPUT_TYPE Rigi_TCPSession::GetType_Output()
+{
+	if(nullptr == m_pSessionPool)
+		return _OUTPUT_TYPE::LOG;
+	else
+		return m_pSessionPool->GetType_Output();
 }

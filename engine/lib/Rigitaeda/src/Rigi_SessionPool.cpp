@@ -4,6 +4,7 @@ using namespace Rigitaeda;
 
 Rigi_SessionPool::Rigi_SessionPool()
 {
+	m_eTypeOutput = _OUTPUT_TYPE::LOG;
 }
 
 Rigi_SessionPool::~Rigi_SessionPool()
@@ -92,4 +93,9 @@ void Rigi_SessionPool::Clear()
 	// for(auto &sock : m_mapUDP)
 	// 	delete sock.second;
 	// m_mapUDP.clear();
+}
+
+void Rigi_SessionPool::Load_Conf( __in const char *_pszPath_conf )
+{
+
 }
