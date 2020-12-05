@@ -12,6 +12,7 @@ add_definitions("-Wall -std=c++11 -D_BIN")
 
 include_directories(${GLOG_INCLUDE_DIRS} ${GFLAGS_INCLUDE_DIRS})
 
+INCLUDE_DIRECTORIES(./include)
 INCLUDE_DIRECTORIES(/usr/include/boost/include)
 LINK_DIRECTORIES(/usr/include/boost/lib)
 INCLUDE_DIRECTORIES(/usr/include/glog/include)
@@ -21,8 +22,10 @@ LINK_DIRECTORIES(/usr/lib64/)
 
 ADD_EXECUTABLE(Rigitaeda 
 	src/main.cpp
-	src/Rigi_TCPMgr.hpp
+	include/Rigi_TCPMgr.hpp
 	src/Rigi_TCPSession.cpp
+	include/Rigi_Setting.hpp
+	src/Rigi_SessionPool.cpp
 	src/Rigi_Server.cpp
 	)
 

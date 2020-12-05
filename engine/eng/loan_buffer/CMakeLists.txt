@@ -10,22 +10,26 @@ add_definitions("-Wall -std=c++11")
 #find_package (glog REQUIRED)
 #find_package(gflags REQUIRED)
 
-set(RIGITAEDA ../../lib/Rigitaeda/src)
+set(RIGITAEDA_INCLUDE ../../lib/Rigitaeda/include)
+set(RIGITAEDA_SRC ../../lib/Rigitaeda/src)
 
+INCLUDE_DIRECTORIES(${RIGITAEDA_INCLUDE})
+INCLUDE_DIRECTORIES(${RIGITAEDA_SRC})
 INCLUDE_DIRECTORIES(/usr/include/boost/include)
 LINK_DIRECTORIES(/usr/include/boost/lib)
 INCLUDE_DIRECTORIES(/usr/include/glog/include)
 LINK_DIRECTORIES(/usr/include/glog/lib)
 INCLUDE_DIRECTORIES(/usr/include/gflags)
 LINK_DIRECTORIES(/usr/lib64/)
-INCLUDE_DIRECTORIES(${RIGITAEDA})
 
 ADD_EXECUTABLE(loan_buffer
 	src/main.cpp
 	src/loan_Server.hpp
-	${RIGITAEDA}/Rigi_Server.cpp
-	${RIGITAEDA}/Rigi_TCPSession.cpp
-	${RIGITAEDA}/Rigi_TCPMgr.hpp
+	${RIGITAEDA_SRC}/Rigi_Server.cpp
+	${RIGITAEDA_SRC}/Rigi_SessionPool.cpp
+	${RIGITAEDA_SRC}/Rigi_TCPSession.cpp
+	${RIGITAEDA_INCLUDE}/Rigi_Setting.hpp
+	${RIGITAEDA_INCLUDE}/Rigi_TCPMgr.hpp
 	)
 
 TARGET_LINK_LIBRARIES( loan_buffer gflags glog pthread boost_system boost_thread )
