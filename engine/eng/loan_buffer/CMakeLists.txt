@@ -25,6 +25,7 @@ LINK_DIRECTORIES(/usr/lib64/)
 ADD_EXECUTABLE(loan_buffer
 	src/main.cpp
 	src/loan_Server.hpp
+	${RIGITAEDA_INCLUDE}/Rigi_ClientTCP.hpp
 	${RIGITAEDA_SRC}/Rigi_Server.cpp
 	${RIGITAEDA_SRC}/Rigi_SessionPool.cpp
 	${RIGITAEDA_SRC}/Rigi_TCPSession.cpp
