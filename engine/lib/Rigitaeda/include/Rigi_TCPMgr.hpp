@@ -49,16 +49,22 @@ namespace Rigitaeda
         {
             if (!_error)
             {
-                TCP_TMPL *pSession = nullptr;
-                pSession = (TCP_TMPL *)m_SessionPool.Add_Session(_pSocket);
-                if( nullptr == pSession )
+                try
                 {
-                    ;
-                }
-                else
-                    OnEvent_Accept_Session( pSession );
+                    TCP_TMPL *pSession = new TCP_TMPL();
+                    if( false == m_SessionPool.Add_Session(pSession, _pSocket) )
+                    {
+                        delete pSession;
+                    }
+                    else
+                        OnEvent_Accept_Session( pSession );
 
-                AsyncAccept();
+                    AsyncAccept();
+                }
+                catch(const std::exception& e)
+                {
+                    std::cerr << "[Exception][Handle_accept] >> " << e.what() << '\n';
+                }
             }
             else
             {

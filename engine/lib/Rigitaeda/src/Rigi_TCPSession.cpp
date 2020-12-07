@@ -127,19 +127,30 @@ void Rigi_TCPSession::Close()
 	Close(error);
 }
 
-std::string && Rigi_TCPSession::GetIP_Remote()
+const char *Rigi_TCPSession::GetIP_Remote()
 {
-	if( true == m_strIP_Client.empty())
+	try
 	{
-		boost::asio::ip::tcp::endpoint remote_ep = m_pSocket->remote_endpoint();
-		boost::asio::ip::address remote_ad = remote_ep.address();
-		m_strIP_Client = remote_ad.to_string();
+		if( true == m_strIP_Client.empty())
+		{
+			if(nullptr != m_pSocket)
+			{
+				boost::asio::ip::tcp::endpoint remote_ep = m_pSocket->remote_endpoint();
+				boost::asio::ip::address remote_ad = remote_ep.address();
+				m_strIP_Client = remote_ad.to_string();
 
-		return std::move(m_strIP_Client);
+				return m_strIP_Client.c_str();
+			}
+			else
+				return "0.0.0.0";
+		}
+		else
+			return m_strIP_Client.c_str();
 	}
-	else
+	catch(const std::exception& e)
 	{
-		return std::move(m_strIP_Client);
+		std::cerr << "[Rigi_TCPSession::GetIP_Remote] ERR = " << e.what() << '\n';
+		return "0.0.0.0";
 	}
 }
 

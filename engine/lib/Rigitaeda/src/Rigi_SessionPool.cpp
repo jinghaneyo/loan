@@ -17,43 +17,38 @@ void Rigi_SessionPool::Set_MaxClient( __in int _nMaxClient )
 	m_nMaxClient = _nMaxClient;
 }
 
-Rigi_TCPSession * Rigi_SessionPool::Add_Session( __in SOCKET_TCP *_pSocket )
+bool Rigi_SessionPool::Add_Session( __in Rigi_TCPSession *_pSession,
+									__in SOCKET_TCP *_pSocket )
 {
-	Rigi_TCPSession *pSession = new Rigi_TCPSession();
+	// 미리 호출해서 접속한 클라이언트 아이피를 저장하자
+	// 여기서 호출하지 않으면 close 때 호출이 되는데 이때는 값이 없다.
+	_pSession->SetSocket(_pSocket);
+	std::string strClientIP = _pSession->GetIP_Remote();
 
-	auto find = m_mapTCP.find(pSession);
+	auto find = m_mapTCP.find(_pSession);
 	if(find == m_mapTCP.end())
 	{
-		pSession->SetSocket(_pSocket);
-		pSession->SetSessionPool(this);
-
-		m_mapTCP.insert( std::make_pair(pSession, pSession) );
-
 		if (m_nMaxClient < (int)m_mapTCP.size())
 		{
-			char szClose[] = "Connection Full !!";
-			std::cout << "[ACCEPT] >> " << szClose << std::endl;
-			pSession->Send(szClose, sizeof(szClose));
-			pSession->Close();
-			delete pSession;
-
-			return nullptr;
+			char szClose[] = "Connection Full (";
+			std::cout << "[ACCEPT] >> " << szClose << strClientIP << ")" << std::endl;
+			_pSession->Send(szClose, sizeof(szClose));
+			_pSession->Close();
+			return false;
 		}
 		else
 		{
-			std::string strClientIP = pSession->GetIP_Remote();
+			m_mapTCP.insert( std::make_pair(_pSession, _pSession) );
+
 			LOG(INFO) << "[ACCEPT] " << strClientIP;
 
-			pSession->Async_Receive();
-			return pSession;
+			_pSession->SetSessionPool(this);
+			_pSession->Async_Receive();
+			return true;
 		}
 	}
 	else
-	{
-		delete pSession;
-	}
-
-	return nullptr;
+		return false;
 }
 
 bool Rigi_SessionPool::Close_Session( __in Rigi_TCPSession *_pSession )

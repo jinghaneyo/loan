@@ -54,7 +54,7 @@ namespace Rigitaeda
 			m_pSocket = _pSocket;
 		}
 
-		std::string && GetIP_Remote();
+		const char *GetIP_Remote();
 
 		const char *GetPacket_Receive()
 		{

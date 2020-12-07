@@ -24,7 +24,8 @@ namespace Rigitaeda
 		Rigi_Output m_Setting_Output;
 	public:
 		void Set_MaxClient( __in int _nMaxClient );
-		bool Add_Session( __in SOCKET_TCP *_pSocket );
+		bool Add_Session( 	__in Rigi_TCPSession *_pSession,
+							__in SOCKET_TCP *_pSocket );
 		bool Close_Session( __in Rigi_TCPSession *_pSession );
 		// bool Add_Session( __in Rigi_UDPSession *_pSession );
 		// bool Close_Session( __in Rigi_UDPSession *_pSession );
