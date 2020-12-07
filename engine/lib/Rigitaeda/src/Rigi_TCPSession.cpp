@@ -1,4 +1,5 @@
 #include "Rigi_TCPSession.hpp"
+#include "Rigi_TCPMgr.hpp"
 #include "Rigi_SessionPool.hpp"
 
 using namespace Rigitaeda;
@@ -6,6 +7,7 @@ using namespace Rigitaeda;
 Rigi_TCPSession::Rigi_TCPSession()
 {
 	m_pSocket = nullptr;
+	m_pTCPMgr = nullptr;
 }
 
 Rigi_TCPSession::~Rigi_TCPSession()
@@ -162,6 +164,16 @@ void Rigi_TCPSession::SetSessionPool( __in Rigi_SessionPool *_pSessionPool )
 const Rigi_SessionPool *Rigi_TCPSession::GetSessionPool()
 {
 	return m_pSessionPool;
+}
+
+void Rigi_TCPSession::Set_TCPMgr( __in void * _pMgr )
+{
+	m_pTCPMgr = _pMgr;
+}
+
+void * Rigi_TCPSession::Get_TCPMgr()
+{
+	return m_pTCPMgr;
 }
 
 _OUTPUT_TYPE Rigi_TCPSession::GetType_Output()

@@ -52,6 +52,7 @@ namespace Rigitaeda
                 try
                 {
                     TCP_TMPL *pSession = new TCP_TMPL();
+                    pSession->Set_TCPMgr((void *)this);
                     if( false == m_SessionPool.Add_Session(pSession, _pSocket) )
                     {
                         delete pSession;

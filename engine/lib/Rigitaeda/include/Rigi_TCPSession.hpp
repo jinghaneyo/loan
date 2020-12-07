@@ -19,6 +19,7 @@ namespace Rigitaeda
 		SOCKET_TCP *m_pSocket;
 		Rigi_SessionPool *m_pSessionPool;
 		std::string m_strIP_Client;
+		void * m_pTCPMgr;
 
 		void Handler_Receive( 	__in const boost::system::error_code& _error, 
 								__in size_t _bytes_transferred);
@@ -63,6 +64,9 @@ namespace Rigitaeda
 
 		void SetSessionPool( __in Rigi_SessionPool *_pSessionPool );
 		const Rigi_SessionPool * GetSessionPool();
+
+		void Set_TCPMgr( __in void * _pMgr );
+		virtual void * Get_TCPMgr();
 
 		void Close();
 
