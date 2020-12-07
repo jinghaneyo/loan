@@ -1,4 +1,5 @@
-PROJECT(loan_buffer)
+set(APP_NAME loan_buffer)
+PROJECT(${APP_NAME})
 
 cmake_minimum_required(VERSION 2.8)
 
@@ -22,9 +23,10 @@ LINK_DIRECTORIES(/usr/include/glog/lib)
 INCLUDE_DIRECTORIES(/usr/include/gflags)
 LINK_DIRECTORIES(/usr/lib64/)
 
-ADD_EXECUTABLE(loan_buffer
+ADD_EXECUTABLE(${APP_NAME}
 	src/main.cpp
-	src/loan_Server.hpp
+	src/TCP_Mgr.hpp
+	src/TCP_Session.cpp
 	${RIGITAEDA_INCLUDE}/Rigi_ClientTCP.hpp
 	${RIGITAEDA_SRC}/Rigi_Server.cpp
 	${RIGITAEDA_SRC}/Rigi_SessionPool.cpp
@@ -33,4 +35,4 @@ ADD_EXECUTABLE(loan_buffer
 	${RIGITAEDA_INCLUDE}/Rigi_TCPMgr.hpp
 	)
 
-TARGET_LINK_LIBRARIES( loan_buffer gflags glog pthread boost_system boost_thread )
+TARGET_LINK_LIBRARIES( ${APP_NAME} gflags glog pthread boost_system boost_thread )
