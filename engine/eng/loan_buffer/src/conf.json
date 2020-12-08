@@ -1,0 +1,38 @@
+[
+    {"network": 
+        [   {"protocol":"tcp"},
+            {"port":"4000"}
+        ]
+    },
+    {"filter_1": 
+        [
+            {"input":
+                [
+                    {"IP": []},
+                    {"PORT": []},
+                    {"REGEX": 
+                        [
+                            "shutdown"
+                        ]
+                    },
+                    {"SERVICE":
+                        [
+                            "/netcruz/nms/log/NC_TMS", 
+                            "/netcruz/nms/log/NC_WATCHDOG"
+                        ]
+                    }
+                ]
+            },
+            {"output":
+                [
+                    {"IP":[]},
+                    {"PORT":[]},
+                    {"REPLACE": 
+                        [
+                        ]
+                    }
+                ]
+            }
+        ]
+    }
+]
