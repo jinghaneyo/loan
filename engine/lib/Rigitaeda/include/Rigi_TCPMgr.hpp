@@ -96,6 +96,9 @@ namespace Rigitaeda
 
             boost::asio::ip::tcp::endpoint endpoint(boost::asio::ip::tcp::v4(), m_nPort);
 
+            // Init 이벤트 호출
+            OnEvent_Init();
+
             m_acceptor.open(endpoint.protocol());
             m_acceptor.bind(endpoint);
             m_acceptor.listen(_nMaxClient);
@@ -118,15 +121,11 @@ namespace Rigitaeda
             m_SessionPool.Clear();
         }
 
-        void Load_Conf( __in const char *_pszPath_Conf )
-        {
-            m_SessionPool.Load_Conf(_pszPath_Conf);
-        }
+        // 재정의하여 데이터 처리 부분을 추가한다.
+        virtual void OnEvent_Accept_Session( __in TCP_TMPL *_pSession ) { };
 
-        virtual void OnEvent_Accept_Session( __in TCP_TMPL *_pSession )
-        {
-            // 재정의하여 데이터 처리 부분을 추가한다.
-        }
+        // 재정의하여 데이터 처리 부분을 추가한다.
+        virtual void OnEvent_Init() { };
     };
 
 }

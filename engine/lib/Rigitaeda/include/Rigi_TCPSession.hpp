@@ -29,15 +29,15 @@ namespace Rigitaeda
 
 		void Close( __in const boost::system::error_code& _error );
 
+		void BufferClear();
 	public:
-		void Init();
-
 		// -----------------------------------------------------------
 		// Event(콜백)
 		virtual void OnEvent_Receive(	__in char *_pData,
 										__in size_t _nData_len );
 
 		virtual void OnEvent_Close(){};
+		virtual void OnEvent_Init()	{};
 		// -----------------------------------------------------------
 
 		void Async_Receive();

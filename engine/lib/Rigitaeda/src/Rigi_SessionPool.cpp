@@ -43,6 +43,8 @@ bool Rigi_SessionPool::Add_Session( __in Rigi_TCPSession *_pSession,
 			LOG(INFO) << "[ACCEPT] " << strClientIP;
 
 			_pSession->SetSessionPool(this);
+			// Init 이벤트 호출
+			_pSession->OnEvent_Init();
 			_pSession->Async_Receive();
 			return true;
 		}

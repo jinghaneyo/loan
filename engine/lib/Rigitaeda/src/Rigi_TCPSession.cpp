@@ -51,7 +51,7 @@ void Rigi_TCPSession::Handler_Send( __in const boost::system::error_code& _error
 {
 }
 
-void Rigi_TCPSession::Init()
+void Rigi_TCPSession::BufferClear()
 {
 	m_ReceiveBuffer.empty();
 }
