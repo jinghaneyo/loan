@@ -97,7 +97,11 @@ namespace Rigitaeda
             boost::asio::ip::tcp::endpoint endpoint(boost::asio::ip::tcp::v4(), m_nPort);
 
             // Init 이벤트 호출
-            OnEvent_Init();
+            if( false == OnEvent_Init() )
+            {
+                assert(0 && "[Rigi_TCPMgr::Run] OnEvent_Init is false !!");
+                return false;
+            }
 
             m_acceptor.open(endpoint.protocol());
             m_acceptor.bind(endpoint);
@@ -125,7 +129,7 @@ namespace Rigitaeda
         virtual void OnEvent_Accept_Session( __in TCP_TMPL *_pSession ) { };
 
         // 재정의하여 데이터 처리 부분을 추가한다.
-        virtual void OnEvent_Init() { };
+        virtual bool OnEvent_Init() { return true; };
     };
 
 }

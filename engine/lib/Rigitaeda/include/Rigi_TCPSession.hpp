@@ -37,7 +37,7 @@ namespace Rigitaeda
 										__in size_t _nData_len );
 
 		virtual void OnEvent_Close(){};
-		virtual void OnEvent_Init()	{};
+		virtual bool OnEvent_Init()	{	return true;	};
 		// -----------------------------------------------------------
 
 		void Async_Receive();

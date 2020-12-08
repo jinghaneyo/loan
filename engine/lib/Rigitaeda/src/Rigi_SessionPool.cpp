@@ -44,7 +44,12 @@ bool Rigi_SessionPool::Add_Session( __in Rigi_TCPSession *_pSession,
 
 			_pSession->SetSessionPool(this);
 			// Init 이벤트 호출
-			_pSession->OnEvent_Init();
+			if( false == _pSession->OnEvent_Init() )
+			{
+				assert(0 && "[Rigi_SessionPool::Add_Session] OnEvent_Init is false !!");
+				return false;
+			}
+
 			_pSession->Async_Receive();
 			return true;
 		}

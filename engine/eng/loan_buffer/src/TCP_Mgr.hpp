@@ -25,8 +25,24 @@ public:
 private:
 	//MAP_DATA_PTR m_mapData;
 public:
+	// 이벤트 함수
+	// false로 리턴 시 종료 된다
+	bool OnEvent_Init()
+	{
+		if(false == Load_Json( "conf.json" ) )
+		{
+
+			return false;
+		}
+
+		return true;
+	}
+
+	// 일반 함수
 	void Push_Data( __in const char * _pszIP, __in Data_Q &data ) {};
 	void Pop_Data() {};
+
+	void Load_Json( __in const char *_pszPath_Json );
 };
 
 #endif
