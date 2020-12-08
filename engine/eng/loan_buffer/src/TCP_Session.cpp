@@ -18,7 +18,7 @@ void TCP_Session::OnEvent_Receive(	__in char *_pData,
 	if( nullptr != pMgr )
 	{
 		Data_Q data;
-		pMgr->Push_Data(GetIP_Remote(), data);
+		pMgr->Push_Data(Get_SessionIP(), GetPort(), data);
 	}
 
 	// 응답 주기
