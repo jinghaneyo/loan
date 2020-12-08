@@ -23,7 +23,7 @@ bool Rigi_SessionPool::Add_Session( __in Rigi_TCPSession *_pSession,
 	// 미리 호출해서 접속한 클라이언트 아이피를 저장하자
 	// 여기서 호출하지 않으면 close 때 호출이 되는데 이때는 값이 없다.
 	_pSession->SetSocket(_pSocket);
-	std::string strClientIP = _pSession->GetIP_Remote();
+	std::string strClientIP = _pSession->Get_SessionIP();
 
 	auto find = m_mapTCP.find(_pSession);
 	if(find == m_mapTCP.end())

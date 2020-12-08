@@ -55,7 +55,7 @@ namespace Rigitaeda
 			m_pSocket = _pSocket;
 		}
 
-		const char *GetIP_Remote();
+		const char *Get_SessionIP();
 
 		const char *GetPacket_Receive()
 		{

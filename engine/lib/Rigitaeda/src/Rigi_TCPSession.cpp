@@ -111,7 +111,7 @@ void Rigi_TCPSession::Close( __in const boost::system::error_code& _error )
 
 	if (true == m_pSocket->is_open())
 	{
-		std::string strClientIP = GetIP_Remote();
+		std::string strClientIP = Get_SessionIP();
 		LOG(INFO) << "[CLOSE] " << strClientIP;
 
 		m_pSocket->close();
@@ -129,7 +129,7 @@ void Rigi_TCPSession::Close()
 	Close(error);
 }
 
-const char *Rigi_TCPSession::GetIP_Remote()
+const char *Rigi_TCPSession::Get_SessionIP()
 {
 	try
 	{
@@ -151,7 +151,7 @@ const char *Rigi_TCPSession::GetIP_Remote()
 	}
 	catch(const std::exception& e)
 	{
-		std::cerr << "[Rigi_TCPSession::GetIP_Remote] ERR = " << e.what() << '\n';
+		std::cerr << "[Rigi_TCPSession::Get_SessionIP] ERR = " << e.what() << '\n';
 		return "0.0.0.0";
 	}
 }

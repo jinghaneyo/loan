@@ -19,7 +19,7 @@ public:
 
 	void OnEvent_Close()
 	{
-		std::cout << "[TCPSessionTest::OnClose] >> " << GetIP_Remote() << std::endl;
+		std::cout << "[TCPSessionTest::OnClose] >> " << Get_SessionIP() << std::endl;
 	}
 };
 
