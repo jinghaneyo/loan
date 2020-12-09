@@ -25,6 +25,8 @@ LINK_DIRECTORIES(/usr/lib64/)
 
 ADD_EXECUTABLE(${APP_NAME}
 	src/main.cpp
+	src/Data_Packet.hpp
+	src/Data_Policy.hpp
 	src/TCP_Mgr.hpp
 	src/TCP_Session.cpp
 	${RIGITAEDA_INCLUDE}/Rigi_ClientTCP.hpp

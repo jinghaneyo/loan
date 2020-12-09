@@ -46,11 +46,7 @@ void TCP_Session::Task_Filter()
 		{
 			for(auto &ip_port : policy.second.vec_ip_port )
 			{
-				strIP_Port = Get_SessionIP();
-				strIP_Port += ":";
-				strIP_Port += Get_Port();
-
-				if( ip_port == strIP_Port )
+				if( ip_port == m_strIP_Port )
 				{
 					bPass = true;
 					break;
