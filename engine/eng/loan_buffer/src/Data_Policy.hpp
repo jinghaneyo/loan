@@ -17,4 +17,6 @@ public:
 	std::vector<std::string> vec_service;
 };
 
+typedef std::vector<DATA_PACKET *> VEC_DATA_PACKET_PTR;
+
 #endif

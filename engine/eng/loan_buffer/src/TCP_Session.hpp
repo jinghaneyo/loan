@@ -8,9 +8,15 @@ class TCP_Session : public Rigitaeda::Rigi_TCPSession
 public:
 	TCP_Session();
 	virtual ~TCP_Session();
-
-	void OnEvent_Receive(	__in char *_pData,
-							__in size_t _nData_len );
+private:
+	std::string m_strIP_Port;
+public:
+	// ---------------------------------------------------------------
+	// 이벤트 함수
+	virtual void OnEvent_Init();
+	virtual void OnEvent_Receive(	__in char *_pData,
+									__in size_t _nData_len );
+	// ---------------------------------------------------------------
 
 	void OnEvent_Close();
 

@@ -2,8 +2,10 @@
 #define TCP_MGR_H_
 
 #include <fstream>
+#include <mutex>
 #include "Rigi_TCPMgr.hpp"
 #include "Data_Policy.hpp"
+#include "Data_Packet.hpp"
 
 struct Data_Q
 {
@@ -22,14 +24,20 @@ class TCP_Mgr : public Rigitaeda::Rigi_TCPMgr<T>
 {
 public:
 	TCP_Mgr()	{};
-	virtual ~TCP_Mgr()	{};
+	virtual ~TCP_Mgr()	
+	{
+		Clear_Q();
+	}
 
 private:
 	//MAP_DATA_PTR m_mapData;
 	std::map<std::string, DATA_POLICY> m_mapPolicy;
 
-	std::map<std::string, std::string> m_mapQueue;
+	std::mutex m_LockQueue;
+	// key => ip + port
+	std::map<std::string, VEC_DATA_PACKET_PTR *> m_mapQueue;
 public:
+	// ------------------------------------------------------------------
 	// 이벤트 함수
 	// false로 리턴 시 종료 된다
 	bool OnEvent_Init()
@@ -42,16 +50,53 @@ public:
 
 		return true;
 	}
+	// ------------------------------------------------------------------
 
 	// 일반 함수
-	void Push_Data( __in const char * _pszIP, __in int _nPort, __in Data_Q &data ) 
+	void Clear_Q()
 	{
+		m_LockQueue.lock();
 
+		for(auto &pData : m_mapQueue)
+			delete pData;
+
+		m_mapQueue.clear();
+
+		m_LockQueue.unlock();
+	}
+	
+	void Push_Data( __in const char * _szIP_Port, __in DATA_PACKET *_pData ) 
+	{
+		m_LockQueue.lock();
+
+		auto find = m_mapQueue.find(_szKey);
+		if( find == m_mapQueue.end())
+		{
+			VEC_DATA_PACKET_PTR *pVec = new VEC_DATA_PACKET_PTR();
+			pVec->emplace_back(_pData);
+			m_mapQueue.insert( std::make_pair(_szKey, pVec) );
+		}
+		else
+		{
+			find->second->emplace_back(_pData);
+		}
+
+		m_LockQueue.unlock();
 	}
 
-	void Pop_Data() 
+	DATA_PACKET * Pop_Data( __in const char *_pszIP_Port ) 
 	{
+		DATA_PACKET *pRet = nullptr;
 
+		m_LockQueue.lock();
+
+		auto find = m_mapQueue.find( _pszIP_Port );
+		if(find != m_mapQueue.end())
+			pRet = find.second;
+
+		m_LockQueue.unlock();
+
+		return pRet;
 	}
 
 	bool Is_Exist_File( __in const char *_szFilePath )
