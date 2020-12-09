@@ -68,7 +68,7 @@ public:
 		m_LockQueue.unlock();
 	}
 	
-	void Push_Data( __in const char * _szIP_Port, __in DATA_PACKET *_pData ) 
+	void Push_Data( __in const char * _szKey, __in DATA_PACKET *_pData ) 
 	{
 		m_LockQueue.lock();
 
@@ -87,13 +87,13 @@ public:
 		m_LockQueue.unlock();
 	}
 
-	DATA_PACKET * Pop_Data( __in const char *_pszIP_Port ) 
+	DATA_PACKET * Pop_Data( __in const char *_pszKey ) 
 	{
 		DATA_PACKET *pRet = nullptr;
 
 		m_LockQueue.lock();
 
-		auto find = m_mapQueue.find( _pszIP_Port );
+		auto find = m_mapQueue.find( _pszKey );
 		if(find != m_mapQueue.end())
 		{
 			if(false == find.second->empty())

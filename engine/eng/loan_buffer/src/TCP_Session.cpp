@@ -27,17 +27,19 @@ void TCP_Session::OnEvent_Close()
 
 void TCP_Session::Task_Filter()
 {
-	DATA_PACKET *pData = new DATA_PACKET();
-
 	TCP_Mgr<TCP_Session> *pMgr = (TCP_Mgr<TCP_Session> *)Get_TCPMgr();
 	const std::map<std::string, DATA_POLICY> *pPolicy = pMgr->GetPolicy();
+	if(true == pPolicy->empty())
+		return;
+
+	DATA_PACKET *pData = new DATA_PACKET();
 
 	bool bPass = false;
 	std::string strIP_Port;
 	for(auto &policy : *pPolicy)
 	{
 		// ip port 검색
-		// ip port 가 아무것도 없으면 무조건 다 받는다
+		// 아무것도 없으면 무조건 다 받는다
 		if( true == policy.second.vec_ip_port.empty())
 			bPass = true;
 		else
@@ -56,40 +58,57 @@ void TCP_Session::Task_Filter()
 			}
 		}
 		if( false == bPass )
-			break;
+			continue;
 
 		// 정규식 검색
+		// 아무것도 없으면 무조건 다 받는다
 		if( true == policy.second.vec_regex.empty())
 			bPass = true;
 		else
 		{
-			std::regex reg("");
-			std::smatch result;
+			for(auto &reg : policy.second.vec_regex)
+			{
+				std::regex reg_ex(reg);
+				std::smatch result;
 
-			if( std::regex_search(pData->strData, result, reg) )
-				bPass = true;
+				if( std::regex_search(pData->strData, result, reg_ex) )
+				{
+					bPass = true;
+					break;
+				}
+			}
 		}
 		if( false == bPass )
-			break;
+			continue;
 
 		// 서비스 로그
-		if( true == policy.second.vec_regex.empty())
+		// 아무것도 없으면 무조건 다 받는다
+		if( true == policy.second.vec_service.empty())
 			bPass = true;
 		else
 		{
-			std::regex reg("");
-			std::smatch result;
+			for(auto &service : policy.second.vec_service)
+			{
+				for( auto &d_svc : pData->vec_service )
+				{
+					if(service == d_svc)
+					{
+						bPass = true;
+						break;
+					}
+				}
 
-			if( std::regex_search(pData->strData, result, reg) )
-				bPass = true;
+				if( true == bPass )
+					break;
+			}
 		}
 		if( false == bPass )
-			break;
-	}
+			continue;
 
-	if (true == bPass)
-		// Push_Data 안에 delete를 자동 호출 해준다. 따로 delete 를 호출 하지 말자 
-		pMgr->Push_Data( m_strIP_Port.c_str(), pData );
+		if (true == bPass)
+			// Push_Data 안에 delete를 자동 호출 해준다. 따로 delete 를 호출 하지 말자 
+			pMgr->Push_Data( policy.first.c_str(), pData );
+	}
 }
 
 void TCP_Session::OnEvent_Init()
