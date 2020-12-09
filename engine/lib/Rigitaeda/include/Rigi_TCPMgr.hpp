@@ -74,7 +74,7 @@ namespace Rigitaeda
         }
 
     public:
-        int GetPort() { return m_nPort; };
+        int Get_Port() { return m_nPort; };
 
         bool Run(   __in int _nPort, 
                     __in int _nMaxClient )

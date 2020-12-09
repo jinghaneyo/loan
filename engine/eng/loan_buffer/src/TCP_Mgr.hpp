@@ -120,6 +120,11 @@ public:
 
 		return true;
 	}
+
+	const std::map<std::string, DATA_POLICY> * GetPolicy()
+	{
+		return &m_mapPolicy;
+	}
 };
 
 #endif
