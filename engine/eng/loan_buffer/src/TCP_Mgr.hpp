@@ -3,6 +3,7 @@
 
 #include <fstream>
 #include <mutex>
+#include <deque>
 #include "Rigi_TCPMgr.hpp"
 #include "Data_Policy.hpp"
 #include "Data_Packet.hpp"
@@ -35,7 +36,7 @@ private:
 
 	std::mutex m_LockQueue;
 	// key => ip + port
-	std::map<std::string, VEC_DATA_PACKET_PTR *> m_mapQueue;
+	std::map<std::string, DEQUE_DATA_PACKET_PTR *> m_mapQueue;
 public:
 	// ------------------------------------------------------------------
 	// 이벤트 함수
@@ -58,7 +59,9 @@ public:
 		m_LockQueue.lock();
 
 		for(auto &pData : m_mapQueue)
+		{
 			delete pData;
+		}
 
 		m_mapQueue.clear();
 
@@ -73,12 +76,12 @@ public:
 		if( find == m_mapQueue.end())
 		{
 			VEC_DATA_PACKET_PTR *pVec = new VEC_DATA_PACKET_PTR();
-			pVec->emplace_back(_pData);
+			pVec->push_back(_pData);
 			m_mapQueue.insert( std::make_pair(_szKey, pVec) );
 		}
 		else
 		{
-			find->second->emplace_back(_pData);
+			find->second->push_back(_pData);
 		}
 
 		m_LockQueue.unlock();
@@ -92,7 +95,10 @@ public:
 
 		auto find = m_mapQueue.find( _pszIP_Port );
 		if(find != m_mapQueue.end())
-			pRet = find.second;
+		{
+			if(false == find.second->empty())
+				find.second->pop_front(pRet);
+		}
 
 		m_LockQueue.unlock();
 
