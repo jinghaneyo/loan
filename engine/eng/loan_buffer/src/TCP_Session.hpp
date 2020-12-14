@@ -1,6 +1,7 @@
 #ifndef TCP_SESSION_H_
 #define TCP_SESSION_H_
 
+#include "loan.pb.h"
 #include "Rigi_Server.hpp"
 
 class TCP_Session : public Rigitaeda::Rigi_TCPSession
@@ -13,14 +14,14 @@ private:
 public:
 	// ---------------------------------------------------------------
 	// 이벤트 함수
-	virtual void OnEvent_Init();
+	virtual bool OnEvent_Init();
 	virtual void OnEvent_Receive(	__in char *_pData,
 									__in size_t _nData_len );
+	virtual void OnEvent_Close();
 	// ---------------------------------------------------------------
 
-	void OnEvent_Close();
-
-	void Task_Filter();
+	// 일반 함수
+	bool Task_Filter( __in loan::MsgLog *_pPacket );
 };
 
 #endif

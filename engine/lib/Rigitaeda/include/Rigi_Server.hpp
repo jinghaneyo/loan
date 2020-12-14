@@ -1,7 +1,7 @@
 /*
 Licensed under the MIT License <http://opensource.org/licenses/MIT>.
 SPDX-License-Identifier: MIT
-Copyright (c) 2013-2019 lee,gil-jae
+Copyright (c) 2013-2019 lee,gil-jae (jinghaneyo@gmail..com)
 */
 
 #ifndef _RIGI_SERVER_H_
@@ -30,7 +30,6 @@ namespace Rigitaeda
                     __in int _nMaxClient )
         {
             // 기본 클래스로 인스턴스 생성하며, EventHandler로 콜백함수로 Receive를 받도록 한다
-            //m_pTCP_Mgr = new Rigi_TCPMgr<Rigi_TCPSession>( m_nReceive_Packet_Size );
             m_pTCP_Mgr = new Rigi_TCPMgr<Rigi_TCPSession>();
             m_pTCP_Mgr->Set_Receive_Packet_Size(m_nReceive_Packet_Size);
             return m_pTCP_Mgr->Run( _nPort, _nMaxClient );

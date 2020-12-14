@@ -22,6 +22,6 @@ public:
 
 	void OnEvent_Close()
 	{
-		std::cout << "[TCP_Session::OnClose] >> " << Get_SessionIP() << std::endl;
+		std::cout << "[TCP_Session::OnClose] >> " << GetIP_Remote() << std::endl;
 	}
 };

@@ -1,8 +1,20 @@
+// regex 헤더 안에 이미 __in, __out 정의 되어있다
+// 해서 Rigi_Def.hpp 보다 먼저 선언을 해야 한다
+#include <regex>
 #include "TCP_Session.hpp"
 #include "TCP_Mgr.hpp"
-#include <regex>
+#include "loan.pb.h"
+#include <google/protobuf/descriptor.h>
+#include <google/protobuf/dynamic_message.h>
+#include <google/protobuf/io/zero_copy_stream_impl.h>
+#include <google/protobuf/io/tokenizer.h>
+#include <google/protobuf/message.h>
 
-TCP_Session::TCP_Session() 
+using namespace google::protobuf;
+using namespace google::protobuf::io;
+using namespace google::protobuf::compiler;
+
+TCP_Session::TCP_Session()
 { 
 }
 
@@ -13,11 +25,20 @@ TCP_Session::~TCP_Session()
 void TCP_Session::OnEvent_Receive(	__in char *_pData,
 									__in size_t _nData_len )
 {
-	Task_Filter();
+	//std::cout << "[TCP_Session::Receive] >> " << _pData << std::endl;
+
+	loan::MsgLog *pPacket = new loan::MsgLog();
+	pPacket->ParseFromString(_pData);
+
+	// std::cout << "[RECV] << msg_type = " << std::to_string(pPacket->msg_type()) << " | msg_cmd = " << std::to_string(pPacket->msg_cmd()) << " | service_name = " << pPacket->service_name() << std::endl;
+	// std::cout << "[RECV] << logcontents = " << pPacket->logcontents() << std::endl;
+
+	if(false == Task_Filter( pPacket ))
+		delete pPacket;
 
 	// 응답 주기
-	std::string strPacket = "[{'cmd':'run'},{'data': 'test pakcet'}]";
-	Send( strPacket.c_str(), strPacket.length() );
+	// std::string strPacket = "[{'cmd':'run'},{'data': 'test pakcet'}]";
+	// Send( strPacket.c_str(), strPacket.length() );
 }
 
 void TCP_Session::OnEvent_Close()
@@ -25,15 +46,14 @@ void TCP_Session::OnEvent_Close()
 	std::cout << "[TCP_Session::OnClose] >> " << Get_SessionIP() << std::endl;
 }
 
-void TCP_Session::Task_Filter()
+bool TCP_Session::Task_Filter( __in loan::MsgLog *_pPacket )
 {
 	TCP_Mgr<TCP_Session> *pMgr = (TCP_Mgr<TCP_Session> *)Get_TCPMgr();
 	const std::map<std::string, DATA_POLICY> *pPolicy = pMgr->GetPolicy();
 	if(true == pPolicy->empty())
-		return;
+		return false;
 
-	DATA_PACKET *pData = new DATA_PACKET();
-
+	bool bIsPushQ = false;
 	bool bPass = false;
 	std::string strIP_Port;
 	for(auto &policy : *pPolicy)
@@ -67,11 +87,11 @@ void TCP_Session::Task_Filter()
 				std::regex reg_ex(reg);
 				std::smatch result;
 
-				if( std::regex_search(pData->strData, result, reg_ex) )
-				{
-					bPass = true;
-					break;
-				}
+				// if( std::regex_search(_pPacket->get_logcontents(), result, reg_ex) )
+				// {
+				// 	bPass = true;
+				// 	break;
+				// }
 			}
 		}
 		if( false == bPass )
@@ -85,14 +105,14 @@ void TCP_Session::Task_Filter()
 		{
 			for(auto &service : policy.second.vec_service)
 			{
-				for( auto &d_svc : pData->vec_service )
-				{
-					if(service == d_svc)
-					{
-						bPass = true;
-						break;
-					}
-				}
+				// for( auto &d_svc : _pPacket->vec_service )
+				// {
+				// 	if(service == d_svc)
+				// 	{
+				// 		bPass = true;
+				// 		break;
+				// 	}
+				// }
 
 				if( true == bPass )
 					break;
@@ -102,14 +122,26 @@ void TCP_Session::Task_Filter()
 			continue;
 
 		if (true == bPass)
+		{
 			// Push_Data 안에 delete를 자동 호출 해준다. 따로 delete 를 호출 하지 말자 
-			pMgr->Push_Data( policy.first.c_str(), pData );
+			pMgr->Push_Data( policy.first.c_str(), _pPacket );
+
+			bIsPushQ = true;
+		}
 	}
+
+	//std::cout << "[RECV] << " << _pPacket->mutable_logcontents() << std::endl;
+
+	return bIsPushQ;
 }
 
-void TCP_Session::OnEvent_Init()
+bool TCP_Session::OnEvent_Init()
 {
+	TCP_Mgr<TCP_Session> *pMgr = (TCP_Mgr<TCP_Session> *)Get_TCPMgr();
+
 	m_strIP_Port = Get_SessionIP();
 	m_strIP_Port += ":";
-	m_strIP_Port += std::to_string( Get_Port() );
+	m_strIP_Port += std::to_string( pMgr->Get_Port() );
+
+	return true;
 }

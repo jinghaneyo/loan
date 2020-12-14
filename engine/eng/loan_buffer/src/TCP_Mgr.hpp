@@ -4,50 +4,52 @@
 #include <fstream>
 #include <mutex>
 #include <deque>
+#include <simdjson.h>
 #include "Rigi_TCPMgr.hpp"
 #include "Data_Policy.hpp"
 #include "Data_Packet.hpp"
+#include "loan.pb.h"
 
-struct Data_Q
-{
-public:
-	Data_Q() {};
-	~Data_Q() {};
-
-	std::string strIP;
-	std::string strData;
-};
-typedef std::string 				STR_IP;
-//typedef std::map<STR_IP, Data_Q *>	MAP_DATA_PTR;
+typedef std::deque<loan::MsgLog *>	DEQUE_MSG_LOG_PTR;
 
 template <typename T>
 class TCP_Mgr : public Rigitaeda::Rigi_TCPMgr<T>
 {
 public:
-	TCP_Mgr()	{};
-	virtual ~TCP_Mgr()	
+	TCP_Mgr()
+	{
+	}
+	virtual ~TCP_Mgr()
 	{
 		Clear_Q();
 	}
 
 private:
-	//MAP_DATA_PTR m_mapData;
 	std::map<std::string, DATA_POLICY> m_mapPolicy;
 
 	std::mutex m_LockQueue;
 	// key => ip + port
-	std::map<std::string, DEQUE_DATA_PACKET_PTR *> m_mapQueue;
+	std::map<std::string, DEQUE_MSG_LOG_PTR *> m_mapQueue;
 public:
 	// ------------------------------------------------------------------
 	// 이벤트 함수
 	// false로 리턴 시 종료 된다
 	bool OnEvent_Init()
 	{
-		if(false == Load_Json( "conf.json" ) )
+		char szPath[1024] = {0,};
+		if (getcwd(szPath, sizeof(szPath)) == NULL) 
 		{
-
-			return false;
+			fprintf(stderr, "getcwd error\n");
+			exit(1);
 		}
+		std::string strPath = szPath;
+		strPath += "/conf.json";
+
+		std::cout << "[" << __FUNCTION__ << "][CURRENT PATH] >> " << strPath << std::endl;
+
+		DATA_POLICY conf;
+		if( false == Load_ConfJson( strPath.c_str(), conf ) )
+			return false;
 
 		return true;
 	}
@@ -58,26 +60,32 @@ public:
 	{
 		m_LockQueue.lock();
 
-		for(auto &pData : m_mapQueue)
-		{
-			delete pData;
-		}
+		// for(auto &pDeque: m_mapQueue)
+		// {
+		// 	while ( false == pDeque.second->empty()  )
+		// 	{
+		// 		auto *ptr = pDeque.second->front();
+		// 		delete ptr;
 
-		m_mapQueue.clear();
+		// 		pDeque.second->pop_front();
+		// 	}
+		// 	delete pDeque.second;
+		// }
+		// m_mapQueue.clear();
 
 		m_LockQueue.unlock();
 	}
 	
-	void Push_Data( __in const char * _szKey, __in DATA_PACKET *_pData ) 
+	void Push_Data( __in const char * _szKey, __in loan::MsgLog *_pData )
 	{
 		m_LockQueue.lock();
 
 		auto find = m_mapQueue.find(_szKey);
 		if( find == m_mapQueue.end())
 		{
-			VEC_DATA_PACKET_PTR *pVec = new VEC_DATA_PACKET_PTR();
-			pVec->push_back(_pData);
-			m_mapQueue.insert( std::make_pair(_szKey, pVec) );
+			DEQUE_MSG_LOG_PTR *pDque = new DEQUE_MSG_LOG_PTR();
+			pDque->push_back(_pData);
+			m_mapQueue.insert( std::make_pair(_szKey, pDque) );
 		}
 		else
 		{
@@ -87,17 +95,20 @@ public:
 		m_LockQueue.unlock();
 	}
 
-	DATA_PACKET * Pop_Data( __in const char *_pszKey ) 
+	loan::MsgLog * Pop_Data( __in const char *_pszKey )
 	{
-		DATA_PACKET *pRet = nullptr;
+		loan::MsgLog *pRet = nullptr;
 
 		m_LockQueue.lock();
 
 		auto find = m_mapQueue.find( _pszKey );
 		if(find != m_mapQueue.end())
 		{
-			if(false == find.second->empty())
-				find.second->pop_front(pRet);
+			if(false == find->second->empty())
+			{
+				pRet = find->second->front();
+				find->second->pop_front();
+			}
 		}
 
 		m_LockQueue.unlock();
@@ -107,23 +118,33 @@ public:
 
 	bool Is_Exist_File( __in const char *_szFilePath )
 	{
-		std::ifstream infile(fileName);
+		std::ifstream infile(_szFilePath);
 		return infile.good();
-	}
-
-	bool Load_Json( __in const char *_pszPath_Json )
-	{
-		if( false == Is_Exist_File( _pszPath_Json ) )
-		{
-			return false;
-		}
-
-		return true;
 	}
 
 	const std::map<std::string, DATA_POLICY> * GetPolicy()
 	{
 		return &m_mapPolicy;
+	}
+
+	bool Load_ConfJson( __in const char *_pszPath, __out DATA_POLICY &conf )
+	{
+		std::ifstream file;
+		file.open(_pszPath);
+		if(true == file.is_open())
+		{
+			std::string strBuffer;
+			while ( std::getline(file, strBuffer) )
+			{
+				std::cout << strBuffer << std::endl;
+
+				strBuffer = "";
+			}
+			file.close();
+			return true;
+		}
+
+		return false;
 	}
 };
 

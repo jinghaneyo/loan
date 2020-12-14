@@ -15,4 +15,7 @@ public:
 	std::string strData;
 };
 
+typedef std::vector<DATA_PACKET *> VEC_DATA_PACKET_PTR;
+typedef std::deque<DATA_PACKET *> DEQUE_DATA_PACKET_PTR;
+
 #endif

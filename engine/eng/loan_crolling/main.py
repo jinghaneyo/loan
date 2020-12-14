@@ -9,6 +9,7 @@ import concurrent.futures
 import asyncio
 import multiprocessing 
 from pygtail import Pygtail
+from loan_pb2 import MsgLog
 
 g_QPacket = queue.Queue()
 g_LPacket = threading.Lock()
@@ -79,7 +80,14 @@ def Send_Log(server_ip, port):
                 if 0 < count:
                     for d in data:
                         print(d)
-                        client_socket.send(bytes(d, 'utf-8', 'ignore'))
+                        #client_socket.send(bytes(d, 'utf-8', 'ignore'))
+                        msg = MsgLog()
+                        msg.msg_type = 1
+                        msg.msg_cmd = 2
+                        msg.service_name = "/share/log.txt"
+                        msg.LogContents = d
+                        #print(msg.SerializeToString())
+                        client_socket.send( msg.SerializeToString() )
                 else:
                     time.sleep(1)
                     print("POP COUNT = %d" % count)
@@ -108,7 +116,7 @@ if __name__ == '__main__':
     packet.server_ip = "172.17.0.2"
 
     log = Setting_Log()
-    log.vecLog.append("/share/engine/eng/log.txt")
+    log.vecLog.append("/share/engine/log.txt")
     #log.vecLog.append(r"D:\10_Open_Source\loan\engine\eng\log.txt")
 
     ini.append(log)   # 로그 tail 스레드

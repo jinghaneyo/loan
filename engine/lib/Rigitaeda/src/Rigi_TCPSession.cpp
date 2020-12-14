@@ -44,7 +44,7 @@ void Rigi_TCPSession::Handler_Receive( 	__in const boost::system::error_code& _e
 	}
 	else
 	{
-		std::cout << "RECV << " << m_pReceive_Packet_Buffer << std::endl;
+		//std::cout << "RECV << " << m_pReceive_Packet_Buffer << std::endl;
 		OnEvent_Receive( m_pReceive_Packet_Buffer, _bytes_transferred );
 		BufferClear();
 

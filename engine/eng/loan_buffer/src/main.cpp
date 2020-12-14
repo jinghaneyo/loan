@@ -5,8 +5,10 @@
 
 int main()
 {
-    google::InitGoogleLogging("DUMP");   
- 	google::SetLogDestination( google::GLOG_INFO, "./DUMP." );  
+	GOOGLE_PROTOBUF_VERIFY_VERSION;
+
+    // google::InitGoogleLogging("DUMP");   
+ 	// google::SetLogDestination( google::GLOG_INFO, "./DUMP." );  
 	//google::EnableLogCleaner(3);
 
 	// boost::asio::io_service io_service_client;
@@ -19,10 +21,11 @@ int main()
     std::cout << "[START] << server run" << std::endl;
 
 	TCP_Mgr<TCP_Session> mgr;
-	//Rigitaeda::Rigi_TCPMgr<TCP_Session> mgr;
-	Rigitaeda::Rigi_Server server;
+	Rigitaeda::Rigi_Server server(1024);
 
 	server.Run( 3333, 100, &mgr);
+
+	google::protobuf::ShutdownProtobufLibrary();
 
     return 0;
 }

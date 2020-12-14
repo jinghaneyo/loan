@@ -33,4 +33,5 @@ ADD_EXECUTABLE(${APP_NAME}
 	${RIGITAEDA_INCLUDE}/Rigi_TCPMgr.hpp
 	)
 
-TARGET_LINK_LIBRARIES( ${APP_NAME} gflags glog pthread boost_system boost_thread )
+#TARGET_LINK_LIBRARIES( ${APP_NAME} gflags glog pthread boost_system boost_thread )
+TARGET_LINK_LIBRARIES( ${APP_NAME} gflags pthread boost_system )
