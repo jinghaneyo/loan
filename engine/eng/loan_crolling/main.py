@@ -1,6 +1,7 @@
 #!/usr/bin/python3
 
 import os
+import sys
 import socket
 import time
 import threading
@@ -8,26 +9,32 @@ import queue
 import concurrent.futures
 import asyncio
 import multiprocessing 
+import configparser
+import json
 from pygtail import Pygtail
 from loan_pb2 import MsgLog
+
+g_bWindows = None
 
 g_QPacket = queue.Queue()
 g_LPacket = threading.Lock()
 
-class Setting_Packet:
-    nType = 0
+class Conf_ini:
     server_ip = ''
     server_port = 0
 
     def __init__(self):
-        self.type = 0
+        pass
 
-class Setting_Log:
-    nType = 1
-    vecLog = []
+class Service_Log:
+    service_name = ''
+    service_path = ''
+    file_start = 0  # 0 -> 처음부터 읽기, 1 -> 마지막부터 시작 
 
-    def __init__(self):
-        self.type = 1
+class Log_Packet:
+    service_name = ''
+    service_path = ''
+    log_contents = ''
 
 def Push_Packet(data):
     global g_QPacket
@@ -61,73 +68,179 @@ def Pop_Packet():
     g_LPacket.release()
     return count, packet_list
 
-def tail(some_file):
+def Check_OS():
+    global g_bWindows
+    if "win32" == sys.platform or "win64" == sys.platform:
+        g_bWindows = True
+    else :
+        g_bWindows = False
+
+    return g_bWindows
+
+def GetCurrentPath():
+    global g_bWindows
+    curr_dir = os.getcwd()
+
+    if None == g_bWindows:
+        Check_OS()
+
+    if False == os.path.isdir(curr_dir):
+        if True == g_bWindows:
+            pos = curr_dir.rfind('\\')
+        else:
+            pos = curr_dir.rfind('/')
+
+        curr_dir = curr_dir[:pos]
+
+    # 마지막은 항상 \\, / 로 끝난다
+    if True == g_bWindows:
+        if '\\' != curr_dir[len(curr_dir)-1]:
+            curr_dir = curr_dir + '\\'
+    else:
+        if '/' != curr_dir[len(curr_dir)-1]:
+            curr_dir = curr_dir + '/'
+
+    return curr_dir
+
+def Load_Config(path_conf):
+    conf = Conf_ini()
+    config = configparser.ConfigParser()
+    cnt = 0
+
+    list_encoding = ['utf-8-sig','utf-8','euc-kr']
+    for enc in list_encoding:
+        try:
+            cnt = config.read(path_conf, encoding=enc)    
+            break
+        except:
+            cnt = -1
+
+    if -1 == cnt:
+        return None
+
+    try:
+        # conf.ini 설정 로드 
+        if 0 == len(cnt):
+            print('[Load_Config]Read Fail = %s' % path_conf )
+            return None
+        else:
+            print('[COMMON] Read SUCC = %s' % path_conf )
+
+            conf.server_ip = config['COMMON']['SERVER_IP']
+            print('[COMMON] SERVER_IP = %s' % conf.server_ip)
+
+            conf.server_port = int(config['COMMON']['SERVER_PORT'])
+            print('[COMMON] SERVER_PORT = %d' % conf.server_port)
+
+            return conf
+    except Exception as e:
+        print('[Exception][Load_Config][ERR = %s]' % e )
+        return None
+
+def Load_ServiceLog(path_json):
+    log_list = []
+    with open(path_json, "r") as json_file:
+        conf = json.load(json_file)
+        for service_list in conf:
+            for s_key in service_list:
+                log = Service_Log()
+                log.service_name = s_key
+                for l_obj in service_list[s_key]:
+                    for l_key in l_obj:
+                        if 'log' == l_key:
+                            log.service_path = l_obj[l_key]
+                        elif 'file_start' == l_key:
+                            if 'first' == l_obj[l_key]:
+                                log.file_start = 0
+                            elif 'last' == l_obj[l_key]:
+                                log.file_start = 1
+
+                log_list.append(log)
+
+    return log_list
+
+def tail(log):
     try:
         while True:
-            for line in Pygtail(some_file):
-                Push_Packet(line)
+            for line in Pygtail(log.service_path):
+                data = Log_Packet()
+                data.service_name = log.service_name
+                data.service_path = log.service_path
+                data.log_contents = line
+                Push_Packet(data)
     except Exception as e:
         print("[Exception][tail] Err = %s" % e)
 
-def Send_Log(server_ip, port):
-    try:
-        client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        client_socket.connect((server_ip, port))
+def Thread_Send_Log(server_ip, port):
+    while True:
+        try:
+            # 접속실패 시 exception 이다 
+            client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            client_socket.connect((server_ip, port))
 
-        while True:
-            try:
-                count, data = Pop_Packet()
-                if 0 < count:
-                    for d in data:
-                        print(d)
-                        #client_socket.send(bytes(d, 'utf-8', 'ignore'))
-                        msg = MsgLog()
-                        msg.msg_type = 1
-                        msg.msg_cmd = 2
-                        msg.service_name = "/share/log.txt"
-                        msg.LogContents = d
-                        #print(msg.SerializeToString())
-                        client_socket.send( msg.SerializeToString() )
-                else:
-                    time.sleep(1)
-                    print("POP COUNT = %d" % count)
-            except Exception as e:
-                print("[Exception][Send_Log][COUNT = %d][Err = %s]" % (count, e) )
-    except Exception as e:
-        print("[Exception][Send_Log][Err = %s]" % e )
+            while True:
+                try:
+                    count, data = Pop_Packet()
+                    if 0 < count:
+                        for d in data:
+                            print(d.log_contents)
+                            msg = MsgLog()
+                            msg.msg_type = 1
+                            msg.msg_cmd = 2
+                            msg.service_name = d.service_path
+                            msg.LogContents = d.log_contents
+                            client_socket.send( msg.SerializeToString() )
+                    else:
+                        time.sleep(1)
+                        print("POP COUNT = %d" % count)
+                except Exception as e:
+                    print("[Exception][Send_Log][COUNT = %d][Err = %s]" % (count, e) )
 
-def Thread_work(ini):
-    if 0 == ini.type:
-        Send_Log( ini.server_ip, ini.server_port )
-    elif 1 == ini.type:
-        while True:
-            try:
-                tail(ini.vecLog[0])
-            except Exception as e:
-                print("[Exception][Thread_work] tail Err = %s" % e)
+        except Exception as e:
+            print("[Exception][FAIL][connect][Err = %s]" % e )
+            time.sleep(5)
 
-            time.sleep(1)
+def Thread_Tail_Log(log):
+    while True:
+        try:
+            tail(log)
+        except Exception as e:
+            print("[Exception][Thread_work] tail Err = %s" % e)
+
+        time.sleep(1)
 
 if __name__ == '__main__':
-    ini = []
+    strCurpath = GetCurrentPath()
+    path_config = strCurpath + "conf.ini"
+    path_json = strCurpath + "log.json"
 
-    packet = Setting_Packet()
-    packet.server_port = 3333
-    packet.server_ip = "172.17.0.2"
-
-    log = Setting_Log()
-    log.vecLog.append("/share/engine/log.txt")
-    #log.vecLog.append(r"D:\10_Open_Source\loan\engine\eng\log.txt")
-
-    ini.append(log)   # 로그 tail 스레드
-    ini.append(packet)   # 로그 tcp 전송 스레드
+    conf = Load_Config(path_config)
+    log_list = Load_ServiceLog(path_json)
     
-    t1 = threading.Thread(target=Thread_work, args=(ini[0], ))
-    t1.start()
-    t2 = threading.Thread(target=Thread_work, args=(ini[1], ))
+    # 설정 정보 출력
+    if None == conf:
+        print("[FAIL] Read config.ini => %s" % path_config)
+        exit(1)
+    if None == log_list or 0 == len(log_list):
+        print("[FAIL] Read service.json => %s" % path_json)
+        exit(1)
+
+    print("START INFO >>> SERVER IP   = [%s]" % conf.server_ip)
+    print("START INFO >>> SERVER PORT = [%d]" % conf.server_port)
+    for log in log_list:
+        print("START INFO >>> LOG NAME = [%s]" % log.service_name)
+        print("START INFO >>> LOG PATH = [%s]" % log.service_path)
+        if 0 == log.file_start:
+            print("START INFO >>> LOG FILE = [%s]" % "first")
+        elif 1 == log.file_start:
+            print("START INFO >>> LOG FILE = [%s]" % "last")
+
+    for log in log_list:
+        t = threading.Thread(target=Thread_Tail_Log, args=(log))
+        t.start()
+
+    t2 = threading.Thread(target=Thread_Send_Log, args=(conf.server_ip, conf.server_port))
     t2.start()
-    # with concurrent.futures.ThreadPoolExecutor(max_workers=2) as executor:
-    #     executor.map(Thread_work, ini)
 
     while True:
         time.sleep(0.01)
