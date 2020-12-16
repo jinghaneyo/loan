@@ -16,6 +16,7 @@ using namespace google::protobuf::compiler;
 
 TCP_Session::TCP_Session()
 { 
+	m_pLogQ = nullptr;
 }
 
 TCP_Session::~TCP_Session() 
@@ -25,20 +26,18 @@ TCP_Session::~TCP_Session()
 void TCP_Session::OnEvent_Receive(	__in char *_pData,
 									__in size_t _nData_len )
 {
-	loan::MsgLog *pPacket = new loan::MsgLog();
-	pPacket->ParseFromString(_pData);
+	loan::MsgLog msgLog;
+	msgLog.ParseFromString(_pData);
 	
-	switch((int)pPacket->msg_type())
+	switch((int)msgLog.msg_type())
 	{
 		case (int)MsgLog_Type::CROLLING:
-		{
-			if(false == Task_Filter( pPacket ))
-				delete pPacket;
-		}
+			Task_Filter( msgLog );
 		break;
+
 		default:
 		// 이외는 잘못된 데이터 
-		std::cout << "[RECV] << Not support msg_type = " << std::to_string(pPacket->msg_type()) << std::endl;
+		std::cout << "[RECV] << Not support msg_type = " << std::to_string(msgLog.msg_type()) << std::endl;
 		assert(0 && "[RECV] not support msg_type");
 		break;
 	}
@@ -49,14 +48,14 @@ void TCP_Session::OnEvent_Close()
 	std::cout << "[TCP_Session::OnClose] >> " << Get_SessionIP() << std::endl;
 }
 
-bool TCP_Session::Task_Filter( __in loan::MsgLog *_pPacket )
+bool TCP_Session::Task_Filter( 	__in loan::MsgLog &_Packet )
 {
-	switch((int)_pPacket->msg_cmd())
+	switch((int)_Packet.msg_cmd())
 	{
 		case (int)MsgLog_Cmd_Crolling::SENDLING:
-			return Input_Filter(_pPacket);
+			return Input_Filter(_Packet);
 		default:
-		std::cout << "[RECV] << Not support cmd_type = " << std::to_string(_pPacket->msg_cmd()) << std::endl;
+		std::cout << "[RECV] << Not support cmd_type = " << std::to_string(_Packet.msg_cmd()) << std::endl;
 		assert(0 && "[RECV] not support cmd_type");
 		return false;
 	}
@@ -64,15 +63,21 @@ bool TCP_Session::Task_Filter( __in loan::MsgLog *_pPacket )
 	return false; 
 }
 
-bool TCP_Session::Input_Filter( __in loan::MsgLog *_pPacket )
+bool TCP_Session::Input_Filter( __in loan::MsgLog &_Packet )
 {
+	if(nullptr == m_pLogQ)
+	{
+		assert(0 && "[TCP_Session::Input_Filter] m_pLogQ is nullptr");
+		return false;
+	}
+
 	TCP_Mgr<TCP_Session> *pMgr = (TCP_Mgr<TCP_Session> *)Get_TCPMgr();
 	const std::map<std::string, DATA_POLICY> *pPolicy = pMgr->GetPolicy();
 	if(true == pPolicy->empty())
 		return false;
 
 	// 큐에 설정 리미트에 도달하면 중지 명령을 보내자 
-	if(pMgr->GetQ_LimitSize() == pMgr->GetQ_Size())
+	if(m_pLogQ->GetQ_LimitSize() == m_pLogQ->GetQ_Size())
 	{
 		loan::MsgLog msg_stop;
 		msg_stop.set_msg_type( (int)MsgLog_Type::CROLLING );
@@ -84,7 +89,7 @@ bool TCP_Session::Input_Filter( __in loan::MsgLog *_pPacket )
 	}
 
 	// full 크기에 도착하면 버린다
-	if(pMgr->GetQ_FullSize() == pMgr->GetQ_Size())
+	if(m_pLogQ->GetQ_FullSize() == m_pLogQ->GetQ_Size())
 		return false;
 
 	bool bIsPushQ = false;
@@ -121,7 +126,7 @@ bool TCP_Session::Input_Filter( __in loan::MsgLog *_pPacket )
 				std::regex reg_ex(reg);
 				std::smatch result;
 
-				if( std::regex_search(_pPacket->logcontents(), result, reg_ex) )
+				if( std::regex_search(_Packet.logcontents(), result, reg_ex) )
 				{
 					bPass = true;
 					break;
@@ -139,7 +144,7 @@ bool TCP_Session::Input_Filter( __in loan::MsgLog *_pPacket )
 		{
 			for(auto &service : policy.second.vec_service)
 			{
-				if(service == _pPacket->service_name())
+				if(service == _Packet.service_name())
 				{
 					bPass = true;
 					break;
@@ -151,24 +156,33 @@ bool TCP_Session::Input_Filter( __in loan::MsgLog *_pPacket )
 
 		if (true == bPass)
 		{
+			std::string *pstrSendData = new std::string();
+			_Packet.SerializeToString(&(*pstrSendData));
+
 			// Push_Data 안에 delete를 자동 호출 해준다. 따로 delete 를 호출 하지 말자 
-			pMgr->Push_Data( policy.first.c_str(), _pPacket );
+			m_pLogQ->Push_Data( policy.first.c_str(), pstrSendData );
 
 			bIsPushQ = true;
 		}
 	}
 
-	// false 리턴 시 delete 를 호출하도록 되어있으므로 PushQ true 경우 false 를 리턴하도록 해야한다 
-	return bIsPushQ ? false : true;
+	return bIsPushQ;
 }
 
 bool TCP_Session::OnEvent_Init()
 {
 	TCP_Mgr<TCP_Session> *pMgr = (TCP_Mgr<TCP_Session> *)Get_TCPMgr();
 
+	Set_LogQ( pMgr->Get_LogQ() );
+
 	m_strIP_Port = Get_SessionIP();
 	m_strIP_Port += ":";
 	m_strIP_Port += std::to_string( pMgr->Get_Port() );
 
 	return true;
+}
+
+void TCP_Session::Set_LogQ( __in MsgLog_Q *_pLogQ )
+{
+	m_pLogQ = _pLogQ;
 }

@@ -27,6 +27,8 @@ LINK_DIRECTORIES(/usr/local/lib64)
 
 ADD_EXECUTABLE(${APP_NAME}
 	src/main.cpp
+	src/MsgLog_Q.hpp
+	src/TCP_ClientMgr.cpp
 	src/Data_Packet.hpp
 	src/Data_Policy.hpp
 	src/TCP_Mgr.hpp
@@ -36,8 +38,8 @@ ADD_EXECUTABLE(${APP_NAME}
 	${RIGITAEDA_SRC}/Rigi_Server.cpp
 	${RIGITAEDA_SRC}/Rigi_SessionPool.cpp
 	${RIGITAEDA_SRC}/Rigi_TCPSession.cpp
-	${RIGITAEDA_INCLUDE}/Rigi_TCPMgr.hpp
+	${RIGITAEDA_INCLUDE}/Rigi_TCPServerMgr.hpp
 	)
 
 #TARGET_LINK_LIBRARIES( ${APP_NAME} gflags glog pthread boost_system )
-TARGET_LINK_LIBRARIES( ${APP_NAME} gflags pthread boost_system protobuf )
+TARGET_LINK_LIBRARIES( ${APP_NAME} gflags pthread boost_system protobuf glog )

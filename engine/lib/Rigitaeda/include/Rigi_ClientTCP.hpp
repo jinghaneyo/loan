@@ -48,6 +48,11 @@ namespace Rigitaeda
 			}
 		}
 	public:
+		// -----------------------------------------------------------
+		// Event(콜백)
+		virtual void OnEvent_Receive( __in char *_pszData, __in int _nData_len ){};
+		// -----------------------------------------------------------
+
 		bool Connect( 	__in const char *_pszHost, 
 						__in int _nPort,
 						__in boost::asio::io_service &io_service )
@@ -84,8 +89,6 @@ namespace Rigitaeda
 
 			return m_pSocket->write_some( boost::asio::buffer(_pszData, _nDataLen) );
 		}
-
-		virtual void OnEvent_Receive( __in char *_pszData, __in int _nData_len ){};
 	};
 };
 

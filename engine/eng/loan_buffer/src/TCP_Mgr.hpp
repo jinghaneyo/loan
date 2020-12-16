@@ -3,41 +3,46 @@
 
 #include <fstream>
 #include <mutex>
-#include <deque>
-#include "Rigi_TCPMgr.hpp"
+#include "Rigi_TCPServerMgr.hpp"
 #include "Data_Policy.hpp"
 #include "Data_Packet.hpp"
-#include "loan.pb.h"
-
-typedef std::deque<loan::MsgLog *>	DEQUE_MSG_LOG_PTR;
+#include "MsgLog_Q.hpp"
 
 template <typename T>
-class TCP_Mgr : public Rigitaeda::Rigi_TCPMgr<T>
+class TCP_Mgr : public Rigitaeda::Rigi_TCPServerMgr<T>
 {
 public:
 	TCP_Mgr()
 	{
+		m_pLogQ = nullptr;
 	}
 	virtual ~TCP_Mgr()
 	{
-		Clear_Q();
 	}
 
 private:
 	std::map<std::string, DATA_POLICY> m_mapPolicy;
 
-	std::mutex  m_LockQueue;
-	// key => ip + port
-	std::map<std::string, DEQUE_MSG_LOG_PTR *> m_mapQueue;
-	int			m_nLimit_Q;
-	int			m_nFull_Q;
-	int			m_nStart_Q;
+	MsgLog_Q *m_pLogQ;
+
+	// std::mutex  m_LockQueue;
+	// // key => ip + port
+	// std::map<std::string, DEQUE_MSG_LOG_PTR *> m_mapQueue;
+	// int			m_nLimit_Q;
+	// int			m_nFull_Q;
+	// int			m_nStart_Q;
 public:
 	// ------------------------------------------------------------------
 	// 이벤트 함수
 	// false로 리턴 시 종료 된다
 	bool OnEvent_Init()
 	{
+		if(nullptr == m_pLogQ)
+		{
+			assert(0 && "[TCP_Mgr::OnEvent_Init] m_pLogQ is nullptr");
+			return false;
+		}
+
 		char szPath[1024] = {0,};
 		if (getcwd(szPath, sizeof(szPath)) == NULL) 
 		{
@@ -57,6 +62,16 @@ public:
 	}
 	// ------------------------------------------------------------------
 
+	void Set_LogQ( __in MsgLog_Q *_pLogQ )
+	{
+		m_pLogQ = _pLogQ;
+	}
+	MsgLog_Q * Get_LogQ()
+	{
+		return m_pLogQ;
+	}
+
+/*
 	// 일반 함수
 	void Clear_Q()
 	{
@@ -137,7 +152,7 @@ public:
 	{
 		return m_nFull_Q;
 	}
-
+*/
 	bool Is_Exist_File( __in const char *_szFilePath )
 	{
 		std::ifstream infile(_szFilePath);

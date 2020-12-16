@@ -3,6 +3,7 @@
 
 #include "loan.pb.h"
 #include "Rigi_Server.hpp"
+#include "MsgLog_Q.hpp"
 
 enum class MsgLog_Type : int
 {
@@ -28,6 +29,8 @@ public:
 	virtual ~TCP_Session();
 private:
 	std::string m_strIP_Port;
+
+	MsgLog_Q *m_pLogQ;
 public:
 	// ---------------------------------------------------------------
 	// 이벤트 함수
@@ -38,8 +41,10 @@ public:
 	// ---------------------------------------------------------------
 
 	// 일반 함수
-	bool Task_Filter( __in loan::MsgLog *_pPacket );
-	bool Input_Filter( __in loan::MsgLog *_pPacket );
+	bool Task_Filter( 	__in loan::MsgLog &_oPacket );
+	bool Input_Filter( 	__in loan::MsgLog &_oPacket );
+
+	void Set_LogQ( __in MsgLog_Q *_pLogQ );
 };
 
 #endif
