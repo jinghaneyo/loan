@@ -22,9 +22,8 @@ LINK_DIRECTORIES(/usr/lib64/)
 
 ADD_EXECUTABLE(Rigitaeda 
 	src/main.cpp
-	include/Rigi_TCPMgr.hpp
+	include/Rigi_TCPServerMgr.hpp
 	src/Rigi_TCPSession.cpp
-	include/Rigi_Setting.hpp
 	src/Rigi_SessionPool.cpp
 	src/Rigi_Server.cpp
 	)
