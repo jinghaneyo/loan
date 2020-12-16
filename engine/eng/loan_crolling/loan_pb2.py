@@ -19,35 +19,10 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   syntax='proto3',
   serialized_options=None,
   create_key=_descriptor._internal_create_key,
-  serialized_pb=b'\n\nloan.proto\x12\x04loan\"\xaf\x01\n\x06MsgLog\x12\'\n\x08msg_type\x18\x01 \x01(\x0e\x32\x15.loan.MsgLog.Msg_Type\x12\x0f\n\x07msg_cmd\x18\x02 \x01(\x05\x12\x14\n\x0cservice_name\x18\x03 \x01(\t\x12\x14\n\x0cservice_path\x18\x04 \x01(\t\x12\x13\n\x0bLogContents\x18\x05 \x01(\t\"*\n\x08Msg_Type\x12\x0c\n\x08SEND_LOG\x10\x00\x12\x10\n\x0cSEND_COLLECT\x10\x01\x62\x06proto3'
+  serialized_pb=b'\n\nloan.proto\x12\x04loan\"l\n\x06MsgLog\x12\x10\n\x08msg_type\x18\x01 \x01(\x05\x12\x0f\n\x07msg_cmd\x18\x02 \x01(\x05\x12\x14\n\x0cservice_name\x18\x03 \x01(\t\x12\x14\n\x0cservice_path\x18\x04 \x01(\t\x12\x13\n\x0bLogContents\x18\x05 \x01(\tb\x06proto3'
 )
 
 
-
-_MSGLOG_MSG_TYPE = _descriptor.EnumDescriptor(
-  name='Msg_Type',
-  full_name='loan.MsgLog.Msg_Type',
-  filename=None,
-  file=DESCRIPTOR,
-  create_key=_descriptor._internal_create_key,
-  values=[
-    _descriptor.EnumValueDescriptor(
-      name='SEND_LOG', index=0, number=0,
-      serialized_options=None,
-      type=None,
-      create_key=_descriptor._internal_create_key),
-    _descriptor.EnumValueDescriptor(
-      name='SEND_COLLECT', index=1, number=1,
-      serialized_options=None,
-      type=None,
-      create_key=_descriptor._internal_create_key),
-  ],
-  containing_type=None,
-  serialized_options=None,
-  serialized_start=154,
-  serialized_end=196,
-)
-_sym_db.RegisterEnumDescriptor(_MSGLOG_MSG_TYPE)
 
 
 _MSGLOG = _descriptor.Descriptor(
@@ -60,7 +35,7 @@ _MSGLOG = _descriptor.Descriptor(
   fields=[
     _descriptor.FieldDescriptor(
       name='msg_type', full_name='loan.MsgLog.msg_type', index=0,
-      number=1, type=14, cpp_type=8, label=1,
+      number=1, type=5, cpp_type=1, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
@@ -98,7 +73,6 @@ _MSGLOG = _descriptor.Descriptor(
   ],
   nested_types=[],
   enum_types=[
-    _MSGLOG_MSG_TYPE,
   ],
   serialized_options=None,
   is_extendable=False,
@@ -106,12 +80,10 @@ _MSGLOG = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=21,
-  serialized_end=196,
+  serialized_start=20,
+  serialized_end=128,
 )
 
-_MSGLOG.fields_by_name['msg_type'].enum_type = _MSGLOG_MSG_TYPE
-_MSGLOG_MSG_TYPE.containing_type = _MSGLOG
 DESCRIPTOR.message_types_by_name['MsgLog'] = _MSGLOG
 _sym_db.RegisterFileDescriptor(DESCRIPTOR)
 
