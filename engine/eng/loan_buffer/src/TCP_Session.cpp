@@ -25,20 +25,23 @@ TCP_Session::~TCP_Session()
 void TCP_Session::OnEvent_Receive(	__in char *_pData,
 									__in size_t _nData_len )
 {
-	//std::cout << "[TCP_Session::Receive] >> " << _pData << std::endl;
-
 	loan::MsgLog *pPacket = new loan::MsgLog();
 	pPacket->ParseFromString(_pData);
-
-	// std::cout << "[RECV] << msg_type = " << std::to_string(pPacket->msg_type()) << " | msg_cmd = " << std::to_string(pPacket->msg_cmd()) << " | service_name = " << pPacket->service_name() << std::endl;
-	// std::cout << "[RECV] << logcontents = " << pPacket->logcontents() << std::endl;
-
-	if(false == Task_Filter( pPacket ))
-		delete pPacket;
-
-	// 응답 주기
-	// std::string strPacket = "[{'cmd':'run'},{'data': 'test pakcet'}]";
-	// Send( strPacket.c_str(), strPacket.length() );
+	
+	switch((int)pPacket->msg_type())
+	{
+		case (int)MsgLog_Type::CROLLING:
+		{
+			if(false == Task_Filter( pPacket ))
+				delete pPacket;
+		}
+		break;
+		default:
+		// 이외는 잘못된 데이터 
+		std::cout << "[RECV] << Not support msg_type = " << std::to_string(pPacket->msg_type()) << std::endl;
+		assert(0 && "[RECV] not support msg_type");
+		break;
+	}
 }
 
 void TCP_Session::OnEvent_Close()
@@ -48,9 +51,38 @@ void TCP_Session::OnEvent_Close()
 
 bool TCP_Session::Task_Filter( __in loan::MsgLog *_pPacket )
 {
+	switch((int)_pPacket->msg_cmd())
+	{
+		case (int)MsgLog_Cmd_Crolling::SENDLING:
+			return Input_Filter(_pPacket, pMgr);
+		default:
+		std::cout << "[RECV] << Not support cmd_type = " << std::to_string(pPacket->cmd_type()) << std::endl;
+		assert(0 && "[RECV] not support cmd_type");
+		return false;
+	}
+
+	return false; 
+}
+
+bool TCP_Session::Input_Filter( __in loan::MsgLog *_pPacket )
+{
 	TCP_Mgr<TCP_Session> *pMgr = (TCP_Mgr<TCP_Session> *)Get_TCPMgr();
 	const std::map<std::string, DATA_POLICY> *pPolicy = pMgr->GetPolicy();
 	if(true == pPolicy->empty())
+		return false;
+
+	// 큐에 설정 리미트에 도달하면 중지 명령을 보내자 
+	if(pMgr->GetQ_LimitSize() == pMgr->GetQ_Size())
+	{
+		loan::MsgLog msg_stop;
+		msg_stop.set_msg_type( (int)MsgLog_Type::CROLLING );
+		msg_stop.set_cmd_type( (int)MsgLog_Cmd_Crolling::STOP_REQU );
+
+		Send( msg_top.Debugstring() );
+	}
+
+	// full 크기에 도착하면 버린다
+	if(pMgr->GetQ_FullSize() == pMgr->GetQ_Size())
 		return false;
 
 	bool bIsPushQ = false;
@@ -130,9 +162,8 @@ bool TCP_Session::Task_Filter( __in loan::MsgLog *_pPacket )
 		}
 	}
 
-	//std::cout << "[RECV] << " << _pPacket->mutable_logcontents() << std::endl;
-
-	return bIsPushQ;
+	// false 리턴 시 delete 를 호출하도록 되어있으므로 PushQ true 경우 false 를 리턴하도록 해야한다 
+	return bIsPushQ ? false : true;
 }
 
 bool TCP_Session::OnEvent_Init()

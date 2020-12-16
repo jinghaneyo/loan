@@ -234,7 +234,8 @@ class MsgLog PROTOBUF_FINAL :
 
   enum : int {
     kServiceNameFieldNumber = 3,
-    kLogContentsFieldNumber = 4,
+    kServicePathFieldNumber = 4,
+    kLogContentsFieldNumber = 5,
     kMsgTypeFieldNumber = 1,
     kMsgCmdFieldNumber = 2,
   };
@@ -254,7 +255,23 @@ class MsgLog PROTOBUF_FINAL :
   std::string* _internal_mutable_service_name();
   public:
 
-  // string LogContents = 4;
+  // string service_path = 4;
+  void clear_service_path();
+  const std::string& service_path() const;
+  void set_service_path(const std::string& value);
+  void set_service_path(std::string&& value);
+  void set_service_path(const char* value);
+  void set_service_path(const char* value, size_t size);
+  std::string* mutable_service_path();
+  std::string* release_service_path();
+  void set_allocated_service_path(std::string* service_path);
+  private:
+  const std::string& _internal_service_path() const;
+  void _internal_set_service_path(const std::string& value);
+  std::string* _internal_mutable_service_path();
+  public:
+
+  // string LogContents = 5;
   void clear_logcontents();
   const std::string& logcontents() const;
   void set_logcontents(const std::string& value);
@@ -296,6 +313,7 @@ class MsgLog PROTOBUF_FINAL :
   typedef void InternalArenaConstructable_;
   typedef void DestructorSkippable_;
   ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr service_name_;
+  ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr service_path_;
   ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr logcontents_;
   int msg_type_;
   ::PROTOBUF_NAMESPACE_ID::int32 msg_cmd_;
@@ -414,7 +432,68 @@ inline void MsgLog::set_allocated_service_name(std::string* service_name) {
   // @@protoc_insertion_point(field_set_allocated:loan.MsgLog.service_name)
 }
 
-// string LogContents = 4;
+// string service_path = 4;
+inline void MsgLog::clear_service_path() {
+  service_path_.ClearToEmpty();
+}
+inline const std::string& MsgLog::service_path() const {
+  // @@protoc_insertion_point(field_get:loan.MsgLog.service_path)
+  return _internal_service_path();
+}
+inline void MsgLog::set_service_path(const std::string& value) {
+  _internal_set_service_path(value);
+  // @@protoc_insertion_point(field_set:loan.MsgLog.service_path)
+}
+inline std::string* MsgLog::mutable_service_path() {
+  // @@protoc_insertion_point(field_mutable:loan.MsgLog.service_path)
+  return _internal_mutable_service_path();
+}
+inline const std::string& MsgLog::_internal_service_path() const {
+  return service_path_.Get();
+}
+inline void MsgLog::_internal_set_service_path(const std::string& value) {
+  
+  service_path_.Set(::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::EmptyDefault{}, value, GetArena());
+}
+inline void MsgLog::set_service_path(std::string&& value) {
+  
+  service_path_.Set(
+    ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::EmptyDefault{}, ::std::move(value), GetArena());
+  // @@protoc_insertion_point(field_set_rvalue:loan.MsgLog.service_path)
+}
+inline void MsgLog::set_service_path(const char* value) {
+  GOOGLE_DCHECK(value != nullptr);
+  
+  service_path_.Set(::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::EmptyDefault{}, ::std::string(value), GetArena());
+  // @@protoc_insertion_point(field_set_char:loan.MsgLog.service_path)
+}
+inline void MsgLog::set_service_path(const char* value,
+    size_t size) {
+  
+  service_path_.Set(::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::EmptyDefault{}, ::std::string(
+      reinterpret_cast<const char*>(value), size), GetArena());
+  // @@protoc_insertion_point(field_set_pointer:loan.MsgLog.service_path)
+}
+inline std::string* MsgLog::_internal_mutable_service_path() {
+  
+  return service_path_.Mutable(::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::EmptyDefault{}, GetArena());
+}
+inline std::string* MsgLog::release_service_path() {
+  // @@protoc_insertion_point(field_release:loan.MsgLog.service_path)
+  return service_path_.Release(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), GetArena());
+}
+inline void MsgLog::set_allocated_service_path(std::string* service_path) {
+  if (service_path != nullptr) {
+    
+  } else {
+    
+  }
+  service_path_.SetAllocated(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), service_path,
+      GetArena());
+  // @@protoc_insertion_point(field_set_allocated:loan.MsgLog.service_path)
+}
+
+// string LogContents = 5;
 inline void MsgLog::clear_logcontents() {
   logcontents_.ClearToEmpty();
 }

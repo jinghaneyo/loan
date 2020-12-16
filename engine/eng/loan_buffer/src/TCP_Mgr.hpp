@@ -4,7 +4,6 @@
 #include <fstream>
 #include <mutex>
 #include <deque>
-#include <simdjson.h>
 #include "Rigi_TCPMgr.hpp"
 #include "Data_Policy.hpp"
 #include "Data_Packet.hpp"
@@ -27,9 +26,12 @@ public:
 private:
 	std::map<std::string, DATA_POLICY> m_mapPolicy;
 
-	std::mutex m_LockQueue;
+	std::mutex  m_LockQueue;
 	// key => ip + port
 	std::map<std::string, DEQUE_MSG_LOG_PTR *> m_mapQueue;
+	int			m_nLimit_Q;
+	int			m_nFull_Q;
+	int			m_nStart_Q;
 public:
 	// ------------------------------------------------------------------
 	// 이벤트 함수
@@ -114,6 +116,26 @@ public:
 		m_LockQueue.unlock();
 
 		return pRet;
+	}
+
+	int GetQ_Size()
+	{
+		return m_mapQueue.size();
+	}
+
+	bool QEmpty()
+	{
+		return m_mapQueue.empty();
+	}
+
+	int GetQ_LimitSize()
+	{
+		return m_nLimit_Q;
+	}
+
+	int GetQ_FullSize()
+	{
+		return m_nFull_Q;
 	}
 
 	bool Is_Exist_File( __in const char *_szFilePath )

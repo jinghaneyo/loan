@@ -37,8 +37,7 @@ ADD_EXECUTABLE(${APP_NAME}
 	${RIGITAEDA_SRC}/Rigi_SessionPool.cpp
 	${RIGITAEDA_SRC}/Rigi_TCPSession.cpp
 	${RIGITAEDA_INCLUDE}/Rigi_TCPMgr.hpp
-	#/share/simdjson/include/simdjson.h
 	)
 
 #TARGET_LINK_LIBRARIES( ${APP_NAME} gflags glog pthread boost_system )
-TARGET_LINK_LIBRARIES( ${APP_NAME} gflags pthread boost_system simdjson protobuf )
+TARGET_LINK_LIBRARIES( ${APP_NAME} gflags pthread boost_system protobuf )
