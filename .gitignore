@@ -16,6 +16,9 @@ dist/
 # Log files
 *.log
 
+# makefile of build
+cbuild/
+
 # Package files
 *.jar
 
@@ -48,4 +51,3 @@ Thumbs.db
 *.flv
 *.mov
 *.wmv
-
