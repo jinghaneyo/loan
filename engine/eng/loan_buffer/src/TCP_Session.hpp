@@ -39,6 +39,7 @@ public:
 
 	// 일반 함수
 	bool Task_Filter( __in loan::MsgLog *_pPacket );
+	bool Input_Filter( __in loan::MsgLog *_pPacket );
 };
 
 #endif

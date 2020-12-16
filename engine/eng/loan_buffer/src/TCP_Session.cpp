@@ -54,9 +54,9 @@ bool TCP_Session::Task_Filter( __in loan::MsgLog *_pPacket )
 	switch((int)_pPacket->msg_cmd())
 	{
 		case (int)MsgLog_Cmd_Crolling::SENDLING:
-			return Input_Filter(_pPacket, pMgr);
+			return Input_Filter(_pPacket);
 		default:
-		std::cout << "[RECV] << Not support cmd_type = " << std::to_string(pPacket->cmd_type()) << std::endl;
+		std::cout << "[RECV] << Not support cmd_type = " << std::to_string(_pPacket->msg_cmd()) << std::endl;
 		assert(0 && "[RECV] not support cmd_type");
 		return false;
 	}
@@ -76,9 +76,11 @@ bool TCP_Session::Input_Filter( __in loan::MsgLog *_pPacket )
 	{
 		loan::MsgLog msg_stop;
 		msg_stop.set_msg_type( (int)MsgLog_Type::CROLLING );
-		msg_stop.set_cmd_type( (int)MsgLog_Cmd_Crolling::STOP_REQU );
+		msg_stop.set_msg_cmd( (int)MsgLog_Cmd_Crolling::STOP_REQU );
 
-		Send( msg_top.Debugstring() );
+		std::string strSendData;
+		msg_stop.SerializeToString(&strSendData);
+		Send( strSendData.c_str(), msg_stop.ByteSizeLong() );
 	}
 
 	// full 크기에 도착하면 버린다
@@ -119,11 +121,11 @@ bool TCP_Session::Input_Filter( __in loan::MsgLog *_pPacket )
 				std::regex reg_ex(reg);
 				std::smatch result;
 
-				// if( std::regex_search(_pPacket->get_logcontents(), result, reg_ex) )
-				// {
-				// 	bPass = true;
-				// 	break;
-				// }
+				if( std::regex_search(_pPacket->logcontents(), result, reg_ex) )
+				{
+					bPass = true;
+					break;
+				}
 			}
 		}
 		if( false == bPass )
@@ -137,17 +139,11 @@ bool TCP_Session::Input_Filter( __in loan::MsgLog *_pPacket )
 		{
 			for(auto &service : policy.second.vec_service)
 			{
-				// for( auto &d_svc : _pPacket->vec_service )
-				// {
-				// 	if(service == d_svc)
-				// 	{
-				// 		bPass = true;
-				// 		break;
-				// 	}
-				// }
-
-				if( true == bPass )
+				if(service == _pPacket->service_name())
+				{
+					bPass = true;
 					break;
+				}
 			}
 		}
 		if( false == bPass )
