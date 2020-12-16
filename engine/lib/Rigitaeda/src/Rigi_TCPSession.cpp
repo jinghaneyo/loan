@@ -1,5 +1,5 @@
 #include "Rigi_TCPSession.hpp"
-#include "Rigi_TCPMgr.hpp"
+#include "Rigi_TCPServerMgr.hpp"
 #include "Rigi_SessionPool.hpp"
 
 using namespace Rigitaeda;

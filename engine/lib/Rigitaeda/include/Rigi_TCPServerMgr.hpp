@@ -13,15 +13,15 @@ namespace Rigitaeda
     class Rigi_Server;
 
     template <typename TCP_TMPL>
-    class Rigi_TCPMgr
+    class Rigi_TCPServerMgr
     {
     public:
-        Rigi_TCPMgr() : m_acceptor(m_io_service)
+        Rigi_TCPServerMgr() : m_acceptor(m_io_service)
         {
             m_nPort = 3333;
         }
 
-        virtual ~Rigi_TCPMgr()
+        virtual ~Rigi_TCPServerMgr()
         {
             Stop();
         }
@@ -42,7 +42,7 @@ namespace Rigitaeda
             SOCKET_TCP * pSocket = new SOCKET_TCP(m_io_service);
 
             m_acceptor.async_accept(    *pSocket,
-                                        boost::bind(&Rigi_TCPMgr::Handle_accept,
+                                        boost::bind(&Rigi_TCPServerMgr::Handle_accept,
                                                     this,
                                                     pSocket,
                                                     boost::asio::placeholders::error)
@@ -99,12 +99,12 @@ namespace Rigitaeda
         {
             if(1 > _nPort)
             {
-                assert(0 && "[Rigi_TCPMgr::Run] port < 0 !!");
+                assert(0 && "[Rigi_TCPServerMgr::Run] port < 0 !!");
                 return false;
             }
             if(1 > _nMaxClient)
             {
-                assert(0 && "[Rigi_TCPMgr::Run] _nMaxClient < 0 !!");
+                assert(0 && "[Rigi_TCPServerMgr::Run] _nMaxClient < 0 !!");
                 return false;
             }
 
@@ -146,7 +146,6 @@ namespace Rigitaeda
             m_SessionPool.Clear();
         }
     };
-
 }
 
 #endif

@@ -1,5 +1,5 @@
 #include "Rigi_Server.hpp"
-#include "Rigi_TCPMgr.hpp"
+#include "Rigi_TCPServerMgr.hpp"
 
 using namespace Rigitaeda;
 
