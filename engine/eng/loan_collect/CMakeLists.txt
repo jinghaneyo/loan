@@ -29,7 +29,6 @@ ADD_EXECUTABLE(${APP_NAME}
 	${RIGITAEDA_SRC}/Rigi_Server.cpp
 	${RIGITAEDA_SRC}/Rigi_SessionPool.cpp
 	${RIGITAEDA_SRC}/Rigi_TCPSession.cpp
-	${RIGITAEDA_INCLUDE}/Rigi_Setting.hpp
 	${RIGITAEDA_INCLUDE}/Rigi_TCPMgr.hpp
 	)
 

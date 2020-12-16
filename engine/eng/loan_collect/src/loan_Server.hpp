@@ -1,5 +1,4 @@
 #include "Rigi_Server.hpp"
-#include "Rigi_Setting.hpp"
 
 using namespace Rigitaeda;
 class TCP_Session : public Rigitaeda::Rigi_TCPSession
