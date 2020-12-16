@@ -187,7 +187,7 @@ def Thread_Send_Log(server_ip, port):
                             msg = MsgLog()
                             msg.msg_type = 1
                             msg.msg_cmd = 2
-                            msg.service_name = d.service_path
+                            msg.service_name = d.service_name
                             msg.LogContents = d.log_contents
                             client_socket.send( msg.SerializeToString() )
                     else:
