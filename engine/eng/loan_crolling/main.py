@@ -19,6 +19,19 @@ g_bWindows = None
 g_QPacket = queue.Queue()
 g_LPacket = threading.Lock()
 
+class MsgLog_Type:
+    CROLLING = 0
+    ANALYZER = 1
+    MAX = 2
+
+class MsgLog_Cmd_Crolling:
+    SENDLING = 0
+    STOP_REQU = 1
+    STOP_RESP = 2
+    START_REQU = 3
+    START_RESP = 4
+    MAX = 5
+
 class Conf_ini:
     server_ip = ''
     server_port = 0
@@ -168,6 +181,7 @@ def tail(log):
                 data.service_path = log.service_path
                 data.log_contents = line
                 Push_Packet(data)
+                print("%s\n" % line)
     except Exception as e:
         print("[Exception][tail] Err = %s" % e)
 
@@ -185,8 +199,8 @@ def Thread_Send_Log(server_ip, port):
                         for d in data:
                             print(d.log_contents)
                             msg = MsgLog()
-                            msg.msg_type = 1
-                            msg.msg_cmd = 2
+                            msg.msg_type = 0 #MsgLog_Type.CROLLING
+                            msg.msg_cmd = 0 #MsgLog_Cmd_Crolling.SENDLING
                             msg.service_name = d.service_name
                             msg.LogContents = d.log_contents
                             client_socket.send( msg.SerializeToString() )
@@ -236,7 +250,7 @@ if __name__ == '__main__':
             print("START INFO >>> LOG FILE = [%s]" % "last")
 
     for log in log_list:
-        t = threading.Thread(target=Thread_Tail_Log, args=(log))
+        t = threading.Thread(target=Thread_Tail_Log, args=(log,))
         t.start()
 
     t2 = threading.Thread(target=Thread_Send_Log, args=(conf.server_ip, conf.server_port))

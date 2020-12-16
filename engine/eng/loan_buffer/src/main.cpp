@@ -26,7 +26,7 @@ int main()
 	TCP_Mgr<TCP_Session> mgr;
 	mgr.Set_LogQ(&logQ);
 
-	Rigitaeda::Rigi_Server server(1024);
+	Rigitaeda::Rigi_Server server(10240);
 	server.Run( 3333, 100, &mgr);
 
 	logQ.Clear_Q();

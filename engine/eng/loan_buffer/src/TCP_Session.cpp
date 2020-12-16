@@ -32,13 +32,19 @@ void TCP_Session::OnEvent_Receive(	__in char *_pData,
 	switch((int)msgLog.msg_type())
 	{
 		case (int)MsgLog_Type::CROLLING:
+		{
 			Task_Filter( msgLog );
+
+			// std::string *pstrSendData = new std::string();
+			// msgLog.SerializeToString(&(*pstrSendData));
+			// m_pLogQ->Push_Data( "172.17.0.2:4444", pstrSendData );
+		}
 		break;
 
 		default:
 		// 이외는 잘못된 데이터 
 		std::cout << "[RECV] << Not support msg_type = " << std::to_string(msgLog.msg_type()) << std::endl;
-		assert(0 && "[RECV] not support msg_type");
+		//assert(0 && "[RECV] not support msg_type");
 		break;
 	}
 }
@@ -173,7 +179,7 @@ bool TCP_Session::OnEvent_Init()
 {
 	TCP_Mgr<TCP_Session> *pMgr = (TCP_Mgr<TCP_Session> *)Get_TCPMgr();
 
-	Set_LogQ( pMgr->Get_LogQ() );
+	m_pLogQ = pMgr->Get_LogQ();
 
 	m_strIP_Port = Get_SessionIP();
 	m_strIP_Port += ":";

@@ -41,6 +41,8 @@ public:
 							__in const char *_pszServerIP_New, __in int _nPort_New );
 
 	void Set_LogQ( __in MsgLog_Q *_pLogQ );
+
+	void Send_to_Analyzer();
 };
 
 #endif

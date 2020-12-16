@@ -6,6 +6,7 @@
 
 TCP_ClientMgr::TCP_ClientMgr() 
 { 
+	m_pLogQ = nullptr;
 }
 
 TCP_ClientMgr::~TCP_ClientMgr() 
@@ -25,14 +26,9 @@ void TCP_ClientMgr::Async_Run()
 		// 접속 후 소켓이 close 될때까지 대기 한다
 		while(true)
 		{
-			const std::lock_guard<std::mutex> lock(m_mtxSession);
-			for(auto &pSession : m_mapSessionPool)
-			{
-				//loan::MsgLog *pLog = m_pLogQ->Pop_Data(pSession->first.c_str());
-				std::string *pLog = m_pLogQ->Pop_Data(pSession.first.c_str());
-				if(nullptr != pLog)
-					pSession.second->SendPacket( pLog->c_str(), pLog->length() );
-			}
+			Send_to_Analyzer();
+
+			usleep(1000);
 		}
 	});
 	thr.detach();
@@ -142,4 +138,23 @@ bool TCP_ClientMgr::Chg_Analyzer_Eng( 	__in const char *_pszServerIP_Old, __in i
 void TCP_ClientMgr::Set_LogQ( __in MsgLog_Q *_pLogQ )
 {
 	m_pLogQ = _pLogQ;
+}
+
+bool TCP_ClientMgr::Send_to_Analyzer()
+{
+	std::string *pLog = m_pLogQ->Pop_Data(pSession.first.c_str());
+	if(nullptr == pLog)
+		return false;
+
+	bool bSend = false;
+	const std::lock_guard<std::mutex> lock(m_mtxSession);
+	for(auto &pSession : m_mapSessionPool)
+	{
+		std::cout << "DATA << " << pLog->c_str() << std::endl;
+		int nLen = pSession.second->SendPacket( pLog->c_str(), pLog->length() );
+		if(nLen == pLog->length())
+			bSend = true;
+	}
+
+	return bSend;
 }

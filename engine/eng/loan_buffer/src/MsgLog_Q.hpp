@@ -5,7 +5,6 @@
 #include <deque>
 #include "loan.pb.h"
 
-//typedef std::deque<loan::MsgLog *>	DEQUE_MSG_LOG_PTR;
 typedef std::deque<std::string *>	DEQUE_MSG_LOG_PTR;
 
 class MsgLog_Q
@@ -57,10 +56,8 @@ public:
 		}
 	}
 
-	//loan::MsgLog * Pop_Data( __in const char *_pszKey )
 	std::string * Pop_Data( __in const char *_pszKey )
 	{
-		//loan::MsgLog *pRet = nullptr;
 		std::string *pRet = nullptr;
 
 		const std::lock_guard<std::mutex> lock(m_LockQueue);

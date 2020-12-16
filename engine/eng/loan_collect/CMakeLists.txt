@@ -26,6 +26,7 @@ LINK_DIRECTORIES(/usr/lib64/)
 ADD_EXECUTABLE(${APP_NAME}
 	src/main.cpp
 	src/loan_Server.hpp
+	src/loan.pb.cc
 	${RIGITAEDA_SRC}/Rigi_Server.cpp
 	${RIGITAEDA_SRC}/Rigi_SessionPool.cpp
 	${RIGITAEDA_SRC}/Rigi_TCPSession.cpp
@@ -33,4 +34,4 @@ ADD_EXECUTABLE(${APP_NAME}
 	)
 
 #TARGET_LINK_LIBRARIES( ${APP_NAME} gflags glog pthread boost_system boost_thread )
-TARGET_LINK_LIBRARIES( ${APP_NAME} gflags pthread boost_system )
+TARGET_LINK_LIBRARIES( ${APP_NAME} gflags pthread boost_system protobuf glog )

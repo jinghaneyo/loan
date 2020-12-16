@@ -15,7 +15,7 @@ int main( int argc, char* argv[])
 
     std::cout << "[START] << server run (port = " << nPort << ")" << std::endl;
 
-	Rigitaeda::Rigi_TCPMgr<TCP_Session> mgr;
+	Rigitaeda::Rigi_TCPServerMgr<TCP_Session> mgr;
 	Rigitaeda::Rigi_Server server;
 
 	//server.Load_Conf();
