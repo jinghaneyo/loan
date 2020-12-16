@@ -36,7 +36,7 @@ static void InitDefaultsscc_info_MsgLog_loan_2eproto() {
     {{ATOMIC_VAR_INIT(::PROTOBUF_NAMESPACE_ID::internal::SCCInfoBase::kUninitialized), 0, 0, InitDefaultsscc_info_MsgLog_loan_2eproto}, {}};
 
 static ::PROTOBUF_NAMESPACE_ID::Metadata file_level_metadata_loan_2eproto[1];
-static const ::PROTOBUF_NAMESPACE_ID::EnumDescriptor* file_level_enum_descriptors_loan_2eproto[1];
+static constexpr ::PROTOBUF_NAMESPACE_ID::EnumDescriptor const** file_level_enum_descriptors_loan_2eproto = nullptr;
 static constexpr ::PROTOBUF_NAMESPACE_ID::ServiceDescriptor const** file_level_service_descriptors_loan_2eproto = nullptr;
 
 const ::PROTOBUF_NAMESPACE_ID::uint32 TableStruct_loan_2eproto::offsets[] PROTOBUF_SECTION_VARIABLE(protodesc_cold) = {
@@ -60,12 +60,10 @@ static ::PROTOBUF_NAMESPACE_ID::Message const * const file_default_instances[] =
 };
 
 const char descriptor_table_protodef_loan_2eproto[] PROTOBUF_SECTION_VARIABLE(protodesc_cold) =
-  "\n\nloan.proto\022\004loan\"\257\001\n\006MsgLog\022\'\n\010msg_typ"
-  "e\030\001 \001(\0162\025.loan.MsgLog.Msg_Type\022\017\n\007msg_cm"
-  "d\030\002 \001(\005\022\024\n\014service_name\030\003 \001(\t\022\024\n\014service"
-  "_path\030\004 \001(\t\022\023\n\013LogContents\030\005 \001(\t\"*\n\010Msg_"
-  "Type\022\014\n\010SEND_LOG\020\000\022\020\n\014SEND_COLLECT\020\001b\006pr"
-  "oto3"
+  "\n\nloan.proto\022\004loan\"l\n\006MsgLog\022\020\n\010msg_type"
+  "\030\001 \001(\005\022\017\n\007msg_cmd\030\002 \001(\005\022\024\n\014service_name\030"
+  "\003 \001(\t\022\024\n\014service_path\030\004 \001(\t\022\023\n\013LogConten"
+  "ts\030\005 \001(\tb\006proto3"
   ;
 static const ::PROTOBUF_NAMESPACE_ID::internal::DescriptorTable*const descriptor_table_loan_2eproto_deps[1] = {
 };
@@ -74,7 +72,7 @@ static ::PROTOBUF_NAMESPACE_ID::internal::SCCInfoBase*const descriptor_table_loa
 };
 static ::PROTOBUF_NAMESPACE_ID::internal::once_flag descriptor_table_loan_2eproto_once;
 const ::PROTOBUF_NAMESPACE_ID::internal::DescriptorTable descriptor_table_loan_2eproto = {
-  false, false, descriptor_table_protodef_loan_2eproto, "loan.proto", 204,
+  false, false, descriptor_table_protodef_loan_2eproto, "loan.proto", 136,
   &descriptor_table_loan_2eproto_once, descriptor_table_loan_2eproto_sccs, descriptor_table_loan_2eproto_deps, 1, 0,
   schemas, file_default_instances, TableStruct_loan_2eproto::offsets,
   file_level_metadata_loan_2eproto, 1, file_level_enum_descriptors_loan_2eproto, file_level_service_descriptors_loan_2eproto,
@@ -83,27 +81,6 @@ const ::PROTOBUF_NAMESPACE_ID::internal::DescriptorTable descriptor_table_loan_2
 // Force running AddDescriptors() at dynamic initialization time.
 PROTOBUF_ATTRIBUTE_INIT_PRIORITY static ::PROTOBUF_NAMESPACE_ID::internal::AddDescriptorsRunner dynamic_init_dummy_loan_2eproto(&descriptor_table_loan_2eproto);
 namespace loan {
-const ::PROTOBUF_NAMESPACE_ID::EnumDescriptor* MsgLog_Msg_Type_descriptor() {
-  ::PROTOBUF_NAMESPACE_ID::internal::AssignDescriptors(&descriptor_table_loan_2eproto);
-  return file_level_enum_descriptors_loan_2eproto[0];
-}
-bool MsgLog_Msg_Type_IsValid(int value) {
-  switch (value) {
-    case 0:
-    case 1:
-      return true;
-    default:
-      return false;
-  }
-}
-
-#if (__cplusplus < 201703) && (!defined(_MSC_VER) || _MSC_VER >= 1900)
-constexpr MsgLog_Msg_Type MsgLog::SEND_LOG;
-constexpr MsgLog_Msg_Type MsgLog::SEND_COLLECT;
-constexpr MsgLog_Msg_Type MsgLog::Msg_Type_MIN;
-constexpr MsgLog_Msg_Type MsgLog::Msg_Type_MAX;
-constexpr int MsgLog::Msg_Type_ARRAYSIZE;
-#endif  // (__cplusplus < 201703) && (!defined(_MSC_VER) || _MSC_VER >= 1900)
 
 // ===================================================================
 
@@ -202,12 +179,11 @@ const char* MsgLog::_InternalParse(const char* ptr, ::PROTOBUF_NAMESPACE_ID::int
     ptr = ::PROTOBUF_NAMESPACE_ID::internal::ReadTag(ptr, &tag);
     CHK_(ptr);
     switch (tag >> 3) {
-      // .loan.MsgLog.Msg_Type msg_type = 1;
+      // int32 msg_type = 1;
       case 1:
         if (PROTOBUF_PREDICT_TRUE(static_cast<::PROTOBUF_NAMESPACE_ID::uint8>(tag) == 8)) {
-          ::PROTOBUF_NAMESPACE_ID::uint64 val = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint64(&ptr);
+          msg_type_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint64(&ptr);
           CHK_(ptr);
-          _internal_set_msg_type(static_cast<::loan::MsgLog_Msg_Type>(val));
         } else goto handle_unusual;
         continue;
       // int32 msg_cmd = 2;
@@ -272,11 +248,10 @@ failure:
   ::PROTOBUF_NAMESPACE_ID::uint32 cached_has_bits = 0;
   (void) cached_has_bits;
 
-  // .loan.MsgLog.Msg_Type msg_type = 1;
+  // int32 msg_type = 1;
   if (this->msg_type() != 0) {
     target = stream->EnsureSpace(target);
-    target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::WriteEnumToArray(
-      1, this->_internal_msg_type(), target);
+    target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::WriteInt32ToArray(1, this->_internal_msg_type(), target);
   }
 
   // int32 msg_cmd = 2;
@@ -352,10 +327,11 @@ size_t MsgLog::ByteSizeLong() const {
         this->_internal_logcontents());
   }
 
-  // .loan.MsgLog.Msg_Type msg_type = 1;
+  // int32 msg_type = 1;
   if (this->msg_type() != 0) {
     total_size += 1 +
-      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::EnumSize(this->_internal_msg_type());
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::Int32Size(
+        this->_internal_msg_type());
   }
 
   // int32 msg_cmd = 2;

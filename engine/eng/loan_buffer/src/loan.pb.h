@@ -30,7 +30,6 @@
 #include <google/protobuf/message.h>
 #include <google/protobuf/repeated_field.h>  // IWYU pragma: export
 #include <google/protobuf/extension_set.h>  // IWYU pragma: export
-#include <google/protobuf/generated_enum_reflection.h>
 #include <google/protobuf/unknown_field_set.h>
 // @@protoc_insertion_point(includes)
 #include <google/protobuf/port_def.inc>
@@ -64,31 +63,6 @@ template<> ::loan::MsgLog* Arena::CreateMaybeMessage<::loan::MsgLog>(Arena*);
 PROTOBUF_NAMESPACE_CLOSE
 namespace loan {
 
-enum MsgLog_Msg_Type : int {
-  MsgLog_Msg_Type_SEND_LOG = 0,
-  MsgLog_Msg_Type_SEND_COLLECT = 1,
-  MsgLog_Msg_Type_MsgLog_Msg_Type_INT_MIN_SENTINEL_DO_NOT_USE_ = std::numeric_limits<::PROTOBUF_NAMESPACE_ID::int32>::min(),
-  MsgLog_Msg_Type_MsgLog_Msg_Type_INT_MAX_SENTINEL_DO_NOT_USE_ = std::numeric_limits<::PROTOBUF_NAMESPACE_ID::int32>::max()
-};
-bool MsgLog_Msg_Type_IsValid(int value);
-constexpr MsgLog_Msg_Type MsgLog_Msg_Type_Msg_Type_MIN = MsgLog_Msg_Type_SEND_LOG;
-constexpr MsgLog_Msg_Type MsgLog_Msg_Type_Msg_Type_MAX = MsgLog_Msg_Type_SEND_COLLECT;
-constexpr int MsgLog_Msg_Type_Msg_Type_ARRAYSIZE = MsgLog_Msg_Type_Msg_Type_MAX + 1;
-
-const ::PROTOBUF_NAMESPACE_ID::EnumDescriptor* MsgLog_Msg_Type_descriptor();
-template<typename T>
-inline const std::string& MsgLog_Msg_Type_Name(T enum_t_value) {
-  static_assert(::std::is_same<T, MsgLog_Msg_Type>::value ||
-    ::std::is_integral<T>::value,
-    "Incorrect type passed to function MsgLog_Msg_Type_Name.");
-  return ::PROTOBUF_NAMESPACE_ID::internal::NameOfEnum(
-    MsgLog_Msg_Type_descriptor(), enum_t_value);
-}
-inline bool MsgLog_Msg_Type_Parse(
-    ::PROTOBUF_NAMESPACE_ID::ConstStringParam name, MsgLog_Msg_Type* value) {
-  return ::PROTOBUF_NAMESPACE_ID::internal::ParseNamedEnum<MsgLog_Msg_Type>(
-    MsgLog_Msg_Type_descriptor(), name, value);
-}
 // ===================================================================
 
 class MsgLog PROTOBUF_FINAL :
@@ -200,36 +174,6 @@ class MsgLog PROTOBUF_FINAL :
 
   // nested types ----------------------------------------------------
 
-  typedef MsgLog_Msg_Type Msg_Type;
-  static constexpr Msg_Type SEND_LOG =
-    MsgLog_Msg_Type_SEND_LOG;
-  static constexpr Msg_Type SEND_COLLECT =
-    MsgLog_Msg_Type_SEND_COLLECT;
-  static inline bool Msg_Type_IsValid(int value) {
-    return MsgLog_Msg_Type_IsValid(value);
-  }
-  static constexpr Msg_Type Msg_Type_MIN =
-    MsgLog_Msg_Type_Msg_Type_MIN;
-  static constexpr Msg_Type Msg_Type_MAX =
-    MsgLog_Msg_Type_Msg_Type_MAX;
-  static constexpr int Msg_Type_ARRAYSIZE =
-    MsgLog_Msg_Type_Msg_Type_ARRAYSIZE;
-  static inline const ::PROTOBUF_NAMESPACE_ID::EnumDescriptor*
-  Msg_Type_descriptor() {
-    return MsgLog_Msg_Type_descriptor();
-  }
-  template<typename T>
-  static inline const std::string& Msg_Type_Name(T enum_t_value) {
-    static_assert(::std::is_same<T, Msg_Type>::value ||
-      ::std::is_integral<T>::value,
-      "Incorrect type passed to function Msg_Type_Name.");
-    return MsgLog_Msg_Type_Name(enum_t_value);
-  }
-  static inline bool Msg_Type_Parse(::PROTOBUF_NAMESPACE_ID::ConstStringParam name,
-      Msg_Type* value) {
-    return MsgLog_Msg_Type_Parse(name, value);
-  }
-
   // accessors -------------------------------------------------------
 
   enum : int {
@@ -287,13 +231,13 @@ class MsgLog PROTOBUF_FINAL :
   std::string* _internal_mutable_logcontents();
   public:
 
-  // .loan.MsgLog.Msg_Type msg_type = 1;
+  // int32 msg_type = 1;
   void clear_msg_type();
-  ::loan::MsgLog_Msg_Type msg_type() const;
-  void set_msg_type(::loan::MsgLog_Msg_Type value);
+  ::PROTOBUF_NAMESPACE_ID::int32 msg_type() const;
+  void set_msg_type(::PROTOBUF_NAMESPACE_ID::int32 value);
   private:
-  ::loan::MsgLog_Msg_Type _internal_msg_type() const;
-  void _internal_set_msg_type(::loan::MsgLog_Msg_Type value);
+  ::PROTOBUF_NAMESPACE_ID::int32 _internal_msg_type() const;
+  void _internal_set_msg_type(::PROTOBUF_NAMESPACE_ID::int32 value);
   public:
 
   // int32 msg_cmd = 2;
@@ -315,7 +259,7 @@ class MsgLog PROTOBUF_FINAL :
   ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr service_name_;
   ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr service_path_;
   ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr logcontents_;
-  int msg_type_;
+  ::PROTOBUF_NAMESPACE_ID::int32 msg_type_;
   ::PROTOBUF_NAMESPACE_ID::int32 msg_cmd_;
   mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
   friend struct ::TableStruct_loan_2eproto;
@@ -331,22 +275,22 @@ class MsgLog PROTOBUF_FINAL :
 #endif  // __GNUC__
 // MsgLog
 
-// .loan.MsgLog.Msg_Type msg_type = 1;
+// int32 msg_type = 1;
 inline void MsgLog::clear_msg_type() {
   msg_type_ = 0;
 }
-inline ::loan::MsgLog_Msg_Type MsgLog::_internal_msg_type() const {
-  return static_cast< ::loan::MsgLog_Msg_Type >(msg_type_);
+inline ::PROTOBUF_NAMESPACE_ID::int32 MsgLog::_internal_msg_type() const {
+  return msg_type_;
 }
-inline ::loan::MsgLog_Msg_Type MsgLog::msg_type() const {
+inline ::PROTOBUF_NAMESPACE_ID::int32 MsgLog::msg_type() const {
   // @@protoc_insertion_point(field_get:loan.MsgLog.msg_type)
   return _internal_msg_type();
 }
-inline void MsgLog::_internal_set_msg_type(::loan::MsgLog_Msg_Type value) {
+inline void MsgLog::_internal_set_msg_type(::PROTOBUF_NAMESPACE_ID::int32 value) {
   
   msg_type_ = value;
 }
-inline void MsgLog::set_msg_type(::loan::MsgLog_Msg_Type value) {
+inline void MsgLog::set_msg_type(::PROTOBUF_NAMESPACE_ID::int32 value) {
   _internal_set_msg_type(value);
   // @@protoc_insertion_point(field_set:loan.MsgLog.msg_type)
 }
@@ -561,16 +505,6 @@ inline void MsgLog::set_allocated_logcontents(std::string* logcontents) {
 // @@protoc_insertion_point(namespace_scope)
 
 }  // namespace loan
-
-PROTOBUF_NAMESPACE_OPEN
-
-template <> struct is_proto_enum< ::loan::MsgLog_Msg_Type> : ::std::true_type {};
-template <>
-inline const EnumDescriptor* GetEnumDescriptor< ::loan::MsgLog_Msg_Type>() {
-  return ::loan::MsgLog_Msg_Type_descriptor();
-}
-
-PROTOBUF_NAMESPACE_CLOSE
 
 // @@protoc_insertion_point(global_scope)
 
