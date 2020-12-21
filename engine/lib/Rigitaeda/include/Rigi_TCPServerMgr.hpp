@@ -125,6 +125,10 @@ namespace Rigitaeda
             }
 
             m_acceptor.open(endpoint.protocol());
+
+            boost::asio::socket_base::reuse_address option(true);
+            m_acceptor.set_option(option);
+
             m_acceptor.bind(endpoint);
             m_acceptor.listen(_nMaxClient);
 
