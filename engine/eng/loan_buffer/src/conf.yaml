@@ -1,0 +1,11 @@
+server: 
+    protocol: "tcp"
+    port: "4000"
+
+send_rule:
+    round-robin: 
+        - 172.17.0.2:4444
+        - 172.17.0.3:5555
+    # fail-over: 
+    #     - 172.17.0.2:4444
+    #     - 172.17.0.3:5555
