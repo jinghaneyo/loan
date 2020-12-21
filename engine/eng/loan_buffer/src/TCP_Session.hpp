@@ -7,14 +7,14 @@
 
 enum class MsgLog_Type : int
 {
-	CROLLING,		// 크롤링 로그 수집
+	CROLLING = 1,		// 크롤링 로그 수집
 	ANALYZER,		// 로그 분석
 	MAX
 };
 
 enum class MsgLog_Cmd_Crolling: int
 {
-	SENDLING,		// 로그 전송 중
+	SENDLING = 1,		// 로그 전송 중
 	STOP_REQU,		// 로그 전송 중지 요청 
 	STOP_RESP,		// 로그 전송 중지 요청에 대한 답변
 	START_REQU,		// 로그 전송 시작 요청 

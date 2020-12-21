@@ -6,17 +6,21 @@
 #include "MsgLog_Q.hpp"
 
 typedef std::string 	STR_IP_PORT;
-
-class TCP_ClientMgr: public Rigitaeda::Rigi_ClientTCP
+typedef std::vector<Rigitaeda::Rigi_ClientTCP *>	VEC_RIGI_SESSION;
+typedef std::chrono::system_clock::time_point 		STD_TIME;
+class TCP_ClientMgr
 {
 public:
-	TCP_ClientMgr();
+	TCP_ClientMgr( __in MsgLog_Q *_pLogQ );
 	virtual ~TCP_ClientMgr();
 private:
 	boost::asio::io_service m_io_service;
 
-	std::mutex											m_mtxSession;
-	std::map<STR_IP_PORT, Rigitaeda::Rigi_ClientTCP *>  m_mapSessionPool;
+	std::mutex											m_mtxSession_Pool;
+	std::map<STR_IP_PORT, Rigitaeda::Rigi_ClientTCP *>  m_mapSession_Pool;
+	//std::map<Rigitaeda::Rigi_ClientTCP *, int>  		m_mapSession_Pool;
+	std::mutex											m_mtxSession_Del;
+	std::map<STD_TIME, VEC_RIGI_SESSION *>				m_mapSession_Del;
 
 	MsgLog_Q	*m_pLogQ;
 public:
@@ -25,24 +29,29 @@ public:
 	// virtual bool OnEvent_Init();
 	// virtual void OnEvent_Receive(	__in char *_pData,
 	// 								__in size_t _nData_len );
+	void OnEvent_Close( __in Rigitaeda::Rigi_ClientTCP *_pSession );
 	// // ---------------------------------------------------------------
 
-	void Async_Run();
-	void Await_Run();
+	std::thread Run();
+
 	Rigitaeda::Rigi_ClientTCP * Connect_Session( __in const char *_pszServerIP, __in int _nPort );
-	Rigitaeda::Rigi_ClientTCP * Get_Session( __in const char *_pszServerIP, __in int _nPort );
+	// Rigitaeda::Rigi_ClientTCP * Get_Session( __in const char *_pszServerIP, __in int _nPort );
+	Rigitaeda::Rigi_ClientTCP * Get_Session_From_Pool( __in int _nIndex );
 
 	// 전달할 분석 엔진 추가
-	bool Add_Analyzer_Eng( __in const char *_pszServerIP, __in int _nPort );
+	bool Add_Eng( __in const char *_pszServerIP, __in int _nPort );
 	// 전달할 분석 엔진 삭제
-	bool Del_Analyzer_Eng( __in const char *_pszServerIP, __in int _nPort );
+	bool Del_Eng( __in const char *_pszServerIP, __in int _nPort );
 	// 전달할 분석 엔진 변경
-	bool Chg_Analyzer_Eng( 	__in const char *_pszServerIP_Old, __in int _nPort_Old,
-							__in const char *_pszServerIP_New, __in int _nPort_New );
+	bool Chg_Eng( 	__in const char *_pszServerIP_Old, __in int _nPort_Old,
+					__in const char *_pszServerIP_New, __in int _nPort_New );
 
 	void Set_LogQ( __in MsgLog_Q *_pLogQ );
 
-	void Send_to_Analyzer();
+	bool SendPacket_Round_Robin( __inout int &_nIndex, __in std::string *_pData );
+	void Add_DelSession( __in Rigitaeda::Rigi_ClientTCP *_pSession );
+
+	void Check_Connect_Session();
 };
 
 #endif

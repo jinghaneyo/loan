@@ -37,23 +37,24 @@ namespace Rigitaeda
 		{
 			memset(m_pReceive_Packet_Buffer, 0, m_nReceive_Packet_Size);
 		}
-
-        // 버퍼 크기는 new TCPSession 을 할때 해야 함으로 public 으로 아무때나 호출 할수 없게 private 으로 한다
-		void Make_Receive_Packet_Size( __in int _nPacket_Buffer_Size );
 	public:
 		// -----------------------------------------------------------
 		// Event(콜백)
 		virtual void OnEvent_Receive(	__in char *_pData,
 										__in size_t _nData_len );
+		virtual void OnEvent_Sended ( 	__in size_t _bytes_transferre );
 
-		virtual void OnEvent_Close(){};
+		virtual void OnEvent_Close(){ std::cout << "Rigi_TCPSession OnEvent_Close !!" << std::endl; };
 		virtual bool OnEvent_Init()	{	return true;	};
 		// -----------------------------------------------------------
 
+        // 버퍼 크기는 new TCPSession 을 할때 해야 함으로 public 으로 아무때나 호출 할수 없게 private 으로 한다
+		void Make_Receive_Packet_Size( __in int _nPacket_Buffer_Size );
+
 		void Async_Receive();
 
-		void Send( __in const char* _pData, __in size_t _nSize);
-		void Async_Send( __in const char* _pData, __in size_t _nSize);
+		size_t Sync_Send ( __in const char* _pData, __in size_t _nSize);
+		void   ASync_Send( __in const char* _pData, __in size_t _nSize);
 
 		SOCKET_TCP * GetSocket( )
 		{

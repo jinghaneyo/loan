@@ -26,6 +26,12 @@ TCP_Session::~TCP_Session()
 void TCP_Session::OnEvent_Receive(	__in char *_pData,
 									__in size_t _nData_len )
 {
+	if( 1 > _nData_len )
+	{
+		std::cout << "[RECV] << recv size is 0" << std::endl;
+		return;
+	}
+
 	loan::MsgLog msgLog;
 	msgLog.ParseFromString(_pData);
 	
@@ -33,11 +39,11 @@ void TCP_Session::OnEvent_Receive(	__in char *_pData,
 	{
 		case (int)MsgLog_Type::CROLLING:
 		{
-			Task_Filter( msgLog );
+			//Task_Filter( msgLog );
 
-			// std::string *pstrSendData = new std::string();
-			// msgLog.SerializeToString(&(*pstrSendData));
-			// m_pLogQ->Push_Data( "172.17.0.2:4444", pstrSendData );
+			std::string *pstrSendData = new std::string();
+			msgLog.SerializeToString(&(*pstrSendData));
+			m_pLogQ->Push_Data( "172.17.0.2:4444", pstrSendData );
 		}
 		break;
 
@@ -51,7 +57,8 @@ void TCP_Session::OnEvent_Receive(	__in char *_pData,
 
 void TCP_Session::OnEvent_Close()
 {
-	std::cout << "[TCP_Session::OnClose] >> " << Get_SessionIP() << std::endl;
+	//std::cout << "[TCP_Session::OnClose] >> " << Get_SessionIP() << std::endl;
+	std::cout << "[TCP_Session::OnClose] >> " << std::endl;
 }
 
 bool TCP_Session::Task_Filter( 	__in loan::MsgLog &_Packet )
@@ -91,7 +98,7 @@ bool TCP_Session::Input_Filter( __in loan::MsgLog &_Packet )
 
 		std::string strSendData;
 		msg_stop.SerializeToString(&strSendData);
-		Send( strSendData.c_str(), msg_stop.ByteSizeLong() );
+		ASync_Send( strSendData.c_str(), msg_stop.ByteSizeLong() );
 	}
 
 	// full 크기에 도착하면 버린다
@@ -181,7 +188,7 @@ bool TCP_Session::OnEvent_Init()
 
 	m_pLogQ = pMgr->Get_LogQ();
 
-	m_strIP_Port = Get_SessionIP();
+	//m_strIP_Port = Get_SessionIP();
 	m_strIP_Port += ":";
 	m_strIP_Port += std::to_string( pMgr->Get_Port() );
 

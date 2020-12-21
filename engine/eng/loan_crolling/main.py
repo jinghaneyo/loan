@@ -20,17 +20,17 @@ g_QPacket = queue.Queue()
 g_LPacket = threading.Lock()
 
 class MsgLog_Type:
-    CROLLING = 0
-    ANALYZER = 1
-    MAX = 2
+    CROLLING = 1
+    ANALYZER = 2
+    MAX = 3
 
 class MsgLog_Cmd_Crolling:
-    SENDLING = 0
-    STOP_REQU = 1
-    STOP_RESP = 2
-    START_REQU = 3
-    START_RESP = 4
-    MAX = 5
+    SENDLING = 1
+    STOP_REQU = 2
+    STOP_RESP = 3
+    START_REQU = 4
+    START_RESP = 5
+    MAX = 6
 
 class Conf_ini:
     server_ip = ''
@@ -199,8 +199,8 @@ def Thread_Send_Log(server_ip, port):
                         for d in data:
                             print(d.log_contents)
                             msg = MsgLog()
-                            msg.msg_type = 0 #MsgLog_Type.CROLLING
-                            msg.msg_cmd = 0 #MsgLog_Cmd_Crolling.SENDLING
+                            msg.msg_type = 1 #MsgLog_Type.CROLLING
+                            msg.msg_cmd = 1 #MsgLog_Cmd_Crolling.SENDLING
                             msg.service_name = d.service_name
                             msg.LogContents = d.log_contents
                             client_socket.send( msg.SerializeToString() )

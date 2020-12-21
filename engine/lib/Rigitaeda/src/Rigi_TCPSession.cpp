@@ -8,6 +8,9 @@ Rigi_TCPSession::Rigi_TCPSession()
 {
 	m_pSocket = nullptr;
 	m_pTCPMgr = nullptr;
+	m_pSessionPool = nullptr;
+	m_pReceive_Packet_Buffer = nullptr;
+	m_nReceive_Packet_Size = 0;
 }
 
 Rigi_TCPSession::~Rigi_TCPSession()
@@ -38,8 +41,8 @@ void Rigi_TCPSession::Handler_Receive( 	__in const boost::system::error_code& _e
 
 	if (_error)
 	{	
+		//std::cout << "[Rigi_TCPSession::Handler_Receive] OnClose !!" << std::endl; 
 		OnEvent_Close();
-
 		Close(_error);
 	}
 	else
@@ -52,9 +55,26 @@ void Rigi_TCPSession::Handler_Receive( 	__in const boost::system::error_code& _e
 	}
 }
 
+void Rigi_TCPSession::OnEvent_Sended (__in size_t _bytes_transferre )
+{
+
+}
+
 void Rigi_TCPSession::Handler_Send( __in const boost::system::error_code& _error, 
 									__in size_t _bytes_transferred)
 {
+	if (_error)
+	{	
+		OnEvent_Close();
+
+		std::cout << "[Rigi_TCPSession::Handler_Send] OnClose !!" << std::endl; 
+
+		Close(_error);
+	}
+	else
+	{
+		OnEvent_Sended( _bytes_transferred );
+	}
 }
 
 void Rigi_TCPSession::Async_Receive()
@@ -73,19 +93,35 @@ void Rigi_TCPSession::Async_Receive()
 											boost::asio::placeholders::bytes_transferred) );
 }
 
-void Rigi_TCPSession::Send( __in const char* _pData, 
-							__in size_t _nSize)
+size_t Rigi_TCPSession::Sync_Send(	__in const char* _pData, 
+									__in size_t _nSize )
 {
 	if (nullptr == m_pSocket)
 	{
 		assert(0 && "[Rigi_TCPSession::Send] m_pSocket is not nullptr!!!");
-		return;
+		return -1;
 	}
 
-	m_pSocket->send(boost::asio::buffer(_pData, _nSize));
+	try
+	{
+		size_t SendLeng = m_pSocket->send(boost::asio::buffer(_pData, _nSize));
+		return SendLeng;
+	}
+	catch(std::exception &e)
+	{
+		Close();
+		std::cout << "[Exception][Rigi_TCPSession::Sync_Send] Err >> " << e.what() << std::endl;
+		return -1;
+	}
+	catch(...)
+	{
+		Close();
+		std::cout << "[Exception][Rigi_TCPSession::Sync_Send] Error !!" << std::endl;
+		return -1;
+	}
 }
 
-void Rigi_TCPSession::Async_Send( 	__in const char* _pData, 
+void Rigi_TCPSession::ASync_Send( 	__in const char* _pData, 
 							 		__in size_t _nSize)
 {
 	if (nullptr == m_pSocket)
@@ -110,7 +146,7 @@ void Rigi_TCPSession::Close( __in const boost::system::error_code& _error )
 
 	if (true == m_pSocket->is_open())
 	{
-		std::string strClientIP = Get_SessionIP();
+		//std::string strClientIP = Get_SessionIP();
 		//LOG(INFO) << "[CLOSE] " << strClientIP;
 
 		m_pSocket->close();
@@ -150,7 +186,7 @@ const char *Rigi_TCPSession::Get_SessionIP()
 	}
 	catch(const std::exception& e)
 	{
-		std::cerr << "[Rigi_TCPSession::Get_SessionIP] ERR = " << e.what() << '\n';
+		std::cerr << "[Rigi_TCPSession::Get_SessionIP] ERR = " << e.what() << std::endl;
 		return "0.0.0.0";
 	}
 }
@@ -177,8 +213,13 @@ void * Rigi_TCPSession::Get_TCPMgr()
 
 void Rigi_TCPSession::Make_Receive_Packet_Size( __in int _nPacket_Buffer_Size )
 {
-	m_nReceive_Packet_Size = _nPacket_Buffer_Size;
-	m_pReceive_Packet_Buffer = new char[_nPacket_Buffer_Size];
+	if(1 < _nPacket_Buffer_Size )
+	{
+		m_nReceive_Packet_Size = _nPacket_Buffer_Size;
+		m_pReceive_Packet_Buffer = new char[_nPacket_Buffer_Size];
 
-	std::cout << "Rigi_TCPSession buffer size => " << _nPacket_Buffer_Size << std::endl;
+		std::cout << "[Rigi_TCPSession::Make_Receive_Packet_Size][SUCC] buffer size => " << _nPacket_Buffer_Size << std::endl;
+	}
+	else
+		std::cout << "[Rigi_TCPSession::Make_Receive_Packet_Size][FAIL] buffer size < 2 (buffer size = " << _nPacket_Buffer_Size << ")" << std::endl;
 }

@@ -35,7 +35,7 @@ bool Rigi_SessionPool::Add_Session( __in Rigi_TCPSession *_pSession,
 		{
 			char szClose[] = "Connection Full (";
 			std::cout << "[ACCEPT] >> " << szClose << strClientIP << ")" << std::endl;
-			_pSession->Send(szClose, sizeof(szClose));
+			_pSession->Sync_Send(szClose, sizeof(szClose));
 			_pSession->Close();
 			return false;
 		}
@@ -102,7 +102,10 @@ bool Rigi_SessionPool::Close_Session( __in Rigi_TCPSession *_pSession )
 void Rigi_SessionPool::Clear()
 {
 	for(auto &sock : m_mapTCP)
+	{
+		sock.second->Close();
 		delete sock.second;
+	}
 	m_mapTCP.clear();
 
 	// for(auto &sock : m_mapUDP)

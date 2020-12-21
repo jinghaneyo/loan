@@ -15,16 +15,14 @@ int main()
 
 	MsgLog_Q logQ;
 
-	TCP_ClientMgr clientMgr;
-	clientMgr.Set_LogQ(&logQ);
-	clientMgr.Add_Analyzer_Eng("172.17.0.2", 4444);
-	clientMgr.Add_Analyzer_Eng("172.17.0.3", 5555);
-	clientMgr.Async_Run();
+	TCP_ClientMgr clientMgr(&logQ);
+	clientMgr.Add_Eng("172.17.0.2", 4444);
+	clientMgr.Add_Eng("172.17.0.3", 5555);
+	clientMgr.Run();
 
     std::cout << "[START] << server run" << std::endl;
 
-	TCP_Mgr<TCP_Session> mgr;
-	mgr.Set_LogQ(&logQ);
+	TCP_Mgr<TCP_Session> mgr(&logQ);
 
 	Rigitaeda::Rigi_Server server(10240);
 	server.Run( 3333, 100, &mgr);
