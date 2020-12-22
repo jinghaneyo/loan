@@ -32,14 +32,14 @@ void TCP_ClientMgr::Run()
 
 	// -------------------------------------------------------
 	// 서버 접속 스레드 
-	int nSec_wait = 10;
+	int nSec_wait = 1;
 	m_thr_conn = std::thread( [&]()
 	{
 		while(true == m_bRun_Thread)
 		{
 			Check_Connect_Session();
 
-			sleep(nSec_wait);
+			std::this_thread::sleep_for( std::chrono::seconds(nSec_wait) );
 		}
 	});
 	m_thr_conn.detach();
@@ -57,11 +57,9 @@ void TCP_ClientMgr::Run()
 			std::string *pLog = m_pLogQ->Pop_Data( "172.17.0.2:4444" );
 			if(nullptr != pLog) 
 			{
-				std::cout << "[Send Packet] << "<< pLog->c_str() << std:: endl;
 				bRet_Send = SendPacket_Round_Robin(nCount ,pLog);
+				delete pLog;
 			}
-
-			delete pLog;
 
 			if(false == bRet_Send)
 				usleep(1000);
@@ -88,65 +86,95 @@ Rigitaeda::Rigi_ClientTCP * TCP_ClientMgr::Connect_Session( __in const char *_ps
 
 bool TCP_ClientMgr::Add_Eng( __in const char *_pszServerIP, __in int _nPort )
 {	
-	const std::lock_guard<std::mutex> lock(m_mtxSession_Pool);
+	const std::lock_guard<std::mutex> lock1(m_mtxSessionPool_Connect);
+	const std::lock_guard<std::mutex> lock2(m_mtxSessionPool_DisConnect);
+
 	std::string strIP_Port = _pszServerIP;
 	strIP_Port += ":";
 	strIP_Port += std::to_string(_nPort);
 
-	auto find = m_mapSession_Pool.find(strIP_Port);
-	if(find != m_mapSession_Pool.end())
+	auto find1 = m_mapSessionPool_Connect.find(strIP_Port);
+	if(find1 != m_mapSessionPool_Connect.end())
+		return false;
+	auto find2 = m_mapSessionPool_DisConnect.find(strIP_Port);
+	if(find2 != m_mapSessionPool_DisConnect.end())
 		return false;
 
 	Rigitaeda::Rigi_ClientTCP *pClient = new Rigitaeda::Rigi_ClientTCP(10240);
 	pClient->Add_EventHandler_Close( std::bind(&TCP_ClientMgr::OnEvent_Close, this, pClient) );
 
 	// 일단 세션 풀을 만들기 위해서 연결을 시도하자 
-	pClient->Connect( _pszServerIP, _nPort, m_io_service );
-
-	m_mapSession_Pool.insert(std::make_pair(strIP_Port, pClient));
+	if( true == pClient->Connect( _pszServerIP, _nPort, m_io_service ) )
+		m_mapSessionPool_Connect.insert(std::make_pair(strIP_Port, pClient));
+	else
+		m_mapSessionPool_DisConnect.insert(std::make_pair(strIP_Port, pClient));
 
 	return true;
 }
 
 bool TCP_ClientMgr::Del_Eng( __in const char *_pszServerIP, __in int _nPort )
 {
-	// const std::lock_guard<std::mutex> lock(m_mtxSessionPool);
-	
-	// std::string strIP_Port = _pszServerIP;
-	// strIP_Port += ":";
-	// strIP_Port += std::to_string(_nPort);
+	const std::lock_guard<std::mutex> lock1(m_mtxSessionPool_Connect);
+	const std::lock_guard<std::mutex> lock2(m_mtxSessionPool_DisConnect);
 
-	// auto find = m_mapSessionPool.find(strIP_Port);
-	// if(find == m_mapSessionPool.end())
-	// 	return false;
+	std::string strIP_Port = _pszServerIP;
+	strIP_Port += ":";
+	strIP_Port += std::to_string(_nPort);
 
-	// m_mapSessionPool.erase(find);
-	return true;
+	auto find1 = m_mapSessionPool_Connect.find(strIP_Port);
+	if(find1 != m_mapSessionPool_Connect.end())
+	{
+		m_mapSessionPool_Connect.erase(find1);
+		return true;
+	}
+
+	auto find2 = m_mapSessionPool_DisConnect.find(strIP_Port);
+	if(find2 != m_mapSessionPool_DisConnect.end())
+	{
+		m_mapSessionPool_DisConnect.erase(find2);
+		return true;
+	}
+
+	return false;
 }
 
 bool TCP_ClientMgr::Chg_Eng( 	__in const char *_pszServerIP_Old, __in int _nPort_Old,
 								__in const char *_pszServerIP_New, __in int _nPort_New )
 {
-	// const std::lock_guard<std::mutex> lock(m_mtxSessionPool);
-	
-	// std::string strIP_Port_Old = _pszServerIP_Old;
-	// strIP_Port_Old += ":";
-	// strIP_Port_Old += std::to_string(_nPort_Old);
+	const std::lock_guard<std::mutex> lock1(m_mtxSessionPool_Connect);
+	const std::lock_guard<std::mutex> lock2(m_mtxSessionPool_DisConnect);
 
-	// auto find = m_mapSessionPool.find(strIP_Port_Old);
-	// if(find == m_mapSessionPool.end())
-	// 	return false;
+	std::string strIP_Port_old = _pszServerIP_Old;
+	strIP_Port_old += ":";
+	strIP_Port_old += std::to_string(_nPort_Old);
 
-	// Rigitaeda::Rigi_ClientTCP *pClient = find->first;
+	std::string strIP_Port_new = _pszServerIP_New;
+	strIP_Port_new += ":";
+	strIP_Port_new += std::to_string(_nPort_New);
 
-	// m_mapSessionPool.erase(find);
+	auto find1 = m_mapSessionPool_Connect.find(strIP_Port_old);
+	if(find1 != m_mapSessionPool_Connect.end())
+	{
+		Rigitaeda::Rigi_ClientTCP *pClient = find1->second;
 
-	// std::string strIP_Port_New = _pszServerIP_New;
-	// strIP_Port_New += ":";
-	// strIP_Port_New += std::to_string(_nPort_New);
+		m_mapSessionPool_Connect.erase(find1);
 
-	// m_mapSessionPool.insert( std::make_pair(strIP_Port_New, pClient) );
-	return true;
+		m_mapSessionPool_Connect.insert(std::make_pair(strIP_Port_new, pClient));
+		return true;
+	}
+
+	auto find2 = m_mapSessionPool_Connect.find(strIP_Port_old);
+	if(find2 != m_mapSessionPool_Connect.end())
+	{
+		Rigitaeda::Rigi_ClientTCP *pClient = find2->second;
+
+		m_mapSessionPool_Connect.erase(find2);
+
+		m_mapSessionPool_Connect.insert(std::make_pair(strIP_Port_new, pClient));
+		return true;
+	}
+
+	return false;
 }
 
 void TCP_ClientMgr::Set_LogQ( __in MsgLog_Q *_pLogQ )
@@ -156,60 +184,66 @@ void TCP_ClientMgr::Set_LogQ( __in MsgLog_Q *_pLogQ )
 
 bool TCP_ClientMgr::SendPacket_Round_Robin( __inout int &_nIndex, __in std::string *_pData )
 {
-	const std::lock_guard<std::mutex> lock(m_mtxSession_Pool);
-	if(true == m_mapSession_Pool.empty())
+	const std::lock_guard<std::mutex> lock(m_mtxSessionPool_Connect);
+	if(true == m_mapSessionPool_Connect.empty())
 	{
+		std::cout << "Send Packet | mapSession pool is empty " << *_pData << std::endl;
 		_nIndex = 0;
 		return false;		
 	}
 
-	// 인덱스가 전체 크기를 넘어가면 첫번째 인덱스 소켓으로 전송한다 
-	if( (_nIndex >= (int)m_mapSession_Pool.size()) | 
-		(_nIndex < 0) )
+	int nCount = 0;
+	for(auto &pSession : m_mapSessionPool_Connect)
 	{
-		auto pSession = m_mapSession_Pool.begin();
-		pSession->second->ASync_Send( _pData->c_str(), _pData->length() );
-		return true;
-	}
-	else
-	{
-		int nCount = 0;
-		for(auto &pSession : m_mapSession_Pool)
+		std::cout << "Loop session pool >> " << *_pData << std::endl;
+
+		if( m_nCount_Send_Round_Robin == nCount )
 		{
-			if(_nIndex == nCount)
-			{
-				pSession.second->ASync_Send( _pData->c_str(), _pData->length() );
+			std::cout << "Send Packet >> " << *_pData << std::endl;
 
-				_nIndex++;
+			pSession.second->ASync_Send( _pData->c_str(), _pData->length() );
 
-				return true;
-			}
+			if( m_nCount_Send_Round_Robin < (int)m_mapSessionPool_Connect.size() )
+				m_nCount_Send_Round_Robin++;
+			else
+				m_nCount_Send_Round_Robin = 0;
 
-			nCount++;
+			break;
 		}
-
-		// 여기까지 왔다는건 인덱스를 찾지못했단느건데 다음번에 처음부터 시작하도록 인덱스를 0으로 설정하자 
-		_nIndex = 0;
 	}
 
-	return false;
+	return true;
 }
 
 void TCP_ClientMgr::OnEvent_Close( __in Rigitaeda::Rigi_ClientTCP *_pSession )
 {
 	std::cout << "[TCP_ClientMgr::OnEvent_Close] <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< OnClosed !! " << std::endl;
+
+	std::string strIP_Port = _pSession->Get_ServerIP();
+	strIP_Port += ":";
+	strIP_Port = _pSession->Get_Port();
+
+	Del_SessionPool_Connected(strIP_Port);
+	Add_SessionPool_DisConnected( strIP_Port, _pSession );
 }
 
 void TCP_ClientMgr::Check_Connect_Session()
 {
-	const std::lock_guard<std::mutex> lock(m_mtxSession_Pool);
-	for(auto &map_s : m_mapSession_Pool)
+	const std::lock_guard<std::mutex> lock(m_mtxSessionPool_DisConnect);
+
+	std::map<STR_IP_PORT, Rigitaeda::Rigi_ClientTCP *> mapConnected;
+
+	for(auto &map_s : m_mapSessionPool_DisConnect)
 	{
 		if(false == map_s.second->IsConnected() )
 		{
 			std::cout << "[Reconnect] << IP = " << map_s.second->Get_SessionIP() << " | Port = " << map_s.second->Get_Port() << std::endl;
 
-			map_s.second->Reconnect( m_io_service );
+			if(true == map_s.second->Reconnect( m_io_service ) )
+			{
+				Add_SessionPool_Connected( map_s.first, map_s.second );
+				mapConnected.insert( std::make_pair(map_s.first, map_s.second) );
+			}
 		}
 	}
 }
@@ -226,11 +260,62 @@ void TCP_ClientMgr::Stop()
 
 void TCP_ClientMgr::Clear_Eng()
 {
-	const std::lock_guard<std::mutex> lock(m_mtxSession_Pool);
-	for(auto &Session : m_mapSession_Pool)
+	const std::lock_guard<std::mutex> lock1(m_mtxSessionPool_Connect);
+	const std::lock_guard<std::mutex> lock2(m_mtxSessionPool_DisConnect);
+
+	for(auto &Session : m_mapSessionPool_Connect)
 	{
 		Session.second->Close();
 		delete Session.second;
 	}
-	m_mapSession_Pool.clear();
+	m_mapSessionPool_Connect.clear();
+
+	for(auto &Session : m_mapSessionPool_DisConnect)
+	{
+		Session.second->Close();
+		delete Session.second;
+	}
+	m_mapSessionPool_DisConnect.clear();
+}
+
+void TCP_ClientMgr::Add_SessionPool_Connected(  __in std::string _strIP_Port, 
+												__in Rigitaeda::Rigi_ClientTCP *_pSession )
+{
+	const std::lock_guard<std::mutex> lock1(m_mtxSessionPool_Connect);
+
+	m_mapSessionPool_Connect.insert( std::make_pair(_strIP_Port, _pSession) );
+	std::cout << "[Add_SessionPool_Connected] << " << _strIP_Port << std::endl;
+}
+
+void TCP_ClientMgr::Del_SessionPool_Connected(  __in std::string _strIP_Port )
+{
+	const std::lock_guard<std::mutex> lock1(m_mtxSessionPool_Connect);
+
+	auto find = m_mapSessionPool_Connect.find( _strIP_Port );
+	if(find != m_mapSessionPool_Connect.end())
+	{
+		m_mapSessionPool_Connect.erase(find);
+		std::cout << "[Del_SessionPool_Connected] << " << _strIP_Port << std::endl;
+	}
+}
+
+void TCP_ClientMgr::Add_SessionPool_DisConnected(  	__in std::string _strIP_Port, 
+													__in Rigitaeda::Rigi_ClientTCP *_pSession )
+{
+	const std::lock_guard<std::mutex> lock1(m_mtxSessionPool_DisConnect);
+
+	m_mapSessionPool_DisConnect.insert( std::make_pair(_strIP_Port, _pSession) );
+	std::cout << "[Add_SessionPool_DisConnected] << " << _strIP_Port << std::endl;
+}
+
+void TCP_ClientMgr::Del_SessionPool_DisConnected(  	__in std::string _strIP_Port )
+{
+	const std::lock_guard<std::mutex> lock1(m_mtxSessionPool_DisConnect);
+
+	auto find = m_mapSessionPool_DisConnect.find( _strIP_Port );
+	if(find != m_mapSessionPool_DisConnect.end())
+	{
+		m_mapSessionPool_DisConnect.erase(find);
+		std::cout << "[Del_SessionPool_DisConnected] << " << _strIP_Port << std::endl;
+	}
 }

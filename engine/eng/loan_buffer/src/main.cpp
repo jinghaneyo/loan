@@ -19,7 +19,6 @@ int main()
 	TCP_ClientMgr clientMgr(&logQ);
 	clientMgr.Add_Eng("172.17.0.2", 4444);
 	clientMgr.Add_Eng("172.17.0.3", 5555);
-	//std::thread thr_client( std::bind(&TCP_ClientMgr::Run, clientMgr) );
 	std::thread thr_client( [&]()
 	{
 		clientMgr.Run();

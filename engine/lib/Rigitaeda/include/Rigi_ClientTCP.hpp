@@ -83,7 +83,6 @@ namespace Rigitaeda
 
 			for(auto &callback : m_vecEvent_Close)
 				callback(this);
-			m_vecEvent_Close.clear();
 		}
 
 		virtual bool OnEvent_Init()		{	return true;	};
@@ -136,6 +135,11 @@ namespace Rigitaeda
 		bool IsConnected()
 		{
 			return m_bConnected;
+		}
+
+		const char * Get_ServerIP()
+		{
+			return m_strServerIP.c_str();
 		}
 
 		const char * Get_Port()

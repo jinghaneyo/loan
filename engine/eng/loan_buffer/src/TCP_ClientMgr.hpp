@@ -17,13 +17,24 @@ public:
 private:
 	boost::asio::io_service m_io_service;
 
-	std::mutex											m_mtxSession_Pool;
-	std::map<STR_IP_PORT, Rigitaeda::Rigi_ClientTCP *>  m_mapSession_Pool;
+	std::mutex											m_mtxSessionPool_Connect;
+	std::map<STR_IP_PORT, Rigitaeda::Rigi_ClientTCP *>  m_mapSessionPool_Connect;
+	std::mutex											m_mtxSessionPool_DisConnect;
+	std::map<STR_IP_PORT, Rigitaeda::Rigi_ClientTCP *>  m_mapSessionPool_DisConnect;
 
 	MsgLog_Q	*m_pLogQ;
 	bool		m_bRun_Thread;
 	std::thread	m_thr_conn;
 	std::thread	m_thr_send;
+
+	int			m_nCount_Send_Round_Robin = 0;
+
+	void Add_SessionPool_Connected( __in std::string _strIP_Port, 
+									__in Rigitaeda::Rigi_ClientTCP *_pSession );
+	void Del_SessionPool_Connected( __in std::string _strIP_Port );
+	void Add_SessionPool_DisConnected( 	__in std::string _strIP_Port, 
+										__in Rigitaeda::Rigi_ClientTCP *_pSession );
+	void Del_SessionPool_DisConnected( __in std::string _strIP_Port );
 public:
 	// // ---------------------------------------------------------------
 	// // 이벤트 함수
