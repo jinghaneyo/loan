@@ -137,6 +137,11 @@ namespace Rigitaeda
 		{
 			return m_bConnected;
 		}
+
+		const char * Get_Port()
+		{
+			return m_strServerPort.c_str();
+		}
 	};
 };
 
