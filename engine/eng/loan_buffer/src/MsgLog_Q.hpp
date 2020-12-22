@@ -10,15 +10,20 @@ typedef std::deque<std::string *>	DEQUE_MSG_LOG_PTR;
 class MsgLog_Q
 {
 public:
-	MsgLog_Q() {};
+	MsgLog_Q() 
+	{
+		m_nStart_Q = 1;	
+		m_nLimit_Q = 9000;
+		m_nFull_Q  = 10000;
+	}
 	~MsgLog_Q() {};
 private:
 	std::mutex  m_LockQueue;
 	// key => ip + port
 	std::map<std::string, DEQUE_MSG_LOG_PTR *> m_mapQueue;
+	int			m_nStart_Q;	
 	int			m_nLimit_Q;
 	int			m_nFull_Q;
-	int			m_nStart_Q;	
 public:
 	// 일반 함수
 	void Clear_Q()
@@ -95,5 +100,7 @@ public:
 		return m_nFull_Q;
 	}
 };
+
+#define MSG_TYPE_GEN 	"MSG_TYPE_GEN"
 
 #endif

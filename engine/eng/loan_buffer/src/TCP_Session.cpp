@@ -14,7 +14,7 @@ using namespace google::protobuf;
 using namespace google::protobuf::io;
 using namespace google::protobuf::compiler;
 
-TCP_Session::TCP_Session()
+TCP_Session::TCP_Session() 
 { 
 	m_pLogQ = nullptr;
 }
@@ -35,23 +35,17 @@ void TCP_Session::OnEvent_Receive(	__in char *_pData,
 	loan::MsgLog msgLog;
 	msgLog.ParseFromString(_pData);
 	
-	switch((int)msgLog.msg_type())
+	if ( MSG_TYPE_GEN == msgLog.msg_type() )
 	{
-		case (int)MsgLog_Type::CROLLING:
-		{
-			//Task_Filter( msgLog );
-
-			std::string *pstrSendData = new std::string();
-			msgLog.SerializeToString(&(*pstrSendData));
-			m_pLogQ->Push_Data( "172.17.0.2:4444", pstrSendData );
-		}
-		break;
-
-		default:
+		std::string *pstrSendData = new std::string();
+		msgLog.SerializeToString(&(*pstrSendData));
+		m_pLogQ->Push_Data( "172.17.0.2:4444", pstrSendData );
+	}
+	else
+	{
 		// 이외는 잘못된 데이터 
-		std::cout << "[RECV] << Not support msg_type = " << std::to_string(msgLog.msg_type()) << std::endl;
+		std::cout << "[RECV] << Not support msg_type = " << msgLog.msg_type() << std::endl;
 		//assert(0 && "[RECV] not support msg_type");
-		break;
 	}
 }
 
@@ -93,7 +87,7 @@ bool TCP_Session::Input_Filter( __in loan::MsgLog &_Packet )
 	if(m_pLogQ->GetQ_LimitSize() == m_pLogQ->GetQ_Size())
 	{
 		loan::MsgLog msg_stop;
-		msg_stop.set_msg_type( (int)MsgLog_Type::CROLLING );
+		msg_stop.set_msg_type( MSG_TYPE_GEN );
 		msg_stop.set_msg_cmd( (int)MsgLog_Cmd_Crolling::STOP_REQU );
 
 		std::string strSendData;

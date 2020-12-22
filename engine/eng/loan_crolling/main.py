@@ -199,9 +199,10 @@ def Thread_Send_Log(server_ip, port):
                         for d in data:
                             print(d.log_contents)
                             msg = MsgLog()
-                            msg.msg_type = 1 #MsgLog_Type.CROLLING
+                            msg.msg_type = "MSG_TYPE_GEN" #MsgLog_Type.CROLLING
                             msg.msg_cmd = 1 #MsgLog_Cmd_Crolling.SENDLING
                             msg.service_name = d.service_name
+                            #msg.LogContents = bytes(d.log_contents, 'utf-8')
                             msg.LogContents = d.log_contents
                             client_socket.send( msg.SerializeToString() )
                     else:
@@ -209,6 +210,7 @@ def Thread_Send_Log(server_ip, port):
                         print("POP COUNT = %d" % count)
                 except Exception as e:
                     print("[Exception][Send_Log][COUNT = %d][Err = %s]" % (count, e) )
+                    break
 
         except Exception as e:
             print("[Exception][FAIL][connect][Err = %s]" % e )

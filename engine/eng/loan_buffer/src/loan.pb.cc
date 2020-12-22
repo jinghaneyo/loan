@@ -61,7 +61,7 @@ static ::PROTOBUF_NAMESPACE_ID::Message const * const file_default_instances[] =
 
 const char descriptor_table_protodef_loan_2eproto[] PROTOBUF_SECTION_VARIABLE(protodesc_cold) =
   "\n\nloan.proto\022\004loan\"l\n\006MsgLog\022\020\n\010msg_type"
-  "\030\001 \001(\005\022\017\n\007msg_cmd\030\002 \001(\005\022\024\n\014service_name\030"
+  "\030\001 \001(\t\022\017\n\007msg_cmd\030\002 \001(\005\022\024\n\014service_name\030"
   "\003 \001(\t\022\024\n\014service_path\030\004 \001(\t\022\023\n\013LogConten"
   "ts\030\005 \001(\tb\006proto3"
   ;
@@ -97,6 +97,11 @@ MsgLog::MsgLog(::PROTOBUF_NAMESPACE_ID::Arena* arena)
 MsgLog::MsgLog(const MsgLog& from)
   : ::PROTOBUF_NAMESPACE_ID::Message() {
   _internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
+  msg_type_.UnsafeSetDefault(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited());
+  if (!from._internal_msg_type().empty()) {
+    msg_type_.Set(::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::EmptyDefault{}, from._internal_msg_type(), 
+      GetArena());
+  }
   service_name_.UnsafeSetDefault(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited());
   if (!from._internal_service_name().empty()) {
     service_name_.Set(::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::EmptyDefault{}, from._internal_service_name(), 
@@ -112,21 +117,17 @@ MsgLog::MsgLog(const MsgLog& from)
     logcontents_.Set(::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::EmptyDefault{}, from._internal_logcontents(), 
       GetArena());
   }
-  ::memcpy(&msg_type_, &from.msg_type_,
-    static_cast<size_t>(reinterpret_cast<char*>(&msg_cmd_) -
-    reinterpret_cast<char*>(&msg_type_)) + sizeof(msg_cmd_));
+  msg_cmd_ = from.msg_cmd_;
   // @@protoc_insertion_point(copy_constructor:loan.MsgLog)
 }
 
 void MsgLog::SharedCtor() {
   ::PROTOBUF_NAMESPACE_ID::internal::InitSCC(&scc_info_MsgLog_loan_2eproto.base);
+  msg_type_.UnsafeSetDefault(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited());
   service_name_.UnsafeSetDefault(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited());
   service_path_.UnsafeSetDefault(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited());
   logcontents_.UnsafeSetDefault(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited());
-  ::memset(reinterpret_cast<char*>(this) + static_cast<size_t>(
-      reinterpret_cast<char*>(&msg_type_) - reinterpret_cast<char*>(this)),
-      0, static_cast<size_t>(reinterpret_cast<char*>(&msg_cmd_) -
-      reinterpret_cast<char*>(&msg_type_)) + sizeof(msg_cmd_));
+  msg_cmd_ = 0;
 }
 
 MsgLog::~MsgLog() {
@@ -137,6 +138,7 @@ MsgLog::~MsgLog() {
 
 void MsgLog::SharedDtor() {
   GOOGLE_DCHECK(GetArena() == nullptr);
+  msg_type_.DestroyNoArena(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited());
   service_name_.DestroyNoArena(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited());
   service_path_.DestroyNoArena(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited());
   logcontents_.DestroyNoArena(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited());
@@ -163,12 +165,11 @@ void MsgLog::Clear() {
   // Prevent compiler warnings about cached_has_bits being unused
   (void) cached_has_bits;
 
+  msg_type_.ClearToEmpty();
   service_name_.ClearToEmpty();
   service_path_.ClearToEmpty();
   logcontents_.ClearToEmpty();
-  ::memset(&msg_type_, 0, static_cast<size_t>(
-      reinterpret_cast<char*>(&msg_cmd_) -
-      reinterpret_cast<char*>(&msg_type_)) + sizeof(msg_cmd_));
+  msg_cmd_ = 0;
   _internal_metadata_.Clear<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>();
 }
 
@@ -179,10 +180,12 @@ const char* MsgLog::_InternalParse(const char* ptr, ::PROTOBUF_NAMESPACE_ID::int
     ptr = ::PROTOBUF_NAMESPACE_ID::internal::ReadTag(ptr, &tag);
     CHK_(ptr);
     switch (tag >> 3) {
-      // int32 msg_type = 1;
+      // string msg_type = 1;
       case 1:
-        if (PROTOBUF_PREDICT_TRUE(static_cast<::PROTOBUF_NAMESPACE_ID::uint8>(tag) == 8)) {
-          msg_type_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint64(&ptr);
+        if (PROTOBUF_PREDICT_TRUE(static_cast<::PROTOBUF_NAMESPACE_ID::uint8>(tag) == 10)) {
+          auto str = _internal_mutable_msg_type();
+          ptr = ::PROTOBUF_NAMESPACE_ID::internal::InlineGreedyStringParser(str, ptr, ctx);
+          CHK_(::PROTOBUF_NAMESPACE_ID::internal::VerifyUTF8(str, "loan.MsgLog.msg_type"));
           CHK_(ptr);
         } else goto handle_unusual;
         continue;
@@ -248,10 +251,14 @@ failure:
   ::PROTOBUF_NAMESPACE_ID::uint32 cached_has_bits = 0;
   (void) cached_has_bits;
 
-  // int32 msg_type = 1;
-  if (this->msg_type() != 0) {
-    target = stream->EnsureSpace(target);
-    target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::WriteInt32ToArray(1, this->_internal_msg_type(), target);
+  // string msg_type = 1;
+  if (this->msg_type().size() > 0) {
+    ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(
+      this->_internal_msg_type().data(), static_cast<int>(this->_internal_msg_type().length()),
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::SERIALIZE,
+      "loan.MsgLog.msg_type");
+    target = stream->WriteStringMaybeAliased(
+        1, this->_internal_msg_type(), target);
   }
 
   // int32 msg_cmd = 2;
@@ -306,6 +313,13 @@ size_t MsgLog::ByteSizeLong() const {
   // Prevent compiler warnings about cached_has_bits being unused
   (void) cached_has_bits;
 
+  // string msg_type = 1;
+  if (this->msg_type().size() > 0) {
+    total_size += 1 +
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::StringSize(
+        this->_internal_msg_type());
+  }
+
   // string service_name = 3;
   if (this->service_name().size() > 0) {
     total_size += 1 +
@@ -325,13 +339,6 @@ size_t MsgLog::ByteSizeLong() const {
     total_size += 1 +
       ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::StringSize(
         this->_internal_logcontents());
-  }
-
-  // int32 msg_type = 1;
-  if (this->msg_type() != 0) {
-    total_size += 1 +
-      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::Int32Size(
-        this->_internal_msg_type());
   }
 
   // int32 msg_cmd = 2;
@@ -372,6 +379,9 @@ void MsgLog::MergeFrom(const MsgLog& from) {
   ::PROTOBUF_NAMESPACE_ID::uint32 cached_has_bits = 0;
   (void) cached_has_bits;
 
+  if (from.msg_type().size() > 0) {
+    _internal_set_msg_type(from._internal_msg_type());
+  }
   if (from.service_name().size() > 0) {
     _internal_set_service_name(from._internal_service_name());
   }
@@ -380,9 +390,6 @@ void MsgLog::MergeFrom(const MsgLog& from) {
   }
   if (from.logcontents().size() > 0) {
     _internal_set_logcontents(from._internal_logcontents());
-  }
-  if (from.msg_type() != 0) {
-    _internal_set_msg_type(from._internal_msg_type());
   }
   if (from.msg_cmd() != 0) {
     _internal_set_msg_cmd(from._internal_msg_cmd());
@@ -410,15 +417,11 @@ bool MsgLog::IsInitialized() const {
 void MsgLog::InternalSwap(MsgLog* other) {
   using std::swap;
   _internal_metadata_.Swap<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(&other->_internal_metadata_);
+  msg_type_.Swap(&other->msg_type_, &::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), GetArena());
   service_name_.Swap(&other->service_name_, &::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), GetArena());
   service_path_.Swap(&other->service_path_, &::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), GetArena());
   logcontents_.Swap(&other->logcontents_, &::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), GetArena());
-  ::PROTOBUF_NAMESPACE_ID::internal::memswap<
-      PROTOBUF_FIELD_OFFSET(MsgLog, msg_cmd_)
-      + sizeof(MsgLog::msg_cmd_)
-      - PROTOBUF_FIELD_OFFSET(MsgLog, msg_type_)>(
-          reinterpret_cast<char*>(&msg_type_),
-          reinterpret_cast<char*>(&other->msg_type_));
+  swap(msg_cmd_, other->msg_cmd_);
 }
 
 ::PROTOBUF_NAMESPACE_ID::Metadata MsgLog::GetMetadata() const {

@@ -177,12 +177,28 @@ class MsgLog PROTOBUF_FINAL :
   // accessors -------------------------------------------------------
 
   enum : int {
+    kMsgTypeFieldNumber = 1,
     kServiceNameFieldNumber = 3,
     kServicePathFieldNumber = 4,
     kLogContentsFieldNumber = 5,
-    kMsgTypeFieldNumber = 1,
     kMsgCmdFieldNumber = 2,
   };
+  // string msg_type = 1;
+  void clear_msg_type();
+  const std::string& msg_type() const;
+  void set_msg_type(const std::string& value);
+  void set_msg_type(std::string&& value);
+  void set_msg_type(const char* value);
+  void set_msg_type(const char* value, size_t size);
+  std::string* mutable_msg_type();
+  std::string* release_msg_type();
+  void set_allocated_msg_type(std::string* msg_type);
+  private:
+  const std::string& _internal_msg_type() const;
+  void _internal_set_msg_type(const std::string& value);
+  std::string* _internal_mutable_msg_type();
+  public:
+
   // string service_name = 3;
   void clear_service_name();
   const std::string& service_name() const;
@@ -231,15 +247,6 @@ class MsgLog PROTOBUF_FINAL :
   std::string* _internal_mutable_logcontents();
   public:
 
-  // int32 msg_type = 1;
-  void clear_msg_type();
-  ::PROTOBUF_NAMESPACE_ID::int32 msg_type() const;
-  void set_msg_type(::PROTOBUF_NAMESPACE_ID::int32 value);
-  private:
-  ::PROTOBUF_NAMESPACE_ID::int32 _internal_msg_type() const;
-  void _internal_set_msg_type(::PROTOBUF_NAMESPACE_ID::int32 value);
-  public:
-
   // int32 msg_cmd = 2;
   void clear_msg_cmd();
   ::PROTOBUF_NAMESPACE_ID::int32 msg_cmd() const;
@@ -256,10 +263,10 @@ class MsgLog PROTOBUF_FINAL :
   template <typename T> friend class ::PROTOBUF_NAMESPACE_ID::Arena::InternalHelper;
   typedef void InternalArenaConstructable_;
   typedef void DestructorSkippable_;
+  ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr msg_type_;
   ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr service_name_;
   ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr service_path_;
   ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr logcontents_;
-  ::PROTOBUF_NAMESPACE_ID::int32 msg_type_;
   ::PROTOBUF_NAMESPACE_ID::int32 msg_cmd_;
   mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
   friend struct ::TableStruct_loan_2eproto;
@@ -275,24 +282,65 @@ class MsgLog PROTOBUF_FINAL :
 #endif  // __GNUC__
 // MsgLog
 
-// int32 msg_type = 1;
+// string msg_type = 1;
 inline void MsgLog::clear_msg_type() {
-  msg_type_ = 0;
+  msg_type_.ClearToEmpty();
 }
-inline ::PROTOBUF_NAMESPACE_ID::int32 MsgLog::_internal_msg_type() const {
-  return msg_type_;
-}
-inline ::PROTOBUF_NAMESPACE_ID::int32 MsgLog::msg_type() const {
+inline const std::string& MsgLog::msg_type() const {
   // @@protoc_insertion_point(field_get:loan.MsgLog.msg_type)
   return _internal_msg_type();
 }
-inline void MsgLog::_internal_set_msg_type(::PROTOBUF_NAMESPACE_ID::int32 value) {
-  
-  msg_type_ = value;
-}
-inline void MsgLog::set_msg_type(::PROTOBUF_NAMESPACE_ID::int32 value) {
+inline void MsgLog::set_msg_type(const std::string& value) {
   _internal_set_msg_type(value);
   // @@protoc_insertion_point(field_set:loan.MsgLog.msg_type)
+}
+inline std::string* MsgLog::mutable_msg_type() {
+  // @@protoc_insertion_point(field_mutable:loan.MsgLog.msg_type)
+  return _internal_mutable_msg_type();
+}
+inline const std::string& MsgLog::_internal_msg_type() const {
+  return msg_type_.Get();
+}
+inline void MsgLog::_internal_set_msg_type(const std::string& value) {
+  
+  msg_type_.Set(::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::EmptyDefault{}, value, GetArena());
+}
+inline void MsgLog::set_msg_type(std::string&& value) {
+  
+  msg_type_.Set(
+    ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::EmptyDefault{}, ::std::move(value), GetArena());
+  // @@protoc_insertion_point(field_set_rvalue:loan.MsgLog.msg_type)
+}
+inline void MsgLog::set_msg_type(const char* value) {
+  GOOGLE_DCHECK(value != nullptr);
+  
+  msg_type_.Set(::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::EmptyDefault{}, ::std::string(value), GetArena());
+  // @@protoc_insertion_point(field_set_char:loan.MsgLog.msg_type)
+}
+inline void MsgLog::set_msg_type(const char* value,
+    size_t size) {
+  
+  msg_type_.Set(::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::EmptyDefault{}, ::std::string(
+      reinterpret_cast<const char*>(value), size), GetArena());
+  // @@protoc_insertion_point(field_set_pointer:loan.MsgLog.msg_type)
+}
+inline std::string* MsgLog::_internal_mutable_msg_type() {
+  
+  return msg_type_.Mutable(::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::EmptyDefault{}, GetArena());
+}
+inline std::string* MsgLog::release_msg_type() {
+  // @@protoc_insertion_point(field_release:loan.MsgLog.msg_type)
+  return msg_type_.Release(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), GetArena());
+}
+inline void MsgLog::set_allocated_msg_type(std::string* msg_type) {
+  if (msg_type != nullptr) {
+    
+  } else {
+    
+  }
+  msg_type_.SetAllocated(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), msg_type,
+      GetArena());
+  // @@protoc_insertion_point(field_set_allocated:loan.MsgLog.msg_type)
 }
 
 // int32 msg_cmd = 2;
