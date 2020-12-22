@@ -8,56 +8,58 @@
 TCP_ClientMgr::TCP_ClientMgr( __in MsgLog_Q *_pLogQ ) : m_pLogQ(nullptr)
 { 
 	m_pLogQ = _pLogQ;
+	m_bRun_Thread = false;
 }
 
 TCP_ClientMgr::~TCP_ClientMgr() 
 { 
 	m_pLogQ = nullptr;
 
-	const std::lock_guard<std::mutex> lock(m_mtxSession_Pool);
-	for(auto &Session : m_mapSession_Pool)
-		delete Session.second;
-	m_mapSession_Pool.clear();
+	Clear_Eng();
 }
 
-std::thread TCP_ClientMgr::Run()
+void TCP_ClientMgr::Run()
 {
 	if(nullptr == m_pLogQ)
 	{
 		assert(0 && "[TCP_ClientMgr::Async_Run] m_pLogQ is nullptr");
-		return std::thread();
+		return ;
 	}
 
     m_io_service.reset();
 	boost::system::error_code ec;
+	m_bRun_Thread = true;
 
 	// -------------------------------------------------------
 	// 서버 접속 스레드 
-	int nSec_wait = 1000000 * 10;
-	std::thread thr_conn( [&]()
+	int nSec_wait = 10;
+	m_thr_conn = std::thread( [&]()
 	{
-		while(true)
+		while(true == m_bRun_Thread)
 		{
 			Check_Connect_Session();
 
-			usleep(nSec_wait);
+			sleep(nSec_wait);
 		}
 	});
-	thr_conn.detach();
+	m_thr_conn.detach();
 	// -------------------------------------------------------
 
 	// -------------------------------------------------------
 	// 데이터 전송 스레드
-	std::thread thr_send( [&]()
+	m_thr_send = std::thread( [&]()
 	{
 		int nCount = 0;
 		bool bRet_Send = false;
-		while(true)
+		while(true == m_bRun_Thread)
 		{
 			bRet_Send = false;
 			std::string *pLog = m_pLogQ->Pop_Data( "172.17.0.2:4444" );
 			if(nullptr != pLog) 
+			{
+				std::cout << "[Send Packet] << "<< pLog->c_str() << std:: endl;
 				bRet_Send = SendPacket_Round_Robin(nCount ,pLog);
+			}
 
 			delete pLog;
 
@@ -65,12 +67,12 @@ std::thread TCP_ClientMgr::Run()
 				usleep(1000);
 		}
 	});
-	thr_send.detach();
+	m_thr_send.detach();
 	// -------------------------------------------------------
 
 	m_io_service.run(ec);
 
-	return thr_send;
+	return ;
 }
 
 Rigitaeda::Rigi_ClientTCP * TCP_ClientMgr::Connect_Session( __in const char *_pszServerIP, __in int _nPort )
@@ -198,24 +200,6 @@ void TCP_ClientMgr::OnEvent_Close( __in Rigitaeda::Rigi_ClientTCP *_pSession )
 	std::cout << "[TCP_ClientMgr::OnEvent_Close] <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< OnClosed !! " << std::endl;
 }
 
-void TCP_ClientMgr::Add_DelSession( __in Rigitaeda::Rigi_ClientTCP *_pSession )
-{
-	const std::lock_guard<std::mutex> lock(m_mtxSession_Del);
-
-	auto tNow = std::chrono::system_clock::now();
-
-	auto find = m_mapSession_Del.find(tNow);
-	if(find == m_mapSession_Del.end())
-	{
-		VEC_RIGI_SESSION *pVec = new VEC_RIGI_SESSION();
-		pVec->emplace_back(_pSession);
-
-		m_mapSession_Del.insert( std::make_pair(tNow, pVec) );
-	}
-	else
-		find->second->emplace_back(_pSession);
-}
-
 void TCP_ClientMgr::Check_Connect_Session()
 {
 	const std::lock_guard<std::mutex> lock(m_mtxSession_Pool);
@@ -228,4 +212,25 @@ void TCP_ClientMgr::Check_Connect_Session()
 			map_s.second->Reconnect( m_io_service );
 		}
 	}
+}
+
+void TCP_ClientMgr::Stop()
+{
+	m_bRun_Thread = false;
+
+	m_thr_conn.join();
+	m_thr_send.join();
+
+	Clear_Eng();
+}
+
+void TCP_ClientMgr::Clear_Eng()
+{
+	const std::lock_guard<std::mutex> lock(m_mtxSession_Pool);
+	for(auto &Session : m_mapSession_Pool)
+	{
+		Session.second->Close();
+		delete Session.second;
+	}
+	m_mapSession_Pool.clear();
 }

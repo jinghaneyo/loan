@@ -8,6 +8,7 @@
 typedef std::string 	STR_IP_PORT;
 typedef std::vector<Rigitaeda::Rigi_ClientTCP *>	VEC_RIGI_SESSION;
 typedef std::chrono::system_clock::time_point 		STD_TIME;
+
 class TCP_ClientMgr
 {
 public:
@@ -18,11 +19,11 @@ private:
 
 	std::mutex											m_mtxSession_Pool;
 	std::map<STR_IP_PORT, Rigitaeda::Rigi_ClientTCP *>  m_mapSession_Pool;
-	//std::map<Rigitaeda::Rigi_ClientTCP *, int>  		m_mapSession_Pool;
-	std::mutex											m_mtxSession_Del;
-	std::map<STD_TIME, VEC_RIGI_SESSION *>				m_mapSession_Del;
 
 	MsgLog_Q	*m_pLogQ;
+	bool		m_bRun_Thread;
+	std::thread	m_thr_conn;
+	std::thread	m_thr_send;
 public:
 	// // ---------------------------------------------------------------
 	// // 이벤트 함수
@@ -32,7 +33,8 @@ public:
 	void OnEvent_Close( __in Rigitaeda::Rigi_ClientTCP *_pSession );
 	// // ---------------------------------------------------------------
 
-	std::thread Run();
+	void Run();
+	void Stop();
 
 	Rigitaeda::Rigi_ClientTCP * Connect_Session( __in const char *_pszServerIP, __in int _nPort );
 	// Rigitaeda::Rigi_ClientTCP * Get_Session( __in const char *_pszServerIP, __in int _nPort );
@@ -46,10 +48,11 @@ public:
 	bool Chg_Eng( 	__in const char *_pszServerIP_Old, __in int _nPort_Old,
 					__in const char *_pszServerIP_New, __in int _nPort_New );
 
+	void Clear_Eng();
+
 	void Set_LogQ( __in MsgLog_Q *_pLogQ );
 
 	bool SendPacket_Round_Robin( __inout int &_nIndex, __in std::string *_pData );
-	void Add_DelSession( __in Rigitaeda::Rigi_ClientTCP *_pSession );
 
 	void Check_Connect_Session();
 };

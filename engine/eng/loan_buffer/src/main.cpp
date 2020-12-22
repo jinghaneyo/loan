@@ -4,6 +4,7 @@
 #include "TCP_ClientMgr.hpp"
 #include "MsgLog_Q.hpp"
 #include <glog/logging.h>
+#include <thread>
 
 int main()
 {
@@ -18,7 +19,12 @@ int main()
 	TCP_ClientMgr clientMgr(&logQ);
 	clientMgr.Add_Eng("172.17.0.2", 4444);
 	clientMgr.Add_Eng("172.17.0.3", 5555);
-	clientMgr.Run();
+	//std::thread thr_client( std::bind(&TCP_ClientMgr::Run, clientMgr) );
+	std::thread thr_client( [&]()
+	{
+		clientMgr.Run();
+ 	});
+	thr_client.detach();
 
     std::cout << "[START] << server run" << std::endl;
 
@@ -27,6 +33,8 @@ int main()
 	Rigitaeda::Rigi_Server server(10240);
 	server.Run( 3333, 100, &mgr);
 
+	clientMgr.Stop();
+	thr_client.join();
 	logQ.Clear_Q();
 
 	google::protobuf::ShutdownProtobufLibrary();
