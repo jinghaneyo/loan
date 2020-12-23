@@ -2,6 +2,7 @@
 #define TCP_CLIENT_MGR_H_
 
 #include <mutex>
+#include <deque>
 #include "Rigi_ClientTCP.hpp"
 #include "MsgLog_Q.hpp"
 
@@ -17,24 +18,21 @@ public:
 private:
 	boost::asio::io_service m_io_service;
 
-	std::mutex											m_mtxSessionPool_Connect;
-	std::map<STR_IP_PORT, Rigitaeda::Rigi_ClientTCP *>  m_mapSessionPool_Connect;
-	std::mutex											m_mtxSessionPool_DisConnect;
-	std::map<STR_IP_PORT, Rigitaeda::Rigi_ClientTCP *>  m_mapSessionPool_DisConnect;
+	std::mutex									m_mtxSessionPool_Connect;
+	std::deque<Rigitaeda::Rigi_ClientTCP *>  	m_DqSessionPool_Connect;
+	std::mutex									m_mtxSessionPool_DisConnect;
+	std::deque<Rigitaeda::Rigi_ClientTCP *>  	m_DqSessionPool_DisConnect;
 
 	MsgLog_Q	*m_pLogQ;
 	bool		m_bRun_Thread;
 	std::thread	m_thr_conn;
 	std::thread	m_thr_send;
 
-	int			m_nCount_Send_Round_Robin = 0;
+	void Add_SessionPool_Connected( __in Rigitaeda::Rigi_ClientTCP *_pSession );
+	void Del_SessionPool_Connected( __in std::string _strServerIP, __in std::string _strServerPort );
+	void Add_SessionPool_DisConnected( __in Rigitaeda::Rigi_ClientTCP *_pSession );
+	void Del_SessionPool_DisConnected( __in std::string _strServerIP, __in std::string _strServerPort );
 
-	void Add_SessionPool_Connected( __in std::string _strIP_Port, 
-									__in Rigitaeda::Rigi_ClientTCP *_pSession );
-	void Del_SessionPool_Connected( __in std::string _strIP_Port );
-	void Add_SessionPool_DisConnected( 	__in std::string _strIP_Port, 
-										__in Rigitaeda::Rigi_ClientTCP *_pSession );
-	void Del_SessionPool_DisConnected( __in std::string _strIP_Port );
 public:
 	// // ---------------------------------------------------------------
 	// // 이벤트 함수
@@ -47,9 +45,7 @@ public:
 	void Run();
 	void Stop();
 
-	Rigitaeda::Rigi_ClientTCP * Connect_Session( __in const char *_pszServerIP, __in int _nPort );
-	// Rigitaeda::Rigi_ClientTCP * Get_Session( __in const char *_pszServerIP, __in int _nPort );
-	Rigitaeda::Rigi_ClientTCP * Get_Session_From_Pool( __in int _nIndex );
+	const Rigitaeda::Rigi_ClientTCP * Connect_Session( __in const char *_pszServerIP, __in int _nPort );
 
 	// 전달할 분석 엔진 추가
 	bool Add_Eng( __in const char *_pszServerIP, __in int _nPort );
@@ -63,9 +59,11 @@ public:
 
 	void Set_LogQ( __in MsgLog_Q *_pLogQ );
 
-	bool SendPacket_Round_Robin( __inout int &_nIndex, __in std::string *_pData );
+	bool SendPacket_Round_Robin( __in std::string *_pData );
 
 	void Check_Connect_Session();
+
+	Rigitaeda::Rigi_ClientTCP * GetSession_Round_Robin();
 };
 
 #endif

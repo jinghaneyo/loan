@@ -137,14 +137,18 @@ namespace Rigitaeda
 			return m_bConnected;
 		}
 
-		const char * Get_ServerIP()
+		//const char * Get_ServerIP()
+		std::string & Get_ServerIP()
 		{
-			return m_strServerIP.c_str();
+			//return m_strServerIP.c_str();
+			return m_strServerIP;
 		}
 
-		const char * Get_Port()
+		//const char * Get_Port()
+		std::string & Get_Port()
 		{
-			return m_strServerPort.c_str();
+			//return m_strServerPort.c_str();
+			return m_strServerPort;
 		}
 	};
 };
