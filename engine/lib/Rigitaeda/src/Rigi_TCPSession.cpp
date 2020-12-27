@@ -108,9 +108,7 @@ void Rigi_TCPSession::Async_Receive()
 												boost::asio::placeholders::error,
 												boost::asio::placeholders::bytes_transferred) );
 	}
-	CATCH_EXCEPTION();
-
-	Close();
+	CATCH_EXCEPTION( );
 }
 
 size_t Rigi_TCPSession::Sync_Send(	__in const char* _pData, 
@@ -157,9 +155,7 @@ void Rigi_TCPSession::ASync_Send( 	__in const char* _pData,
 												boost::asio::placeholders::bytes_transferred )
 		);
 	}
-	CATCH_EXCEPTION();
-
-	Close();
+	CATCH_EXCEPTION( );
 }
 
 void Rigi_TCPSession::Close( __in const boost::system::error_code& _error )
@@ -178,7 +174,7 @@ void Rigi_TCPSession::Close( __in const boost::system::error_code& _error )
 			m_pSocket = nullptr;
 		}
 	}
-	CATCH_EXCEPTION();
+	CATCH_EXCEPTION( );
 
 	if(nullptr != m_pSessionPool)
 		m_pSessionPool->Close_Session(this);
@@ -211,7 +207,7 @@ const char *Rigi_TCPSession::Get_SessionIP()
 		else
 			return m_strIP_Client.c_str();
 	}
-	CATCH_EXCEPTION();
+	CATCH_EXCEPTION( );
 
 	return "0.0.0.0";
 }
