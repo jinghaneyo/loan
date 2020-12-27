@@ -50,7 +50,9 @@ bool Rigi_SessionPool::Add_Session( __in Rigi_TCPSession *_pSession,
 			// Init 이벤트 호출
 			if( false == _pSession->OnEvent_Init() )
 			{
+#ifdef DEBUG
 				assert(0 && "[Rigi_SessionPool::Add_Session] OnEvent_Init is false !!");
+#endif
 				return false;
 			}
 

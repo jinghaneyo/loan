@@ -42,7 +42,9 @@ namespace Rigitaeda
         {
             if(nullptr == _pMgr)
             {
+#ifdef DEBUG
                 assert(0 && "Rigi_TCPMgr is not nullptr!!!");
+#endif
                 return false;
             }
 
