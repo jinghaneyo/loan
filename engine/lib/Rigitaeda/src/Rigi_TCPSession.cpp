@@ -4,6 +4,16 @@
 
 using namespace Rigitaeda;
 
+#define CATCH_EXCEPTION()	\
+catch(const std::exception &e) \
+{ \
+	std::cout << "[Exception][" << __FUNCTION__ << "] Error = " << e.what() << std::endl; \
+} \
+catch(...) \
+{ \
+	std::cout << "[Exception][" << __FUNCTION__ << "] Error !!" << std::endl; \
+} \
+
 Rigi_TCPSession::Rigi_TCPSession()
 {
 	m_pSocket = nullptr;
@@ -90,11 +100,17 @@ void Rigi_TCPSession::Async_Receive()
 		return;
 	}
 
-	m_pSocket->async_read_some( boost::asio::buffer(m_pReceive_Packet_Buffer, m_nReceive_Packet_Size),
-								boost::bind( &Rigi_TCPSession::Handler_Receive,
-											this, 
-											boost::asio::placeholders::error,
-											boost::asio::placeholders::bytes_transferred) );
+	try
+	{
+		m_pSocket->async_read_some( boost::asio::buffer(m_pReceive_Packet_Buffer, m_nReceive_Packet_Size),
+									boost::bind( &Rigi_TCPSession::Handler_Receive,
+												this, 
+												boost::asio::placeholders::error,
+												boost::asio::placeholders::bytes_transferred) );
+	}
+	CATCH_EXCEPTION();
+
+	Close();
 }
 
 size_t Rigi_TCPSession::Sync_Send(	__in const char* _pData, 
@@ -113,18 +129,11 @@ size_t Rigi_TCPSession::Sync_Send(	__in const char* _pData,
 		size_t SendLeng = m_pSocket->send(boost::asio::buffer(_pData, _nSize));
 		return SendLeng;
 	}
-	catch(std::exception &e)
-	{
-		Close();
-		std::cout << "[Exception][Rigi_TCPSession::Sync_Send] Err >> " << e.what() << std::endl;
-		return -1;
-	}
-	catch(...)
-	{
-		Close();
-		std::cout << "[Exception][Rigi_TCPSession::Sync_Send] Error !!" << std::endl;
-		return -1;
-	}
+	CATCH_EXCEPTION();
+
+	Close();
+
+	return -1;
 }
 
 void Rigi_TCPSession::ASync_Send( 	__in const char* _pData, 
@@ -138,13 +147,19 @@ void Rigi_TCPSession::ASync_Send( 	__in const char* _pData,
 		return;
 	}
 
-	boost::asio::async_write( 	*m_pSocket, 
-								boost::asio::buffer(_pData, _nSize),
-								boost::bind( &Rigi_TCPSession::Handler_Send, 
-											this,
-										 	boost::asio::placeholders::error,
-										 	boost::asio::placeholders::bytes_transferred )
-	);
+	try
+	{
+		boost::asio::async_write( 	*m_pSocket, 
+									boost::asio::buffer(_pData, _nSize),
+									boost::bind( &Rigi_TCPSession::Handler_Send, 
+												this,
+												boost::asio::placeholders::error,
+												boost::asio::placeholders::bytes_transferred )
+		);
+	}
+	CATCH_EXCEPTION();
+
+	Close();
 }
 
 void Rigi_TCPSession::Close( __in const boost::system::error_code& _error )
@@ -152,14 +167,18 @@ void Rigi_TCPSession::Close( __in const boost::system::error_code& _error )
 	if (nullptr == m_pSocket)
 		return;
 
-	if (true == m_pSocket->is_open())
+	try
 	{
-		//std::string strClientIP = Get_SessionIP();
-		//LOG(INFO) << "[CLOSE] " << strClientIP;
+		if (true == m_pSocket->is_open())
+		{
+			//std::string strClientIP = Get_SessionIP();
+			//LOG(INFO) << "[CLOSE] " << strClientIP;
 
-		m_pSocket->close();
-		m_pSocket = nullptr;
+			m_pSocket->close();
+			m_pSocket = nullptr;
+		}
 	}
+	CATCH_EXCEPTION();
 
 	if(nullptr != m_pSessionPool)
 		m_pSessionPool->Close_Session(this);
@@ -192,11 +211,9 @@ const char *Rigi_TCPSession::Get_SessionIP()
 		else
 			return m_strIP_Client.c_str();
 	}
-	catch(const std::exception& e)
-	{
-		std::cerr << "[Rigi_TCPSession::Get_SessionIP] ERR = " << e.what() << std::endl;
-		return "0.0.0.0";
-	}
+	CATCH_EXCEPTION();
+
+	return "0.0.0.0";
 }
 
 void Rigi_TCPSession::SetSessionPool( __in Rigi_SessionPool *_pSessionPool )
