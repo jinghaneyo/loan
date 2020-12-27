@@ -18,7 +18,8 @@ public:
 		loan::MsgLog msgLog;
 		msgLog.ParseFromString(_pData);
 	
-		std::cout << "[TCP_Session::Receive] << Service Name : " << msgLog.service_name() << " << Log contents : " << msgLog.logcontents() << std::endl;
+		if (false == msgLog.service_name().empty())
+			std::cout << "[TCP_Session::Receive] << Service Name : " << msgLog.service_name() << " << Log contents : " << msgLog.logcontents() << std::endl;
 
 		// 응답 주기
 		// std::string strPacket = "[{'cmd':'run'},{'data': 'test pakcet'}]";

@@ -24,6 +24,8 @@ bool Load_yaml( const char *_pszPath_Conf )
 
 	// primes.push_back(13);
 	// assert(primes.size() == 6);
+
+	return true;
 }
 
 int main()
@@ -49,6 +51,8 @@ int main()
 	// 분석 엔진 등록 
 	clientMgr.Add_Eng("172.17.0.2", 4444);
 	clientMgr.Add_Eng("172.17.0.3", 5555);
+	// clientMgr.Add_Eng_Failover_Active("172.17.0.2", 4444);
+	// clientMgr.Add_Eng_Failover_Standby("172.17.0.3", 5555);
 	std::thread thr_client( [&]()
 	{
 		clientMgr.Run();
@@ -62,6 +66,8 @@ int main()
 	Rigitaeda::Rigi_Server server(10240);
 	server.Run( 3333, 100, &mgr);
 	// -----------------------------------------------------
+
+    std::cout << "[FINISH] << server stop" << std::endl;
 
 	// -----------------------------------------------------
 	// 종료-> 리소스 해제 

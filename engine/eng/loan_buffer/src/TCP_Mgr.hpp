@@ -12,9 +12,8 @@ template <typename T>
 class TCP_Mgr : public Rigitaeda::Rigi_TCPServerMgr<T>
 {
 public:
-	TCP_Mgr( __in MsgLog_Q *_pLogQ ) : m_pLogQ(nullptr)
+	TCP_Mgr( __in MsgLog_Q *_pLogQ ) : m_pLogQ(_pLogQ)
 	{
-		m_pLogQ = _pLogQ;
 	}
 	virtual ~TCP_Mgr()
 	{

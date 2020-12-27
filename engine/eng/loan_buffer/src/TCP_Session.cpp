@@ -39,7 +39,7 @@ void TCP_Session::OnEvent_Receive(	__in char *_pData,
 	{
 		std::string *pstrSendData = new std::string();
 		msgLog.SerializeToString(&(*pstrSendData));
-		m_pLogQ->Push_Data( "172.17.0.2:4444", pstrSendData );
+		m_pLogQ->Push_back( "172.17.0.2:4444", pstrSendData );
 	}
 	else
 	{
@@ -167,7 +167,7 @@ bool TCP_Session::Input_Filter( __in loan::MsgLog &_Packet )
 			_Packet.SerializeToString(&(*pstrSendData));
 
 			// Push_Data 안에 delete를 자동 호출 해준다. 따로 delete 를 호출 하지 말자 
-			m_pLogQ->Push_Data( policy.first.c_str(), pstrSendData );
+			m_pLogQ->Push_back( policy.first.c_str(), pstrSendData );
 
 			bIsPushQ = true;
 		}
