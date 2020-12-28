@@ -1,10 +1,5 @@
 FROM loan_base
 
-# gflags 컴파일
-RUN git clone https://github.com/gflags/gflags.git
-RUN mkdir -p gflags/cbuild
-RUN cd gflags/cbuild && cmake .. && make && make install
-
 # glog 컴파일
 RUN git clone https://github.com/google/glog.git
 RUN mkdir -p glog/cbuild
