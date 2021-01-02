@@ -32,7 +32,7 @@ private:
 	std::vector<std::string>	m_vecStandby;
 	bool m_bUse_RoundRobin = false;
 	// false 경우 fail back 이다 
-	bool m_bUse_Failover = true;
+	bool m_bUse_Failover = false;
 
 	MsgLog_Q	*m_pLogQ;
 	bool		m_bRun_Thread;

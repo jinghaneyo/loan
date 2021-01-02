@@ -438,13 +438,11 @@ bool TCP_ClientMgr::SendPacket_Fail_Over( __in std::string *_pLog )
 			int nLength = pSession->Sync_Send( _pLog->c_str(), _pLog->length() );
 			if(nLength > 0)
 			{
-				//std::cout << "[%s] Send Packet >> " << *_pLog << std::endl;
+				std::cout << "[%s] Send Packet >> " << *_pLog << std::endl;
 				return true;
 			}
 
 			OnEvent_Close(pSession);
-
-			//pSession = GetSession_Round_Robin();
 		}
 
 		return false;
@@ -455,30 +453,30 @@ bool TCP_ClientMgr::SendPacket_Fail_Over( __in std::string *_pLog )
 		// active 가 전송 실패 시 s/b 로 전송했다가 active 가 세션 연결 시 다시 active 로 전송
 		if( true == m_DqSessionPool_Connect[SESSION_ACTIVE]->IsConnected() )
 		{
-			m_DqSessionPool_Connect[SESSION_ACTIVE]->ASync_Send( _pLog->c_str(), _pLog->length() );
-			// int nLength = m_DqSessionPool_Connect[SESSION_ACTIVE]->Sync_Send( _pLog->c_str(), _pLog->length() );
-			// if(nLength > 0)
-			// {
-			// 	std::cout << "[Active] Send Packet >> " << *_pLog << std::endl;
-			// 	return true;
-			// }
+			//m_DqSessionPool_Connect[SESSION_ACTIVE]->ASync_Send( _pLog->c_str(), _pLog->length() );
+			int nLength = m_DqSessionPool_Connect[SESSION_ACTIVE]->Sync_Send( _pLog->c_str(), _pLog->length() );
+			if(nLength > 0)
+			{
+				std::cout << "[Active] Send Packet >> " << *_pLog << std::endl;
+				return true;
+			}
 
-			// Add_SessionPool_DisConnected( m_DqSessionPool_Connect[SESSION_ACTIVE] );
+			OnEvent_Close(m_DqSessionPool_Connect[SESSION_ACTIVE]);
 		}
 		else
 		{
 			if( true == m_DqSessionPool_Connect[SESSION_STANDBY]->IsConnected() )
 			{
-				m_DqSessionPool_Connect[SESSION_STANDBY]->ASync_Send( _pLog->c_str(), _pLog->length() );
-				// int nLength = m_DqSessionPool_Connect[SESSION_STANDBY]->Sync_Send( _pLog->c_str(), _pLog->length() );
-				// if(nLength > 0)
-				// {
-				// 	std::cout << "[StandBy] Send Packet >> " << *_pLog << std::endl;
-				// 	return true;
-				// }
+				//m_DqSessionPool_Connect[SESSION_STANDBY]->ASync_Send( _pLog->c_str(), _pLog->length() );
+				int nLength = m_DqSessionPool_Connect[SESSION_STANDBY]->Sync_Send( _pLog->c_str(), _pLog->length() );
+				if(nLength > 0)
+				{
+					std::cout << "[StandBy] Send Packet >> " << *_pLog << std::endl;
+					return true;
+				}
 			}
 
-			Add_SessionPool_DisConnected( m_DqSessionPool_Connect[SESSION_STANDBY] );
+			OnEvent_Close(m_DqSessionPool_Connect[SESSION_STANDBY]);
 		}
 	}
 
