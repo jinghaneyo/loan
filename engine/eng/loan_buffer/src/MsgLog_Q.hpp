@@ -44,7 +44,7 @@ public:
 		m_mapQueue.clear();
 	}
 	
-	void Push_Data( __in const char * _szKey, __in std::string *_pData )
+	void Push_back( __in const char * _szKey, __in std::string *_pData )
 	{
 		const std::lock_guard<std::mutex> lock(m_LockQueue);
 
@@ -61,7 +61,24 @@ public:
 		}
 	}
 
-	std::string * Pop_Data( __in const char *_pszKey )
+	void Push_front( __in const char * _szKey, __in std::string *_pData )
+	{
+		const std::lock_guard<std::mutex> lock(m_LockQueue);
+
+		auto find = m_mapQueue.find(_szKey);
+		if( find == m_mapQueue.end())
+		{
+			DEQUE_MSG_LOG_PTR *pDque = new DEQUE_MSG_LOG_PTR();
+			pDque->push_back(_pData);
+			m_mapQueue.insert( std::make_pair(_szKey, pDque) );
+		}
+		else
+		{
+			find->second->push_front(_pData);
+		}
+	}
+
+	std::string * Pop_front( __in const char *_pszKey )
 	{
 		std::string *pRet = nullptr;
 
