@@ -1,7 +1,6 @@
 // regex 헤더 안에 이미 __in, __out 정의 되어있다
 // 해서 Rigi_Def.hpp 보다 먼저 선언을 해야 한다
 #include <regex>
-#include <thread>
 #include <chrono>
 #include "TCP_ClientMgr.hpp"
 
@@ -25,7 +24,7 @@ void TCP_ClientMgr::Run()
 {
 	if(nullptr == m_pLogQ)
 	{
-		assert(0 && "[TCP_ClientMgr::Async_Run] m_pLogQ is nullptr");
+		//ASSERT(0 && "[TCP_ClientMgr::Async_Run] m_pLogQ is nullptr");
 		return ;
 	}
 
@@ -281,7 +280,7 @@ void TCP_ClientMgr::Check_Connect_Session_Failover()
 {
 	const std::lock_guard<std::mutex> lock(m_mtxSessionPool_DisConnect);
 
-	std::vector< std::deque<Rigitaeda::Rigi_ClientTCP *>::const_iterator > vecDel;
+	std::vector< std::deque<Rigitaeda::Rigi_ClientTCP *>::iterator > vecDel;
 
 	auto itr = m_DqSessionPool_DisConnect.begin();
 	while(itr != m_DqSessionPool_DisConnect.end())
@@ -289,7 +288,7 @@ void TCP_ClientMgr::Check_Connect_Session_Failover()
 		Rigitaeda::Rigi_ClientTCP * pSession = *itr;
 		if(false == pSession->IsConnected() )
 		{
-			//std::cout << "[Reconnect] << IP = " << pSession->Get_SessionIP() << " | Port = " << pSession->Get_Port() << std::endl;
+			std::cout << "[Reconnect] << IP = " << pSession->Get_SessionIP() << " | Port = " << pSession->Get_Port() << std::endl;
 
 			if(true == pSession->Reconnect( m_io_service ) )
 			{

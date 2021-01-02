@@ -44,7 +44,7 @@ void TCP_Session::OnEvent_Receive(	__in char *_pData,
 	else
 	{
 		// 이외는 잘못된 데이터 
-		std::cout << "[RECV] << Not support msg_type = " << msgLog.msg_type() << std::endl;
+		//std::cout << "[RECV] << Not support msg_type = " << msgLog.msg_type() << std::endl;
 		//assert(0 && "[RECV] not support msg_type");
 	}
 }
@@ -62,9 +62,9 @@ bool TCP_Session::Task_Filter( 	__in loan::MsgLog &_Packet )
 		case (int)MsgLog_Cmd_Crolling::SENDLING:
 			return Input_Filter(_Packet);
 		default:
-		std::cout << "[RECV] << Not support cmd_type = " << std::to_string(_Packet.msg_cmd()) << std::endl;
-		assert(0 && "[RECV] not support cmd_type");
-		return false;
+			std::cout << "[RECV] << Not support cmd_type = " << std::to_string(_Packet.msg_cmd()) << std::endl;
+			//ASSERT(0 && "[RECV] not support cmd_type");
+			return false;
 	}
 
 	return false; 
@@ -74,7 +74,7 @@ bool TCP_Session::Input_Filter( __in loan::MsgLog &_Packet )
 {
 	if(nullptr == m_pLogQ)
 	{
-		assert(0 && "[TCP_Session::Input_Filter] m_pLogQ is nullptr");
+		ASSERT(0 && "[TCP_Session::Input_Filter] m_pLogQ is nullptr");
 		return false;
 	}
 

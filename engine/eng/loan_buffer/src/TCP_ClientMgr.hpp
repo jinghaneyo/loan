@@ -3,6 +3,7 @@
 
 #include <mutex>
 #include <deque>
+#include <thread>
 #include "Rigi_ClientTCP.hpp"
 #include "MsgLog_Q.hpp"
 
@@ -29,9 +30,9 @@ private:
 
 	std::vector<std::string>	m_vecActive;
 	std::vector<std::string>	m_vecStandby;
-	bool m_bUse_RoundRobin = true;
+	bool m_bUse_RoundRobin = false;
 	// false 경우 fail back 이다 
-	bool m_bUse_Failover = false;
+	bool m_bUse_Failover = true;
 
 	MsgLog_Q	*m_pLogQ;
 	bool		m_bRun_Thread;

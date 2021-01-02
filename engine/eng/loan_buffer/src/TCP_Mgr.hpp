@@ -33,7 +33,7 @@ public:
 	{
 		if(nullptr == m_pLogQ)
 		{
-			assert(0 && "[TCP_Mgr::OnEvent_Init] m_pLogQ is nullptr");
+			//assert(0 && "[TCP_Mgr::OnEvent_Init] m_pLogQ is nullptr");
 			return false;
 		}
 
