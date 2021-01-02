@@ -99,16 +99,12 @@ namespace Rigitaeda
         {
             if(1 > _nPort)
             {
-#ifdef DEBUG
-                assert(0 && "[Rigi_TCPServerMgr::Run] port < 0 !!");
-#endif
+                //ASSERT(0 && "[Rigi_TCPServerMgr::Run] port < 0 !!");
                 return false;
             }
             if(1 > _nMaxClient)
             {
-#ifdef DEBUG
-                assert(0 && "[Rigi_TCPServerMgr::Run] _nMaxClient < 0 !!");
-#endif
+                //ASSERT(0 && "[Rigi_TCPServerMgr::Run] _nMaxClient < 0 !!");
                 return false;
             }
 
@@ -124,9 +120,7 @@ namespace Rigitaeda
             // Init 이벤트 호출
             if( false == OnEvent_Init() )
             {
-#ifdef DEBUG
-                assert(0 && "[Rigi_TCPMgr::Run] OnEvent_Init is false !!");
-#endif
+                //ASSERT(0 && "[Rigi_TCPMgr::Run] OnEvent_Init is false !!");
                 return false;
             }
 

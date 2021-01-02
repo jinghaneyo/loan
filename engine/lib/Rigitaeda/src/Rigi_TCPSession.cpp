@@ -45,9 +45,7 @@ void Rigi_TCPSession::Handler_Receive( 	__in const boost::system::error_code& _e
 {
 	if (nullptr == m_pSocket)
 	{
-#ifdef DEBUG
-		assert(0 && "[Rigi_TCPSession::Handler_Receive] m_pSocket is not nullptr!!!");
-#endif
+		//ASSERT(0 && "[Rigi_TCPSession::Handler_Receive] m_pSocket is not nullptr!!!");
 		return;
 	}
 
@@ -93,9 +91,7 @@ void Rigi_TCPSession::Async_Receive()
 {
 	if (nullptr == m_pSocket)
 	{
-#ifdef DEBUG
-		assert(0 && "[Rigi_TCPSession::Async_Receive] m_pSocket is not nullptr!!!");
-#endif
+		//ASSERT(0 && "[Rigi_TCPSession::Async_Receive] m_pSocket is not nullptr!!!");
 		// todo 에러값 저장 
 		return;
 	}
@@ -116,9 +112,7 @@ size_t Rigi_TCPSession::Sync_Send(	__in const char* _pData,
 {
 	if (nullptr == m_pSocket)
 	{
-#ifdef DEBUG
-		assert(0 && "[Rigi_TCPSession::Send] m_pSocket is not nullptr!!!");
-#endif
+		//ASSERT(0 && "[Rigi_TCPSession::Send] m_pSocket is not nullptr!!!");
 		return -1;
 	}
 
@@ -139,9 +133,7 @@ void Rigi_TCPSession::ASync_Send( 	__in const char* _pData,
 {
 	if (nullptr == m_pSocket)
 	{
-#ifdef DEBUG
-		assert(0 && "[Rigi_TCPSession::Async_Send] m_pSocket is not nullptr!!!");
-#endif
+		//ASSERT(0 && "[Rigi_TCPSession::Async_Send] m_pSocket is not nullptr!!!");
 		return;
 	}
 

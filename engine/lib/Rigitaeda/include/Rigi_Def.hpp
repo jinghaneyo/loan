@@ -19,6 +19,14 @@
 #include <boost/bind.hpp>
 #include <boost/asio.hpp>
 #include <boost/system/error_code.hpp>
+#include <assert.h>
+
+// #ifdef DEBUG
+// 	ASSERT(...)    assert(__ARGS__)
+// #else
+// 	ASSERT(x)	   
+// #endif
+
 //#include <glog/logging.h>
 
 #ifndef _WIN32
