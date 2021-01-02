@@ -68,7 +68,7 @@ void TCP_ClientMgr::Run()
 
 				// 실패인 경우는 모든 세션이 전송 실패인 경우이다. 따라서, 현재 데이터는 다시 전송할 수 있도록 큐의 앞에 넣어 주도록 하자
 				if(false == bRet_Send)
-					m_pLogQ->Push_back("172.17.0.2:4444", pLog);
+					m_pLogQ->Push_front("172.17.0.2:4444", pLog);
 				else
 					delete pLog;
 			}
@@ -101,6 +101,7 @@ bool TCP_ClientMgr::Add_Eng( __in const char *_pszServerIP, __in int _nPort )
 	const std::lock_guard<std::mutex> lock1(m_mtxSessionPool_Connect);
 	const std::lock_guard<std::mutex> lock2(m_mtxSessionPool_DisConnect);
 
+	// 이미 등록이 되어 있는지 확인
 	auto itr = m_DqSessionPool_Connect.begin();
 	while(itr != m_DqSessionPool_Connect.end())
 	{
@@ -109,6 +110,7 @@ bool TCP_ClientMgr::Add_Eng( __in const char *_pszServerIP, __in int _nPort )
 			return false;
 		itr++;
 	}
+	// 이미 등록이 되어 있는지 확인
 	itr = m_DqSessionPool_DisConnect.begin();
 	while(itr != m_DqSessionPool_DisConnect.end())
 	{
@@ -298,8 +300,6 @@ void TCP_ClientMgr::Check_Connect_Session_Failover()
 					Add_SessionPool_Connected( pSession );
 
 				vecDel.emplace_back(itr);
-				// itr = m_DqSessionPool_DisConnect.erase(itr);
-				// continue;
 			}
 		}
 
@@ -434,15 +434,15 @@ bool TCP_ClientMgr::SendPacket_Fail_Over( __in std::string *_pLog )
 
 		while(nullptr != pSession)
 		{
-			pSession->ASync_Send( _pLog->c_str(), _pLog->length() );
-			// int nLength = pSession->Sync_Send( _pLog->c_str(), _pLog->length() );
-			// if(nLength > 0)
-			// {
-			// 	//std::cout << "[%s] Send Packet >> " << *_pLog << std::endl;
-			// 	return true;
-			// }
+			//pSession->ASync_Send( _pLog->c_str(), _pLog->length() );
+			int nLength = pSession->Sync_Send( _pLog->c_str(), _pLog->length() );
+			if(nLength > 0)
+			{
+				//std::cout << "[%s] Send Packet >> " << *_pLog << std::endl;
+				return true;
+			}
 
-			// OnEvent_Close(pSession);
+			OnEvent_Close(pSession);
 
 			//pSession = GetSession_Round_Robin();
 		}

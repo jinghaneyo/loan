@@ -74,7 +74,7 @@ bool TCP_Session::Input_Filter( __in loan::MsgLog &_Packet )
 {
 	if(nullptr == m_pLogQ)
 	{
-		ASSERT(0 && "[TCP_Session::Input_Filter] m_pLogQ is nullptr");
+		//ASSERT(0 && "[TCP_Session::Input_Filter] m_pLogQ is nullptr");
 		return false;
 	}
 

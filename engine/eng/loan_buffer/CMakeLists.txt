@@ -42,4 +42,4 @@ ADD_EXECUTABLE(${APP_NAME}
 	)
 
 #TARGET_LINK_LIBRARIES( ${APP_NAME} gflags glog pthread boost_system )
-TARGET_LINK_LIBRARIES( ${APP_NAME} gflags pthread boost_system protobuf glog )
+TARGET_LINK_LIBRARIES( ${APP_NAME} gflags boost_system pthread boost_system protobuf glog )

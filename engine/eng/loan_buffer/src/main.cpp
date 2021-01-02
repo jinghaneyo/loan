@@ -1,11 +1,11 @@
 #include <stdio.h>
+#include <thread>
 #include "TCP_Mgr.hpp"
 #include "TCP_Session.hpp"
 #include "TCP_ClientMgr.hpp"
 #include "MsgLog_Q.hpp"
-#include <glog/logging.h>
-#include <thread>
-#include <yaml-cpp/parser.h>
+//#include <glog/logging.h>
+//#include <yaml-cpp/parser.h>
 
 bool Load_yaml( const char *_pszPath_Conf )
 {
@@ -49,10 +49,10 @@ int main()
 
 	// -----------------------------------------------------
 	// 분석 엔진 등록 
-	clientMgr.Add_Eng("172.17.0.2", 4444);
-	clientMgr.Add_Eng("172.17.0.3", 5555);
-	// clientMgr.Add_Eng_Failover_Active("172.17.0.2", 4444);
-	// clientMgr.Add_Eng_Failover_Standby("172.17.0.3", 5555);
+	// clientMgr.Add_Eng("172.17.0.2", 4444);
+	// clientMgr.Add_Eng("172.17.0.3", 5555);
+	clientMgr.Add_Eng_Failover_Active("172.17.0.2", 4444);
+	clientMgr.Add_Eng_Failover_Standby("172.17.0.3", 5555);
 	std::thread thr_client( [&]()
 	{
 		clientMgr.Run();
