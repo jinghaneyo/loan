@@ -28,6 +28,46 @@ bool Load_yaml( const char *_pszPath_Conf )
 	return true;
 }
 
+void Run_Client( __in TCP_ClientMgr &_ClientMgr, __out std::thread &_Thr_Clinet )
+{
+	// 분석 엔진 등록 
+	// _ClientMgr.Add_Eng("172.17.0.2", 4444);
+	// _ClientMgr.Add_Eng("172.17.0.3", 5555);
+	_ClientMgr.Add_Eng_Failover_Active("172.17.0.2", 4444);
+	_ClientMgr.Add_Eng_Failover_Standby("172.17.0.3", 5555);
+	_Thr_Clinet = std::thread( [&]()
+	{
+		_ClientMgr.Run();
+ 	});
+	_Thr_Clinet.detach();
+
+    std::cout << "[START] << ClientMgr Run" << std::endl;
+}
+
+void Run_Server( __in TCP_Mgr<TCP_Session> &_ServerMgr )
+{
+    std::cout << "[START] << server run" << std::endl;
+
+	Rigitaeda::Rigi_Server server(10240);
+	server.Run( 3333, 100, &_ServerMgr );
+}
+
+void Stop_All( 	__in TCP_ClientMgr &_ClientMgr, 
+				__in TCP_Mgr<TCP_Session> &_ServerMgr, 
+				__in std::thread &_Thr_Clinet,
+				__in MsgLog_Q &_LogQ )
+{
+	// -----------------------------------------------------
+	// 종료-> 리소스 해제 
+	// -----------------------------------------------------
+	_ClientMgr.Stop();
+	_Thr_Clinet.join();
+	_ServerMgr.Stop();
+	_LogQ.Clear_Q();
+
+    std::cout << "[FINISH] << server stop" << std::endl;
+}
+
 int main()
 {
 	GOOGLE_PROTOBUF_VERIFY_VERSION;
@@ -43,38 +83,15 @@ int main()
 	Load_yaml(strPath_Conf.c_str());
 
 	MsgLog_Q logQ;
-
 	TCP_ClientMgr clientMgr(&logQ);
-	TCP_Mgr<TCP_Session> mgr(&logQ);
+	TCP_Mgr<TCP_Session> serverMgr(&logQ);
 
-	// -----------------------------------------------------
-	// 분석 엔진 등록 
-	// clientMgr.Add_Eng("172.17.0.2", 4444);
-	// clientMgr.Add_Eng("172.17.0.3", 5555);
-	clientMgr.Add_Eng_Failover_Active("172.17.0.2", 4444);
-	clientMgr.Add_Eng_Failover_Standby("172.17.0.3", 5555);
-	std::thread thr_client( [&]()
-	{
-		clientMgr.Run();
- 	});
-	thr_client.detach();
-	// -----------------------------------------------------
+	std::thread thr_client;
+	Run_Client( clientMgr, thr_client );
 
-	// -----------------------------------------------------
-	// 서버 기동
-    std::cout << "[START] << server run" << std::endl;
-	Rigitaeda::Rigi_Server server(10240);
-	server.Run( 3333, 100, &mgr);
-	// -----------------------------------------------------
+	Run_Server( serverMgr );
 
-    std::cout << "[FINISH] << server stop" << std::endl;
-
-	// -----------------------------------------------------
-	// 종료-> 리소스 해제 
-	clientMgr.Stop();
-	thr_client.join();
-	logQ.Clear_Q();
-	// -----------------------------------------------------
+	Stop_All( clientMgr, serverMgr, thr_client, logQ );
 
 	google::protobuf::ShutdownProtobufLibrary();
 

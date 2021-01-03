@@ -41,5 +41,4 @@ ADD_EXECUTABLE(${APP_NAME}
 	${RIGITAEDA_INCLUDE}/Rigi_TCPServerMgr.hpp
 	)
 
-#TARGET_LINK_LIBRARIES( ${APP_NAME} gflags glog pthread boost_system )
-TARGET_LINK_LIBRARIES( ${APP_NAME} gflags boost_system pthread boost_system protobuf glog )
+TARGET_LINK_LIBRARIES( ${APP_NAME} gflags boost_system pthread boost_system protobuf glog yaml-cpp)
