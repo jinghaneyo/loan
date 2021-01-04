@@ -104,6 +104,7 @@ bool TCP_Session::Input_Filter( __in loan::MsgLog &_Packet )
 	std::string strIP_Port;
 	for(auto &policy : *pPolicy)
 	{
+		/*
 		// ip port 검색
 		// 아무것도 없으면 무조건 다 받는다
 		if( true == policy.second.vec_ip_port.empty())
@@ -171,6 +172,7 @@ bool TCP_Session::Input_Filter( __in loan::MsgLog &_Packet )
 
 			bIsPushQ = true;
 		}
+		//*/
 	}
 
 	return bIsPushQ;

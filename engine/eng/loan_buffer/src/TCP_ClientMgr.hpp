@@ -28,8 +28,6 @@ private:
 	std::mutex									m_mtxSessionPool_Connect;
 	std::deque<Rigitaeda::Rigi_ClientTCP *>  	m_DqSessionPool_Connect;
 
-	std::vector<std::string>	m_vecActive;
-	std::vector<std::string>	m_vecStandby;
 	bool m_bUse_RoundRobin = false;
 	// false 경우 fail back 이다 
 	bool m_bUse_Failover = false;

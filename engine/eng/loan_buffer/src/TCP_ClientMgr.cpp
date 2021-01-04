@@ -7,10 +7,6 @@
 TCP_ClientMgr::TCP_ClientMgr( __in MsgLog_Q *_pLogQ ) : m_pLogQ(_pLogQ)
 { 
 	m_bRun_Thread = false;
-
-	// todo jingtest
-	m_vecActive.emplace_back("172.17.0.2:4444");
-	m_vecStandby.emplace_back("172.17.0.3:5555");
 }
 
 TCP_ClientMgr::~TCP_ClientMgr() 

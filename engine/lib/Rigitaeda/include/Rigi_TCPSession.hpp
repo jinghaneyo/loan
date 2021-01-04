@@ -44,7 +44,7 @@ namespace Rigitaeda
 										__in size_t _nData_len );
 		virtual void OnEvent_Sended ( 	__in size_t _bytes_transferre );
 
-		virtual void OnEvent_Close(){ std::cout << "Rigi_TCPSession OnEvent_Close !!" << std::endl; };
+		virtual void OnEvent_Close(){ std::cout << "virtual Rigi_TCPSession OnEvent_Close !!" << std::endl; };
 		virtual bool OnEvent_Init()	{	return true;	};
 		// -----------------------------------------------------------
 

@@ -6,13 +6,20 @@
 #include <map>
 #include <deque>
 
-struct DATA_POLICY
+struct ServerInfo
+{
+	std::string strProtocol = "tcp";
+	std::string strPort = "3333";
+};
+
+class DATA_POLICY
 {
 public:
 	DATA_POLICY() {};
 	~DATA_POLICY() {};
 
-	std::vector<std::string> vec_ip_port;
+	ServerInfo m_ServerInfo;
+
 	std::vector<std::string> vec_regex;
 	std::map<std::string, std::string> map_replace;
 	std::vector<std::string> vec_service;
