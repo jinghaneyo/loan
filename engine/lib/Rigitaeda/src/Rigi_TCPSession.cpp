@@ -236,3 +236,14 @@ void Rigi_TCPSession::Make_Receive_Packet_Size( __in int _nPacket_Buffer_Size )
 	else
 		std::cout << "[Rigi_TCPSession::Make_Receive_Packet_Size][FAIL] buffer size < 2 (buffer size = " << _nPacket_Buffer_Size << ")" << std::endl;
 }
+
+bool Rigi_TCPSession::SetTimeOut_Sync_Send( __in int _nMilieSecond )
+{
+	if(nullptr == m_pSocket)
+		return false;
+
+	boost::asio::detail::socket_option::integer<SOL_SOCKET, SO_RCVTIMEO> option = boost::asio::detail::socket_option::integer<SOL_SOCKET, SO_RCVTIMEO>(_nMilieSecond); 
+	m_pSocket->set_option(option);
+
+	return true;
+}

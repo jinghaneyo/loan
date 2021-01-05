@@ -4,7 +4,7 @@
 #include <chrono>
 #include "TCP_ClientMgr.hpp"
 
-TCP_ClientMgr::TCP_ClientMgr( __in MsgLog_Q *_pLogQ ) : m_pLogQ(_pLogQ)
+TCP_ClientMgr::TCP_ClientMgr( __in MsgLog_Q *_pLogQ, __in DATA_POLICY *_pPolicy ) : m_pLogQ(_pLogQ), m_pPolicy(_pPolicy)
 { 
 	m_bRun_Thread = false;
 }
@@ -12,13 +12,14 @@ TCP_ClientMgr::TCP_ClientMgr( __in MsgLog_Q *_pLogQ ) : m_pLogQ(_pLogQ)
 TCP_ClientMgr::~TCP_ClientMgr() 
 { 
 	m_pLogQ = nullptr;
+	m_pPolicy = nullptr;
 
 	Clear_Eng();
 }
 
 void TCP_ClientMgr::Run()
 {
-	if(nullptr == m_pLogQ)
+	if(nullptr == m_pLogQ || nullptr == m_pPolicy )
 	{
 		//ASSERT(0 && "[TCP_ClientMgr::Async_Run] m_pLogQ is nullptr");
 		return ;
@@ -35,10 +36,10 @@ void TCP_ClientMgr::Run()
 	{
 		while(true == m_bRun_Thread)
 		{
-			if(false == m_bUse_RoundRobin)
-				Check_Connect_Session();
+			if("round-robin" == m_pPolicy->m_SendRule)
+				Check_Connect_Session_RoundRobin();
 			else
-				Check_Connect_Session_Failover();
+				Check_Connect_Session_FailOver();
 
 			std::this_thread::sleep_for( std::chrono::seconds(nSec_wait) );
 		}
@@ -57,7 +58,7 @@ void TCP_ClientMgr::Run()
 			std::string *pLog = m_pLogQ->Pop_front( "172.17.0.2:4444" );
 			if(nullptr != pLog) 
 			{
-				if(true == m_bUse_RoundRobin)
+				if("round-robin" == m_pPolicy->m_SendRule)
 					bRet_Send = SendPacket_Round_Robin(pLog);
 				else
 					bRet_Send = SendPacket_Fail_Over(pLog);
@@ -118,6 +119,7 @@ bool TCP_ClientMgr::Add_Eng( __in const char *_pszServerIP, __in int _nPort )
 
 	Rigitaeda::Rigi_ClientTCP *pClient = new Rigitaeda::Rigi_ClientTCP(10240);
 	pClient->Add_EventHandler_Close( std::bind(&TCP_ClientMgr::OnEvent_Close, this, pClient) );
+	pClient->SetTimeOut_Sync_Send( 3000 );
 
 	// if(false == m_bUse_RoundRobin)
 	// {
@@ -243,13 +245,14 @@ void TCP_ClientMgr::OnEvent_Close( __in Rigitaeda::Rigi_ClientTCP *_pSession )
 {
 	std::cout << "[TCP_ClientMgr::OnEvent_Close] <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< OnClosed !! " << std::endl;
 
-	if(false != m_bUse_Failover)
+	// fail-over는 호출하면 안된다. 정보를 가지고 있어야 한다
+	if("fail-over" != m_pPolicy->m_SendRule)
 		Del_SessionPool_Connected( _pSession->Get_ServerIP(), _pSession->Get_Port() );
 
 	Add_SessionPool_DisConnected( _pSession );
 }
 
-void TCP_ClientMgr::Check_Connect_Session()
+void TCP_ClientMgr::Check_Connect_Session_FailOver()
 {
 	const std::lock_guard<std::mutex> lock(m_mtxSessionPool_DisConnect);
 
@@ -274,7 +277,7 @@ void TCP_ClientMgr::Check_Connect_Session()
 	}
 }
 
-void TCP_ClientMgr::Check_Connect_Session_Failover()
+void TCP_ClientMgr::Check_Connect_Session_RoundRobin()
 {
 	const std::lock_guard<std::mutex> lock(m_mtxSessionPool_DisConnect);
 
@@ -292,7 +295,7 @@ void TCP_ClientMgr::Check_Connect_Session_Failover()
 			{
 				// fail-back 일 경우는 추가하면 안된다
 				// pool에 삭제하지 않고 유지한다
-				if(false != m_bUse_Failover)
+				if("fail-over" != m_pPolicy->m_SendRule)
 					Add_SessionPool_Connected( pSession );
 
 				vecDel.emplace_back(itr);
@@ -351,18 +354,23 @@ void TCP_ClientMgr::Add_SessionPool_Connected(  __in Rigitaeda::Rigi_ClientTCP *
 
 void TCP_ClientMgr::Del_SessionPool_Connected(  __in std::string _strServeIP, __in std::string _strServerPort )
 {
+	std::cout << "[Del_SessionPool_Connected] << CALL " << std::endl;
 	const std::lock_guard<std::mutex> lock1(m_mtxSessionPool_Connect);
+	std::cout << "[Del_SessionPool_Connected] << LOCK START " << std::endl;
 
 	auto itr = m_DqSessionPool_Connect.begin();
 	while(itr != m_DqSessionPool_Connect.end())
 	{
 		Rigitaeda::Rigi_ClientTCP * pSession = *itr;
+		std::cout << "[Del_SessionPool_Connected][FIND] << IP = " << _strServeIP << " | Port = " << _strServerPort << std::endl;
 		if( (pSession->Get_ServerIP() == _strServeIP) && (pSession->Get_Port() == _strServerPort ) )
 		{
 			itr = m_DqSessionPool_Connect.erase(itr);
-			std::cout << "[Del_SessionPool_Connected] << IP = " << _strServeIP << " | Port = " << _strServerPort << std::endl;
+			std::cout << "[Del_SessionPool_Connected][ERASE] << IP = " << _strServeIP << " | Port = " << _strServerPort << std::endl;
 			return;
 		}
+
+		itr++;
 	}
 }
 
@@ -410,6 +418,8 @@ Rigitaeda::Rigi_ClientTCP * TCP_ClientMgr::GetSession_Round_Robin()
 	m_DqSessionPool_Connect.erase(itr);
 	m_DqSessionPool_Connect.emplace_back(pSession);
 
+	std::cout << "[GetSession_Round_Robin] << IP = " << pSession->Get_SessionIP() << " | Port = " << pSession->Get_Port() << std::endl;
+
 	return pSession;
 }
 
@@ -424,7 +434,7 @@ Rigitaeda::Rigi_ClientTCP * TCP_ClientMgr::GetSession_begin()
 
 bool TCP_ClientMgr::SendPacket_Fail_Over( __in std::string *_pLog )
 {
-	if(true == m_bUse_Failover)
+	if("fail-over" == m_pPolicy->m_SendRule)
 	{
 		Rigitaeda::Rigi_ClientTCP * pSession = GetSession_begin();
 
@@ -553,5 +563,63 @@ bool TCP_ClientMgr::Chg_Eng_Failover( 	__in const char *_pszServerIP_Old, __in i
 	// 	return true;
 	// }
 
+	return false;
+}
+
+bool TCP_ClientMgr::Add_Eng_RoundRobin( __in const char *_pszServerIP, __in const char *_pszPort )
+{
+	const std::lock_guard<std::mutex> lock1(m_mtxSessionPool_Connect);
+	const std::lock_guard<std::mutex> lock2(m_mtxSessionPool_DisConnect);
+
+	// 이미 등록이 되어 있는지 확인
+	auto itr = m_DqSessionPool_Connect.begin();
+	while(itr != m_DqSessionPool_Connect.end())
+	{
+		Rigitaeda::Rigi_ClientTCP *pSession = *itr;
+		if( (pSession->Get_ServerIP() == _pszServerIP) && (pSession->Get_Port() == _pszPort ) )
+			return false;
+		itr++;
+	}
+	// 이미 등록이 되어 있는지 확인
+	itr = m_DqSessionPool_DisConnect.begin();
+	while(itr != m_DqSessionPool_DisConnect.end())
+	{
+		Rigitaeda::Rigi_ClientTCP *pSession = *itr;
+		if( (pSession->Get_ServerIP() == _pszServerIP) && (pSession->Get_Port() == _pszPort ) )
+			return false;
+		itr++;
+	}
+
+	Rigitaeda::Rigi_ClientTCP *pClient = new Rigitaeda::Rigi_ClientTCP(10240);
+	pClient->Add_EventHandler_Close( std::bind(&TCP_ClientMgr::OnEvent_Close, this, pClient) );
+
+	std::cout << "[Add_Eng_RoundRobin] IP = " << _pszServerIP << " | Port = " << _pszPort << std::endl;
+
+	// 일단 세션 풀을 만들기 위해서 연결을 시도하자 
+	if( true == pClient->Connect( _pszServerIP, _pszPort, m_io_service ) )
+		m_DqSessionPool_Connect.emplace_back(pClient);
+	else
+		m_DqSessionPool_DisConnect.emplace_back(pClient);
+
+	return true;
+}
+
+bool TCP_ClientMgr::Add_Eng_FailOver_Active( __in const char *_pszServerIP, __in const char *_pszPort )
+{
+	return false;
+}
+
+bool TCP_ClientMgr::Add_Eng_FailOver_Standby( __in const char *_pszServerIP, __in const char *_pszPort )
+{
+	return false;
+}
+
+bool TCP_ClientMgr::Add_Eng_FailBack_Active( __in const char *_pszServerIP, __in const char *_pszPort )
+{
+	return false;
+}
+
+bool TCP_ClientMgr::Add_Eng_FailBack_Standby( __in const char *_pszServerIP, __in const char *_pszPort )
+{
 	return false;
 }

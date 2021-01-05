@@ -80,6 +80,8 @@ namespace Rigitaeda
 		virtual void * Get_TCPMgr();
 
 		void Close();
+
+		bool SetTimeOut_Sync_Send( __in int _nMilieSecond );
 	};
 }
 

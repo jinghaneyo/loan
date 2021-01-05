@@ -1,5 +1,11 @@
 #include <stdio.h>
 #include <thread>
+#ifdef _WIN32
+   #include <io.h> 
+   #define access    _access_s
+#else
+   #include <unistd.h>
+#endif
 #include "TCP_Mgr.hpp"
 #include "TCP_Session.hpp"
 #include "TCP_ClientMgr.hpp"
@@ -42,26 +48,14 @@ void Parse_Group( __in const YAML::Node &_node, __out std::map<std::string, std:
 	}
 }
 
-void Parse_SendRule( 	__in const YAML::Node &_node, 
-						__out std::map<std::string, std::string> &_mapRoundRobin,
-						__out std::map<std::string, std::string> &_mapFailOver,
-						__out std::map<std::string, std::string> &_mapFailBack
-					)
+void Parse_SendRule( 	__in const YAML::Node &_node, __out DATA_POLICY &_Policy )
 {
 	for( auto &itr : _node )
 	{
 		if ( "round-robin" == itr.first.as<std::string>() )
 		{
 			for( auto &data : itr.second )
-			{
-				auto find = _mapRoundRobin.find( data.as<std::string>() );
-				if(find == _mapRoundRobin.end())
-					_mapRoundRobin.insert( std::make_pair( itr.first.as<std::string>(), data.as<std::string>() ) );
-				else
-					find->second = data.as<std::string>();
-
-				std::cout << "[SEND-RULE][ROUND-ROBIN][KEY = " << itr.first.as<std::string>() <<  "][VALUE = " << data.as<std::string>() << "]" << std::endl;
-			}
+				_Policy.m_vecRoudRobin.emplace_back( data.as<std::string>() );
 		}
 		else if ( "fail-over" == itr.first.as<std::string>() )
 		{
@@ -71,14 +65,25 @@ void Parse_SendRule( 	__in const YAML::Node &_node,
 				{
 					for( auto &chg : data.second )
 					{
-						std::cout << "[SEND-RULE][FAIL-OVER][KEY = " << chg.first.as<std::string>() <<  "][VALUE = " << chg.second.as<std::string>() << "]" << std::endl;
+						if( "active" == chg.first.as<std::string>() )
+							_Policy.m_vecFailOver_Session[INDEX_ACTIVE] = chg.second.as<int>();
+						else if( "stand-by" == chg.first.as<std::string>() )
+							_Policy.m_vecFailOver_Session[INDEX_STANDBY] = chg.second.as<int>();
 					}
 				}
-				else
+				else if( "active" == data.first.as<std::string>() || "stand-by" == data.first.as<std::string>() )
 				{
 					for( auto &ip : data.second )
 					{
-						std::cout << "[SEND-RULE][FAIL-OVER][KEY = " << data.first.as<std::string>() <<  "][VALUE = " << ip.as<std::string>() << "]" << std::endl;
+						auto find = _Policy.m_mapFailOver_IP_Port.find( data.first.as<std::string>() );
+						if(find == _Policy.m_mapFailOver_IP_Port.end())
+						{
+							std::vector<std::string> vecIP;
+							vecIP.emplace_back( ip.as<std::string>() );
+							_Policy.m_mapFailOver_IP_Port.insert( std::make_pair(data.first.as<std::string>(), vecIP) );
+						}
+						else
+							find->second.emplace_back( ip.as<std::string>() );
 					}
 				}
 			}
@@ -91,14 +96,25 @@ void Parse_SendRule( 	__in const YAML::Node &_node,
 				{
 					for( auto &chg : data.second )
 					{
-						std::cout << "[SEND-RULE][FAIL-BACK][KEY = " << chg.first.as<std::string>() <<  "][VALUE = " << chg.second.as<std::string>() << "]" << std::endl;
+						if( "active" == chg.first.as<std::string>() )
+							_Policy.m_vecFailBack_Session[INDEX_ACTIVE] = chg.second.as<int>();
+						else if( "stand-by" == chg.first.as<std::string>() )
+							_Policy.m_vecFailBack_Session[INDEX_STANDBY] = chg.second.as<int>();
 					}
 				}
-				else
+				else if( "active" == data.first.as<std::string>() || "stand-by" == data.first.as<std::string>() )
 				{
 					for( auto &ip : data.second )
 					{
-						std::cout << "[SEND-RULE][FAIL-BACK][KEY = " << data.first.as<std::string>() <<  "][VALUE = " << ip.as<std::string>() << "]" << std::endl;
+						auto find = _Policy.m_mapFailBack_IP_Port.find( data.first.as<std::string>() );
+						if(find == _Policy.m_mapFailBack_IP_Port.end())
+						{
+							std::vector<std::string> vecIP;
+							vecIP.emplace_back( ip.as<std::string>() );
+							_Policy.m_mapFailBack_IP_Port.insert( std::make_pair(data.first.as<std::string>(), vecIP) );
+						}
+						else
+							find->second.emplace_back( ip.as<std::string>() );
 					}
 				}
 			}
@@ -108,45 +124,24 @@ void Parse_SendRule( 	__in const YAML::Node &_node,
 
 void Parse_Destination( __in const YAML::Node &_node, __out DATA_POLICY &_Policy )
 {
-	std::map<std::string, std::string> mapRoundrobin;
-
-	//for(auto itr = _node.begin(); itr != _node.end(); itr++)
+	for( auto &itr : _node )
 	{
-		// if ( "period_retry_connect_time" == itr->first.as<std::string>() )
-		// {
-		// 	//_ServerInfo.strProtocol = itr->second.as<std::string>();
-		// 	std::cout << itr->second.as<std::string>() << std::endl;
-		// }
-		// else if ( "round-robin" == itr->first.as<std::string>() )
-		// {
-		// 	for(auto it = itr->second.begin(); it != itr->second.end(); it++)
-		// 	{
-		// 		//_ServerInfo.strPort = itr->second.as<std::string>();
-		// 		std::cout << it->as<std::string>() << std::endl;
-		// 	}
-		// }
-		// else if ( "fail-over" == itr->first.as<std::string>() )
-		// {
-		// 	for(auto it = itr->second.begin(); it != itr->second.end(); it++)
-		// 	{
-		// 		//_ServerInfo.strPort = itr->second.as<std::string>();
-		// 		std::cout << it->as<std::string>() << std::endl;
-		// 	}
-		// }
-		// else if ( "fail-back" == itr->first.as<std::string>() )
-		// {
-		// 	for(auto it = itr->second.begin(); it != itr->second.end(); it++)
-		// 	{
-		// 		//_ServerInfo.strPort = itr->second.as<std::string>();
-		// 		std::cout << it->as<std::string>() << std::endl;
-		// 	}
-		// }
+		if ( "period-retry-connect-time" == itr.first.as<std::string>() )
+		{
+			_Policy.m_period_retry_connect_time = itr.second.as<int>();
+		}
+		else if ( "send-rule" == itr.first.as<std::string>() )
+		{
+			_Policy.m_SendRule = itr.second.as<std::string>();
+		}
 	}
 }
 
-bool Load_yaml( __in const char *_pszPath_Conf, 
-				__out DATA_POLICY &_Policy )
+bool Load_yaml( __in const char *_pszPath_Conf, __out DATA_POLICY &_Policy )
 {
+	if( 0 != access( _pszPath_Conf, 0 ) )
+		return false;
+
 	printf("[Load_yaml] Path >> %s\n\n", _pszPath_Conf);
 
 	YAML::Node node = YAML::LoadFile( _pszPath_Conf );
@@ -173,49 +168,84 @@ bool Load_yaml( __in const char *_pszPath_Conf,
 		return false;
 	}
 
-	std::map<std::string, std::string> mapRoudRobin;
-	std::map<std::string, std::string> mapFailOver;
-	std::map<std::string, std::string> mapFailBack;
 	if ( node["send-rule"] )
-		Parse_SendRule( node["send-rule"], mapRoudRobin, mapFailOver, mapFailBack );
+		Parse_SendRule( node["send-rule"], _Policy );
 	else
 	{
 		std::cout << "not exist section => send-rule" << std::endl;
 		return false;
 	}
 
-	// send-rule 에 group 이 있다면 값을 대체해 주자
+	if ( node["destination"] )
+		Parse_Destination( node["destination"], _Policy );
 
-	// for(auto itr = node.begin(); itr != node.end(); itr++)
-	// {
-	// 	if ( "server" == itr->first.as<std::string>() )
-	// 		Parse_Server( itr->second, _Policy );
-	// 	else if ( "group" == itr->first.as<std::string>() )
-	// 		Parse_Group( itr->second, _Policy );
-	// 	else if ( "destination" == itr->first.as<std::string>() )
-	// 		Parse_Destination( itr->second, _Policy );
-	// }
+	for(auto &data : _Policy.m_vecRoudRobin)
+	{
+		std::cout << "[SEND-RULE][ROUND-ROBIN][VALUE = " << data << "]" << std::endl;
+	}
+	for(auto &data : _Policy.m_mapFailOver_IP_Port)
+	{
+		for(auto &ip : data.second)
+			std::cout << "[SEND-RULE][FAIL-OVER][KEY = " << data.first <<  "][VALUE = " << ip << "]" << std::endl;
+	}
+	std::cout << "[SEND-RULE][FAIL-OVER][KEY =   active][VALUE = " << _Policy.m_vecFailOver_Session[INDEX_ACTIVE] << "]" << std::endl;
+	std::cout << "[SEND-RULE][FAIL-OVER][KEY = stand-by][VALUE = " << _Policy.m_vecFailOver_Session[INDEX_STANDBY] << "]" << std::endl;
 
-	// for(auto itr = node.begin(); itr != node.end(); itr++)
-	// {
-	// 	if ( "server" == itr->first.as<std::string>() )
-	// 		Parse_Server( itr->second, _Policy );
-	// 	else if ( "group" == itr->first.as<std::string>() )
-	// 		Parse_Group( itr->second, _Policy );
-	// 	else if ( "destination" == itr->first.as<std::string>() )
-	// 		Parse_Destination( itr->second, _Policy );
-	// }
+	for(auto &data : _Policy.m_mapFailBack_IP_Port)
+	{
+		for(auto &ip : data.second)
+			std::cout << "[SEND-RULE][FAIL-BACK][KEY = " << data.first <<  "][VALUE = " << ip << "]" << std::endl;
+	}
+	std::cout << "[SEND-RULE][FAIL-BACK][KEY =   active][VALUE = " << _Policy.m_vecFailBack_Session[INDEX_ACTIVE] << "]" << std::endl;
+	std::cout << "[SEND-RULE][FAIL-BACK][KEY = stand-by][VALUE = " << _Policy.m_vecFailBack_Session[INDEX_STANDBY] << "]" << std::endl;
+
+	std::cout << "[SEND-RULE][DESTINATION][CONNECT TIME = " << _Policy.m_period_retry_connect_time << "]" << std::endl;
+	std::cout << "[SEND-RULE][DESTINATION][SEND-RULE = " << _Policy.m_SendRule << "]" << std::endl;
 
 	return true;
 }
 
-void Run_Client( __in TCP_ClientMgr &_ClientMgr, __out std::thread &_Thr_Clinet )
+bool Split_IP_Port( __in std::string &_strSource, __out std::string &_strIP, __out std::string &_strPort )
+{
+	int nPos = (int)_strSource.find(":");
+	if(-1 != nPos )
+	{
+		_strIP = _strSource.substr(0, nPos);
+		_strPort = _strSource.substr(nPos + 1, _strSource.length()-1-nPos );
+
+		return true;
+	}
+
+	return false;
+}
+
+void Run_Client( 	__in TCP_ClientMgr &_ClientMgr, 
+					__in DATA_POLICY &_Policy,
+					__out std::thread &_Thr_Clinet )
 {
 	// 분석 엔진 등록 
-	// _ClientMgr.Add_Eng("172.17.0.2", 4444);
-	// _ClientMgr.Add_Eng("172.17.0.3", 5555);
-	_ClientMgr.Add_Eng_Failover_Active("172.17.0.2", 4444);
-	_ClientMgr.Add_Eng_Failover_Standby("172.17.0.3", 5555);
+	if( "round-robin" == _Policy.m_SendRule )
+	{
+		for(auto &data : _Policy.m_vecRoudRobin)
+		{
+			std::string strIP, strPort;
+			if( true == Split_IP_Port(data, strIP, strPort) )
+				_ClientMgr.Add_Eng_RoundRobin( strIP.c_str(), strPort.c_str() );
+				//std::cout << "[Add Eng RoundRobin] IP = " << strIP << " | Port " << strPort << std::endl;
+		}
+	}
+	else if( "fail-over" == _Policy.m_SendRule )
+	{
+	}
+	else if( "fail-back" == _Policy.m_SendRule )
+	{
+	}
+
+	// // _ClientMgr.Add_Eng("172.17.0.2", 4444);
+	// // _ClientMgr.Add_Eng("172.17.0.3", 5555);
+	// _ClientMgr.Add_Eng_Failover_Active("172.17.0.2", 4444);
+	// _ClientMgr.Add_Eng_Failover_Standby("172.17.0.3", 5555);
+
 	_Thr_Clinet = std::thread( [&]()
 	{
 		_ClientMgr.Run();
@@ -267,11 +297,11 @@ int main()
 		return 1;
 
 	MsgLog_Q logQ;
-	TCP_ClientMgr clientMgr(&logQ);
-	TCP_Mgr<TCP_Session> serverMgr(&logQ);
+	TCP_ClientMgr clientMgr(&logQ, &Policy);
+	TCP_Mgr<TCP_Session> serverMgr(&logQ, &Policy);
 
 	std::thread thr_client;
-	Run_Client( clientMgr, thr_client );
+	Run_Client( clientMgr, Policy, thr_client );
 
 	Run_Server( serverMgr );
 

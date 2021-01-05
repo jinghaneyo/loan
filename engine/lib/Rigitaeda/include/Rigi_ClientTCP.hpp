@@ -31,7 +31,23 @@ namespace Rigitaeda
 		std::string m_strServerPort;
 
 		std::vector<Callback_Event_Close> m_vecEvent_Close;
+	public:
+		// -----------------------------------------------------------
+		// Event(콜백)
+		virtual void OnEvent_Receive( __in char *_pszData, __in int _nData_len ) {	};
+		virtual void OnEvent_Sended ( 	__in size_t _bytes_transferre )	{	};
+		virtual void OnEvent_Close()	
+		{
+			std::cout << "[Rigi_ClientTCP::OnEvent_Close] socket close !!" << std::endl;
 
+			m_bConnected = false;
+
+			for(auto &callback : m_vecEvent_Close)
+				callback(this);
+		}
+
+		virtual bool OnEvent_Init()		{	return true;	};
+		// -----------------------------------------------------------
 		bool Connect( 	__in const char *_pszHost, 
 						__in const char *_pszPort,
 						__in boost::asio::io_service &io_service )
@@ -69,24 +85,6 @@ namespace Rigitaeda
 
 			return true;
 		}
-
-	public:
-		// -----------------------------------------------------------
-		// Event(콜백)
-		virtual void OnEvent_Receive( __in char *_pszData, __in int _nData_len ) {	};
-		virtual void OnEvent_Sended ( 	__in size_t _bytes_transferre )	{	};
-		virtual void OnEvent_Close()	
-		{
-			std::cout << "[Rigi_ClientTCP::OnEvent_Close] socket close !!" << std::endl;
-
-			m_bConnected = false;
-
-			for(auto &callback : m_vecEvent_Close)
-				callback(this);
-		}
-
-		virtual bool OnEvent_Init()		{	return true;	};
-		// -----------------------------------------------------------
 
 		bool Connect( 	__in const char *_pszHost, 
 						__in int _nPort, 

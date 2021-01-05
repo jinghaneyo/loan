@@ -3,6 +3,7 @@
 
 #include <fstream>
 #include <mutex>
+#include "Data_Policy.hpp"
 #include "Rigi_TCPServerMgr.hpp"
 #include "Data_Policy.hpp"
 #include "Data_Packet.hpp"
@@ -12,18 +13,20 @@ template <typename T>
 class TCP_Mgr : public Rigitaeda::Rigi_TCPServerMgr<T>
 {
 public:
-	TCP_Mgr( __in MsgLog_Q *_pLogQ ) : m_pLogQ(_pLogQ)
+	TCP_Mgr( __in MsgLog_Q *_pLogQ, __in DATA_POLICY *_pPolicy ) : m_pLogQ(_pLogQ), m_pPolicy(_pPolicy)
 	{
 	}
 	virtual ~TCP_Mgr()
 	{
 		m_pLogQ = nullptr;
+		m_pPolicy = nullptr;
 	}
 
 private:
 	std::map<std::string, DATA_POLICY> m_mapPolicy;
 
 	MsgLog_Q *m_pLogQ;
+	DATA_POLICY *m_pPolicy;
 
 public:
 	// ------------------------------------------------------------------
