@@ -31,6 +31,7 @@ ADD_EXECUTABLE(${APP_NAME}
 	src/TCP_ClientMgr.cpp
 	src/Data_Packet.hpp
 	src/Data_Policy.hpp
+	src/Conf_Yaml.cpp
 	src/TCP_Mgr.hpp
 	src/TCP_Session.cpp
 	src/loan.pb.cc

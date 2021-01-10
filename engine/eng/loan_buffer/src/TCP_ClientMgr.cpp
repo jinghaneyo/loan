@@ -7,6 +7,7 @@
 TCP_ClientMgr::TCP_ClientMgr( __in MsgLog_Q *_pLogQ, __in DATA_POLICY *_pPolicy ) : m_pLogQ(_pLogQ), m_pPolicy(_pPolicy)
 { 
 	m_bRun_Thread = false;
+	m_nFailOver_Active_Standby = SESSION_ACTIVE;
 }
 
 TCP_ClientMgr::~TCP_ClientMgr() 
@@ -423,20 +424,71 @@ Rigitaeda::Rigi_ClientTCP * TCP_ClientMgr::GetSession_Round_Robin()
 	return pSession;
 }
 
-Rigitaeda::Rigi_ClientTCP * TCP_ClientMgr::GetSession_begin()
+Rigitaeda::Rigi_ClientTCP * TCP_ClientMgr::GetSession_begin_Active_FailOver()
 {
-	const std::lock_guard<std::mutex> lock1(m_mtxSessionPool_Connect);
-	if( true == m_DqSessionPool_Connect.empty())
+	const std::lock_guard<std::mutex> lock1(m_mtxSessionPool_Connect_Active);
+	if( true == m_DqSessionPool_Connect_Active.empty())
 		return nullptr;
 
-	return *(m_DqSessionPool_Connect.begin());
+	if ( 1 == (int)m_DqSessionPool_Connect_Active.size() )
+		return *(m_DqSessionPool_Connect_Active.begin());
+	else
+	{
+		//if( m_pPolicy->m_vecFailOver_Session[] )
+
+		// 처음걸 리턴 해주고 
+		auto itr = m_DqSessionPool_Connect_Active.begin();
+
+		Rigitaeda::Rigi_ClientTCP *pSession = *itr;
+
+		// 제일 뒤로 추가 한다(라운드 로빈)
+		m_DqSessionPool_Connect_Active.erase(itr);
+		m_DqSessionPool_Connect_Active.emplace_back(itr);
+
+		return pSession;
+	}
+}
+
+Rigitaeda::Rigi_ClientTCP * TCP_ClientMgr::GetSession_begin_Standby_FailOver()
+{
+	const std::lock_guard<std::mutex> lock1(m_mtxSessionPool_Connect_Standby);
+	if( true == m_DqSessionPool_Connect_Standby.empty())
+		return nullptr;
+
+	if ( 1 == (int)m_DqSessionPool_Connect_Standby.size() )
+		return *(m_DqSessionPool_Connect_Standby.begin());
+	else
+	{
+		// 처음걸 리턴 해주고 
+		auto itr = m_DqSessionPool_Connect_Standby.begin();
+
+		Rigitaeda::Rigi_ClientTCP *pSession = *itr;
+
+		// 제일 뒤로 추가 한다(라운드 로빈)
+		m_DqSessionPool_Connect_Standby.erase(itr);
+		m_DqSessionPool_Connect_Standby.emplace_back(itr);
+
+		return pSession;
+	}
+}
+
+Rigitaeda::Rigi_ClientTCP * TCP_ClientMgr::GetSession_begin_FailOver()
+{
+	if( SESSION_ACTIVE == m_nFailOver_Active_Standby )
+	{
+		return GetSession_begin_Active_FailOver();
+	}
+	else
+	{
+		return GetSession_begin_Standby_FailOver();
+	}
 }
 
 bool TCP_ClientMgr::SendPacket_Fail_Over( __in std::string *_pLog )
 {
 	if("fail-over" == m_pPolicy->m_SendRule)
 	{
-		Rigitaeda::Rigi_ClientTCP * pSession = GetSession_begin();
+		Rigitaeda::Rigi_ClientTCP * pSession = GetSession_begin_FailOver();
 
 		while(nullptr != pSession)
 		{
@@ -606,12 +658,78 @@ bool TCP_ClientMgr::Add_Eng_RoundRobin( __in const char *_pszServerIP, __in cons
 
 bool TCP_ClientMgr::Add_Eng_FailOver_Active( __in const char *_pszServerIP, __in const char *_pszPort )
 {
-	return false;
+	const std::lock_guard<std::mutex> lock1(m_mtxSessionPool_Connect_Active);
+	const std::lock_guard<std::mutex> lock2(m_mtxSessionPool_DisConnect);
+
+	// 이미 등록이 되어 있는지 확인
+	auto itr = m_DqSessionPool_Connect_Active.begin();
+	while(itr != m_DqSessionPool_Connect_Active.end())
+	{
+		Rigitaeda::Rigi_ClientTCP *pSession = *itr;
+		if( (pSession->Get_ServerIP() == _pszServerIP) && (pSession->Get_Port() == _pszPort ) )
+			return false;
+		itr++;
+	}
+	// 이미 등록이 되어 있는지 확인
+	itr = m_DqSessionPool_DisConnect.begin();
+	while(itr != m_DqSessionPool_DisConnect.end())
+	{
+		Rigitaeda::Rigi_ClientTCP *pSession = *itr;
+		if( (pSession->Get_ServerIP() == _pszServerIP) && (pSession->Get_Port() == _pszPort ) )
+			return false;
+		itr++;
+	}
+
+	Rigitaeda::Rigi_ClientTCP *pClient = new Rigitaeda::Rigi_ClientTCP(10240);
+	pClient->Add_EventHandler_Close( std::bind(&TCP_ClientMgr::OnEvent_Close, this, pClient) );
+
+	std::cout << "[Add_Eng_FailOver_Active] IP = " << _pszServerIP << " | Port = " << _pszPort << std::endl;
+
+	// 일단 세션 풀을 만들기 위해서 연결을 시도하자 
+	if( true == pClient->Connect( _pszServerIP, _pszPort, m_io_service ) )
+		m_DqSessionPool_Connect_Active.emplace_back(pClient);
+	else
+		m_DqSessionPool_DisConnect.emplace_back(pClient);
+
+	return true;
 }
 
 bool TCP_ClientMgr::Add_Eng_FailOver_Standby( __in const char *_pszServerIP, __in const char *_pszPort )
 {
-	return false;
+	const std::lock_guard<std::mutex> lock1(m_mtxSessionPool_Connect_Active);
+	const std::lock_guard<std::mutex> lock2(m_mtxSessionPool_DisConnect);
+
+	// 이미 등록이 되어 있는지 확인
+	auto itr = m_DqSessionPool_Connect_Standby.begin();
+	while(itr != m_DqSessionPool_Connect_Standby.end())
+	{
+		Rigitaeda::Rigi_ClientTCP *pSession = *itr;
+		if( (pSession->Get_ServerIP() == _pszServerIP) && (pSession->Get_Port() == _pszPort ) )
+			return false;
+		itr++;
+	}
+	// 이미 등록이 되어 있는지 확인
+	itr = m_DqSessionPool_DisConnect.begin();
+	while(itr != m_DqSessionPool_DisConnect.end())
+	{
+		Rigitaeda::Rigi_ClientTCP *pSession = *itr;
+		if( (pSession->Get_ServerIP() == _pszServerIP) && (pSession->Get_Port() == _pszPort ) )
+			return false;
+		itr++;
+	}
+
+	Rigitaeda::Rigi_ClientTCP *pClient = new Rigitaeda::Rigi_ClientTCP(10240);
+	pClient->Add_EventHandler_Close( std::bind(&TCP_ClientMgr::OnEvent_Close, this, pClient) );
+
+	std::cout << "[Add_Eng_FailOver_Active] IP = " << _pszServerIP << " | Port = " << _pszPort << std::endl;
+
+	// 일단 세션 풀을 만들기 위해서 연결을 시도하자 
+	if( true == pClient->Connect( _pszServerIP, _pszPort, m_io_service ) )
+		m_DqSessionPool_Connect_Standby.emplace_back(pClient);
+	else
+		m_DqSessionPool_DisConnect.emplace_back(pClient);
+
+	return true;
 }
 
 bool TCP_ClientMgr::Add_Eng_FailBack_Active( __in const char *_pszServerIP, __in const char *_pszPort )

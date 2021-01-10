@@ -30,7 +30,6 @@
 //#include <glog/logging.h>
 
 #ifndef _WIN32
-
 	#ifndef __in
 	#define __in
 	#endif
@@ -42,7 +41,6 @@
 	#ifndef __out
 	#define __out
 	#endif
-
 #endif
 
 #ifndef DEF_PTOTOCOL

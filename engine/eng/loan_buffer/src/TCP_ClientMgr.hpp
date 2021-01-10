@@ -29,6 +29,12 @@ private:
 	std::mutex									m_mtxSessionPool_Connect;
 	std::deque<Rigitaeda::Rigi_ClientTCP *>  	m_DqSessionPool_Connect;
 
+	std::mutex									m_mtxSessionPool_Connect_Active;
+	std::deque<Rigitaeda::Rigi_ClientTCP *>  	m_DqSessionPool_Connect_Active;
+	std::mutex									m_mtxSessionPool_Connect_Standby;
+	std::deque<Rigitaeda::Rigi_ClientTCP *>  	m_DqSessionPool_Connect_Standby;
+	int											m_nFailOver_Active_Standby;
+
 	MsgLog_Q	*m_pLogQ;
 	DATA_POLICY *m_pPolicy;
 
@@ -58,7 +64,9 @@ public:
 	const Rigitaeda::Rigi_ClientTCP * Connect_Session( __in const char *_pszServerIP, __in int _nPort );
 
 	Rigitaeda::Rigi_ClientTCP * GetSession_Round_Robin();
-	Rigitaeda::Rigi_ClientTCP * GetSession_begin();
+	Rigitaeda::Rigi_ClientTCP * GetSession_begin_Active_FailOver();
+	Rigitaeda::Rigi_ClientTCP * GetSession_begin_Standby_FailOver();
+	Rigitaeda::Rigi_ClientTCP * GetSession_begin_FailOver();
 
 	// 전달할 분석 엔진 추가
 	bool Add_Eng( __in const char *_pszServerIP, __in int _nPort );
