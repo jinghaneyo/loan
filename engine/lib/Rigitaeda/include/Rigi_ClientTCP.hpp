@@ -13,11 +13,11 @@ namespace Rigitaeda
 	class Rigi_ClientTCP : public Rigi_TCPSession
 	{
 	public:
-		Rigi_ClientTCP( __in int m_nReceive_Packet_Size = 1024 )
+		Rigi_ClientTCP( __in int _nReceive_Packet_Size = 1024 )
 		{
 			m_bConnected = false;
 
-			Make_Receive_Packet_Size(m_nReceive_Packet_Size);
+			Make_Receive_Packet_Size(_nReceive_Packet_Size);
 		}
 		
 		virtual ~Rigi_ClientTCP()

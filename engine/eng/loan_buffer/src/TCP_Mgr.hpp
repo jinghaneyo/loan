@@ -6,7 +6,6 @@
 #include "Data_Policy.hpp"
 #include "Rigi_TCPServerMgr.hpp"
 #include "Data_Policy.hpp"
-#include "Data_Packet.hpp"
 #include "MsgLog_Q.hpp"
 
 template <typename T>

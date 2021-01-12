@@ -28,8 +28,12 @@ LINK_DIRECTORIES(/usr/local/lib64)
 ADD_EXECUTABLE(${APP_NAME}
 	src/main.cpp
 	src/MsgLog_Q.hpp
+	src/Def.hpp
+	src/TCP_Client.hpp
+	src/Session_Pool.hpp
+	src/Session_RoundRobin.cpp
+	src/Session_FailOver.cpp
 	src/TCP_ClientMgr.cpp
-	src/Data_Packet.hpp
 	src/Data_Policy.hpp
 	src/Conf_Yaml.cpp
 	src/TCP_Mgr.hpp

@@ -27,9 +27,9 @@ public:
 
 	VEC_IP_PORT							m_vecRoudRobin;
 	std::map<std::string, VEC_IP_PORT>  m_mapFailOver_IP_Port;
-	std::vector<int>					m_vecFailOver_Session;
+	std::vector<int>					m_vecFailOver_Change_Limit;
 	std::map<std::string, VEC_IP_PORT>  m_mapFailBack_IP_Port;
-	std::vector<int>					m_vecFailBack_Session;
+	std::vector<int>					m_vecFailBack_Change_Limit;
 	int									m_period_retry_connect_time = 5;
 	std::string							m_SendRule;
 
@@ -43,11 +43,11 @@ public:
 		m_mapFailOver_IP_Port.clear();
 		m_mapFailBack_IP_Port.clear();
 		// active, stand-by 기본값 입력
-		m_vecFailOver_Session.emplace_back(0);
-		m_vecFailOver_Session.emplace_back(0);
+		m_vecFailOver_Change_Limit.emplace_back(0);
+		m_vecFailOver_Change_Limit.emplace_back(0);
 		// active, stand-by 기본값 입력
-		m_vecFailBack_Session.emplace_back(0);
-		m_vecFailBack_Session.emplace_back(0);
+		m_vecFailBack_Change_Limit.emplace_back(0);
+		m_vecFailBack_Change_Limit.emplace_back(0);
 	}
 };
 

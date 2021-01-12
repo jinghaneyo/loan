@@ -61,9 +61,9 @@ void Conf_Yaml::Parse_SendRule( 	__in const YAML::Node &_node, __out DATA_POLICY
 					for( auto &chg : data.second )
 					{
 						if( "active" == chg.first.as<std::string>() )
-							_Policy.m_vecFailOver_Session[INDEX_ACTIVE] = chg.second.as<int>();
+							_Policy.m_vecFailOver_Change_Limit[INDEX_ACTIVE] = chg.second.as<int>();
 						else if( "stand-by" == chg.first.as<std::string>() )
-							_Policy.m_vecFailOver_Session[INDEX_STANDBY] = chg.second.as<int>();
+							_Policy.m_vecFailOver_Change_Limit[INDEX_STANDBY] = chg.second.as<int>();
 					}
 				}
 				else if( "active" == data.first.as<std::string>() || "stand-by" == data.first.as<std::string>() )
@@ -92,9 +92,9 @@ void Conf_Yaml::Parse_SendRule( 	__in const YAML::Node &_node, __out DATA_POLICY
 					for( auto &chg : data.second )
 					{
 						if( "active" == chg.first.as<std::string>() )
-							_Policy.m_vecFailBack_Session[INDEX_ACTIVE] = chg.second.as<int>();
+							_Policy.m_vecFailBack_Change_Limit[INDEX_ACTIVE] = chg.second.as<int>();
 						else if( "stand-by" == chg.first.as<std::string>() )
-							_Policy.m_vecFailBack_Session[INDEX_STANDBY] = chg.second.as<int>();
+							_Policy.m_vecFailBack_Change_Limit[INDEX_STANDBY] = chg.second.as<int>();
 					}
 				}
 				else if( "active" == data.first.as<std::string>() || "stand-by" == data.first.as<std::string>() )
@@ -174,6 +174,7 @@ bool Conf_Yaml::Load_yaml( __in const char *_pszPath_Conf, __out DATA_POLICY &_P
 	if ( node["destination"] )
 		Parse_Destination( node["destination"], _Policy );
 
+/*
 	for(auto &data : _Policy.m_vecRoudRobin)
 	{
 		std::cout << "[SEND-RULE][ROUND-ROBIN][VALUE = " << data << "]" << std::endl;
@@ -183,18 +184,19 @@ bool Conf_Yaml::Load_yaml( __in const char *_pszPath_Conf, __out DATA_POLICY &_P
 		for(auto &ip : data.second)
 			std::cout << "[SEND-RULE][FAIL-OVER][KEY = " << data.first <<  "][VALUE = " << ip << "]" << std::endl;
 	}
-	std::cout << "[SEND-RULE][FAIL-OVER][KEY =   active][VALUE = " << _Policy.m_vecFailOver_Session[INDEX_ACTIVE] << "]" << std::endl;
-	std::cout << "[SEND-RULE][FAIL-OVER][KEY = stand-by][VALUE = " << _Policy.m_vecFailOver_Session[INDEX_STANDBY] << "]" << std::endl;
+	std::cout << "[SEND-RULE][FAIL-OVER][KEY =   active][VALUE = " << _Policy.m_vecFailOver_Change_Limit[INDEX_ACTIVE] << "]" << std::endl;
+	std::cout << "[SEND-RULE][FAIL-OVER][KEY = stand-by][VALUE = " << _Policy.m_vecFailOver_Change_Limit[INDEX_STANDBY] << "]" << std::endl;
 
 	for(auto &data : _Policy.m_mapFailBack_IP_Port)
 	{
 		for(auto &ip : data.second)
 			std::cout << "[SEND-RULE][FAIL-BACK][KEY = " << data.first <<  "][VALUE = " << ip << "]" << std::endl;
 	}
-	std::cout << "[SEND-RULE][FAIL-BACK][KEY =   active][VALUE = " << _Policy.m_vecFailBack_Session[INDEX_ACTIVE] << "]" << std::endl;
-	std::cout << "[SEND-RULE][FAIL-BACK][KEY = stand-by][VALUE = " << _Policy.m_vecFailBack_Session[INDEX_STANDBY] << "]" << std::endl;
+	std::cout << "[SEND-RULE][FAIL-BACK][KEY =   active][VALUE = " << _Policy.m_vecFailBack_Change_Limit[INDEX_ACTIVE] << "]" << std::endl;
+	std::cout << "[SEND-RULE][FAIL-BACK][KEY = stand-by][VALUE = " << _Policy.m_vecFailBack_Change_Limit[INDEX_STANDBY] << "]" << std::endl;
 
 	std::cout << "[SEND-RULE][DESTINATION][CONNECT TIME = " << _Policy.m_period_retry_connect_time << "]" << std::endl;
+	//*/
 	std::cout << "[SEND-RULE][DESTINATION][SEND-RULE = " << _Policy.m_SendRule << "]" << std::endl;
 
 	return true;
