@@ -2,42 +2,49 @@ server:
     protocol: "tcp"
     port: "4000"
 
-destination:
-    # 재접속 주기
-    period_retry_connect_time : 10
-    # 기본 라운드 로빈
-    round-robin-normal: 
+group:
+    active:
         - "172.17.0.2:4444"
         - "172.17.0.3:5555"
+    stand-by: 
+        - "172.17.0.4:6666"
+        - "172.17.0.5:7777"
+
+send-rule:
+    # 기본 라운드 로빈
+    round-robin: 
+        - "172.17.0.2:4444"
+        - "172.17.0.3:5555"
+        - "172.17.0.4:6666"
+        - "172.17.0.5:7777"
+
     # 기본 fail-over
-    fail-over-normal: 
+    fail-over: 
         active: 
             - "172.17.0.2:4444"
             - "172.17.0.3:5555"
         stand-by: 
             - "172.17.0.4:6666"
             - "172.17.0.5:7777"
+        session-change-count: 
+            # 설정 숫자 보다 connected 된 세션수가 적으면 stand-by로 넘어간다(미만)
+            active: 2
+            # 설정 숫자 보다 connected 된 세션수가 적으면 active로 넘어간다(미만)
+            stand-by: 1 
 
-    # fail-over + round robin
-    fail-over: 
+    fail-back: 
         active: 
-            round-robin: 
-                - "172.17.0.2:4444"
-                - "172.17.0.3:5555"
+            - "172.17.0.2:4444"
+            - "172.17.0.3:5555"
         stand-by: 
-            round-robin: 
-                - "172.17.0.4:5555"
-                - "172.17.0.5:6666"
+            - "172.17.0.4:6666"
+            - "172.17.0.5:7777"
+        session-change-count: 
+            active: 2
 
-    # round robin + round-robin
-    round-robin: 
-        fail-over-1: 
-            active: 
-                - "172.17.0.2:4444"
-            stand-by: 
-                - "172.17.0.3:5555"
-        fail-over-2: 
-            active: 
-                - "172.17.0.4:6666"
-            stand-by: 
-                - "172.17.0.5:7777"
+destination:
+    # 재접속 주기
+    period-retry-connect-time : 10
+    # milisecond
+    time-out: 3000
+    send-rule: "fail-over"
