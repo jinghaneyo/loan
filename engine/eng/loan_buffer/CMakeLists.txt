@@ -33,6 +33,7 @@ ADD_EXECUTABLE(${APP_NAME}
 	src/Session_Pool.hpp
 	src/Session_RoundRobin.cpp
 	src/Session_FailOver.cpp
+	src/Session_FailBack.cpp
 	src/TCP_ClientMgr.cpp
 	src/Data_Policy.hpp
 	src/Conf_Yaml.cpp

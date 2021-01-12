@@ -58,7 +58,7 @@ void TCP_ClientMgr::Run()
 			std::string *pLog = m_pLogQ->Pop_front( "172.17.0.2:4444" );
 			if(nullptr != pLog) 
 			{
-				bRet_Send = SendPacket_Round_Robin(pLog);
+				bRet_Send = SendPacket(pLog);
 
 				// 실패인 경우는 모든 세션이 전송 실패인 경우이다. 따라서, 현재 데이터는 다시 전송할 수 있도록 큐의 앞에 넣어 주도록 하자
 				if(false == bRet_Send)
@@ -84,7 +84,7 @@ void TCP_ClientMgr::Set_LogQ( __in MsgLog_Q *_pLogQ )
 	m_pLogQ = _pLogQ;
 }
 
-bool TCP_ClientMgr::SendPacket_Round_Robin( __in std::string *_pData )
+bool TCP_ClientMgr::SendPacket( __in std::string *_pData )
 {
 	while(true)
 	{
@@ -286,7 +286,7 @@ bool TCP_ClientMgr::Add_Eng_FailOver_Standby( __in const char *_pszServerIP, __i
 bool TCP_ClientMgr::Add_Eng_FailBack_Active( __in const char *_pszServerIP, __in const char *_pszPort )
 {
 	if( nullptr == m_pSendSession )
-		m_pSendSession = new Session_FailOver( m_pPolicy, &m_io_service );
+		m_pSendSession = new Session_FailBack( m_pPolicy, &m_io_service );
 
 	TCP_Client *pClient = new TCP_Client(10240);
 	pClient->Add_EventHandler_Close( std::bind(&TCP_ClientMgr::OnEvent_Close, this, pClient) );
@@ -312,7 +312,7 @@ bool TCP_ClientMgr::Add_Eng_FailBack_Active( __in const char *_pszServerIP, __in
 bool TCP_ClientMgr::Add_Eng_FailBack_Standby( __in const char *_pszServerIP, __in const char *_pszPort )
 {
 	if( nullptr == m_pSendSession )
-		m_pSendSession = new Session_FailOver( m_pPolicy, &m_io_service );
+		m_pSendSession = new Session_FailBack( m_pPolicy, &m_io_service );
 
 	TCP_Client *pClient = new TCP_Client(10240);
 	pClient->Add_EventHandler_Close( std::bind(&TCP_ClientMgr::OnEvent_Close, this, pClient) );

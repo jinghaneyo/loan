@@ -10,6 +10,7 @@
 #include "MsgLog_Q.hpp"
 #include "Session_RoundRobin.hpp"
 #include "Session_FailOver.hpp"
+#include "Session_FailBack.hpp"
 #include "TCP_Client.hpp"
 
 class TCP_ClientMgr
@@ -46,7 +47,7 @@ public:
 	// ---------------------------------------------------------------------
 	// 라운드로빈 관련 
 	bool Add_Eng_RoundRobin( __in const char *_pszServerIP, __in const char *_pszPort );
-	bool SendPacket_Round_Robin( __in std::string *_pData );
+	bool SendPacket( __in std::string *_pData );
 	// ---------------------------------------------------------------------
 
 	// 전달할 분석 엔진 추가
