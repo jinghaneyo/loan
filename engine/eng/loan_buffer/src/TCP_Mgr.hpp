@@ -22,8 +22,6 @@ public:
 	}
 
 private:
-	std::map<std::string, DATA_POLICY> m_mapPolicy;
-
 	MsgLog_Q *m_pLogQ;
 	DATA_POLICY *m_pPolicy;
 
@@ -73,11 +71,6 @@ public:
 		return infile.good();
 	}
 
-	const std::map<std::string, DATA_POLICY> * GetPolicy()
-	{
-		return &m_mapPolicy;
-	}
-
 	bool Load_ConfJson( __in const char *_pszPath, __out DATA_POLICY &conf )
 	{
 		return true;
@@ -99,6 +92,8 @@ public:
 
 		return false;
 	}
+
+	DATA_POLICY * Get_Policy()	{	return m_pPolicy;	};
 };
 
 #endif

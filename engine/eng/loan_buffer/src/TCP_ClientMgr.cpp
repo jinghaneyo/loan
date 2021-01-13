@@ -212,7 +212,7 @@ bool TCP_ClientMgr::Add_Eng_RoundRobin( __in const char *_pszServerIP, __in cons
 		m_pSendSession = new Session_RoundRobin( m_pPolicy, &m_io_service );
 
 	TCP_Client *pClient = new TCP_Client(10240);
-	pClient->Add_EventHandler_Close( std::bind(&TCP_ClientMgr::OnEvent_Close, this, pClient) );
+	pClient->Add_Event_Handler_Close( std::bind(&TCP_ClientMgr::OnEvent_Close, this, pClient) );
 
 	std::cout << "[Add_Eng_RoundRobin] IP = " << _pszServerIP << " | Port = " << _pszPort << std::endl;
 
@@ -237,7 +237,7 @@ bool TCP_ClientMgr::Add_Eng_FailOver_Active( __in const char *_pszServerIP, __in
 		m_pSendSession = new Session_FailOver( m_pPolicy, &m_io_service );
 
 	TCP_Client *pClient = new TCP_Client(10240);
-	pClient->Add_EventHandler_Close( std::bind(&TCP_ClientMgr::OnEvent_Close, this, pClient) );
+	pClient->Add_Event_Handler_Close( std::bind(&TCP_ClientMgr::OnEvent_Close, this, pClient) );
 	pClient->Set_Session_Type(true);
 
 	std::cout << "[Add_Eng_FailOver_Active] IP = " << _pszServerIP << " | Port = " << _pszPort << std::endl;
@@ -263,7 +263,7 @@ bool TCP_ClientMgr::Add_Eng_FailOver_Standby( __in const char *_pszServerIP, __i
 		m_pSendSession = new Session_FailOver( m_pPolicy, &m_io_service );
 
 	TCP_Client *pClient = new TCP_Client(10240);
-	pClient->Add_EventHandler_Close( std::bind(&TCP_ClientMgr::OnEvent_Close, this, pClient) );
+	pClient->Add_Event_Handler_Close( std::bind(&TCP_ClientMgr::OnEvent_Close, this, pClient) );
 	pClient->Set_Session_Type(false);
 
 	std::cout << "[Add_Eng_FailOver_Standby] IP = " << _pszServerIP << " | Port = " << _pszPort << std::endl;
@@ -289,7 +289,7 @@ bool TCP_ClientMgr::Add_Eng_FailBack_Active( __in const char *_pszServerIP, __in
 		m_pSendSession = new Session_FailBack( m_pPolicy, &m_io_service );
 
 	TCP_Client *pClient = new TCP_Client(10240);
-	pClient->Add_EventHandler_Close( std::bind(&TCP_ClientMgr::OnEvent_Close, this, pClient) );
+	pClient->Add_Event_Handler_Close( std::bind(&TCP_ClientMgr::OnEvent_Close, this, pClient) );
 	pClient->Set_Session_Type(true);
 
 	std::cout << "[Add_Eng_FailBack_Active] IP = " << _pszServerIP << " | Port = " << _pszPort << std::endl;
@@ -315,7 +315,7 @@ bool TCP_ClientMgr::Add_Eng_FailBack_Standby( __in const char *_pszServerIP, __i
 		m_pSendSession = new Session_FailBack( m_pPolicy, &m_io_service );
 
 	TCP_Client *pClient = new TCP_Client(10240);
-	pClient->Add_EventHandler_Close( std::bind(&TCP_ClientMgr::OnEvent_Close, this, pClient) );
+	pClient->Add_Event_Handler_Close( std::bind(&TCP_ClientMgr::OnEvent_Close, this, pClient) );
 	pClient->Set_Session_Type(false);
 
 	std::cout << "[Add_Eng_FailBack_Standby] IP = " << _pszServerIP << " | Port = " << _pszPort << std::endl;

@@ -4,6 +4,7 @@
 #include "loan.pb.h"
 #include "Rigi_Server.hpp"
 #include "MsgLog_Q.hpp"
+#include "Data_Policy.hpp"
 
 enum class MsgLog_Type : int
 {
@@ -30,7 +31,8 @@ public:
 private:
 	std::string m_strIP_Port;
 
-	MsgLog_Q *m_pLogQ;
+	MsgLog_Q 	*m_pLogQ;
+	DATA_POLICY *m_pPolicy;
 public:
 	// ---------------------------------------------------------------
 	// 이벤트 함수

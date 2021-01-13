@@ -40,18 +40,13 @@ void TCP_Session::OnEvent_Receive(	__in char *_pData,
 		std::string *pstrSendData = new std::string();
 		msgLog.SerializeToString(&(*pstrSendData));
 		m_pLogQ->Push_back( "172.17.0.2:4444", pstrSendData );
-	}
-	else
-	{
-		// 이외는 잘못된 데이터 
-		//std::cout << "[RECV] << Not support msg_type = " << msgLog.msg_type() << std::endl;
-		//assert(0 && "[RECV] not support msg_type");
+
+		//Task_Filter( msgLog );
 	}
 }
 
 void TCP_Session::OnEvent_Close()
 {
-	//std::cout << "[TCP_Session::OnClose] >> " << Get_SessionIP() << std::endl;
 	std::cout << "[TCP_Session::OnClose] >> " << std::endl;
 }
 
@@ -72,16 +67,11 @@ bool TCP_Session::Task_Filter( 	__in loan::MsgLog &_Packet )
 
 bool TCP_Session::Input_Filter( __in loan::MsgLog &_Packet )
 {
-	if(nullptr == m_pLogQ)
+	if(nullptr == m_pLogQ || nullptr == m_pPolicy)
 	{
 		//ASSERT(0 && "[TCP_Session::Input_Filter] m_pLogQ is nullptr");
 		return false;
 	}
-
-	TCP_Mgr<TCP_Session> *pMgr = (TCP_Mgr<TCP_Session> *)Get_TCPMgr();
-	const std::map<std::string, DATA_POLICY> *pPolicy = pMgr->GetPolicy();
-	if(true == pPolicy->empty())
-		return false;
 
 	// 큐에 설정 리미트에 도달하면 중지 명령을 보내자 
 	if(m_pLogQ->GetQ_LimitSize() == m_pLogQ->GetQ_Size())
@@ -102,9 +92,9 @@ bool TCP_Session::Input_Filter( __in loan::MsgLog &_Packet )
 	bool bIsPushQ = false;
 	bool bPass = false;
 	std::string strIP_Port;
-	for(auto &policy : *pPolicy)
+	/*
+	for(auto &policy : *m_pPolicy)
 	{
-		/*
 		// ip port 검색
 		// 아무것도 없으면 무조건 다 받는다
 		if( true == policy.second.vec_ip_port.empty())
@@ -172,9 +162,8 @@ bool TCP_Session::Input_Filter( __in loan::MsgLog &_Packet )
 
 			bIsPushQ = true;
 		}
-		//*/
 	}
-
+//*/
 	return bIsPushQ;
 }
 
@@ -183,10 +172,13 @@ bool TCP_Session::OnEvent_Init()
 	TCP_Mgr<TCP_Session> *pMgr = (TCP_Mgr<TCP_Session> *)Get_TCPMgr();
 
 	m_pLogQ = pMgr->Get_LogQ();
+	m_pPolicy = pMgr->Get_Policy();
 
-	//m_strIP_Port = Get_SessionIP();
+	m_strIP_Port = Get_SessionIP();
 	m_strIP_Port += ":";
 	m_strIP_Port += std::to_string( pMgr->Get_Port() );
+
+	std::cout << "[TCP_Session::OnEvent_Init] IP_PORT = " << m_strIP_Port << std::endl;
 
 	return true;
 }

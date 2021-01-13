@@ -21,6 +21,11 @@ Rigi_TCPSession::Rigi_TCPSession()
 	m_pSessionPool = nullptr;
 	m_pReceive_Packet_Buffer = nullptr;
 	m_nReceive_Packet_Size = 0;
+
+	m_Func_Event_Close = nullptr;
+	m_Func_Event_Init = nullptr;
+	m_Func_Event_Receive = nullptr;
+	m_Func_Event_Send = nullptr;
 }
 
 Rigi_TCPSession::~Rigi_TCPSession()
@@ -38,6 +43,8 @@ void Rigi_TCPSession::OnEvent_Receive(	__in char *_pData,
 										__in size_t _nData_len )
 {
 	// 재정의하여 데이터 처리 부분을 추가한다.
+	if( nullptr != m_Func_Event_Receive )
+		m_Func_Event_Receive( _pData, _nData_len );
 }
 
 void Rigi_TCPSession::Handler_Receive( 	__in const boost::system::error_code& _error, 
@@ -68,6 +75,8 @@ void Rigi_TCPSession::Handler_Receive( 	__in const boost::system::error_code& _e
 void Rigi_TCPSession::OnEvent_Sended (__in size_t _bytes_transferre )
 {
 	// 재정의하여 데이터 처리 부분을 추가한다.
+	if( nullptr != m_Func_Event_Send)
+		m_Func_Event_Send( _bytes_transferre );
 }
 
 void Rigi_TCPSession::Handler_Send( __in const boost::system::error_code& _error, 
@@ -246,4 +255,24 @@ bool Rigi_TCPSession::SetTimeOut_Sync_Send( __in int _nMilieSecond )
 	m_pSocket->set_option(option);
 
 	return true;
+}
+
+void Rigi_TCPSession::Add_Event_Handler_Close( __in Event_Handler_Close &&_Event )
+{
+	m_Func_Event_Close = std::move(_Event);
+}
+
+void Rigi_TCPSession::Add_Event_Handler_Init( __in Event_Handler_Init &&_Event )
+{
+	m_Func_Event_Init = std::move(_Event);
+}
+
+void Rigi_TCPSession::Add_Event_Handler_Receive( __in Event_Handler_Receive &&_Event )
+{
+	m_Func_Event_Receive = std::move(_Event);
+}
+
+void Rigi_TCPSession::Add_Event_Handler_Send( __in Event_Handler_Send &&_Event )
+{
+	m_Func_Event_Send = std::move(_Event);
 }

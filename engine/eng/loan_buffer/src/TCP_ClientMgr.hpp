@@ -58,6 +58,8 @@ public:
 	bool Add_Eng_FailBack_Active( __in const char *_pszServerIP, __in const char *_pszPort );
 	bool Add_Eng_FailBack_Standby( __in const char *_pszServerIP, __in const char *_pszPort );
 	bool SendPacket_FailBack( __in std::string *_pLog );
+
+	DATA_POLICY * Get_Policy()	{	return m_pPolicy;	};
 };
 
 #endif
