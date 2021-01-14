@@ -1,10 +1,15 @@
-#include "Def.hpp"
+#include "../Def.hpp"
 #include "Session_FailBack.hpp"
 
-Session_FailBack::Session_FailBack(  __in DATA_POLICY *_pPolicy, __in boost::asio::io_service *_pio_service ) : m_pio_service(_pio_service), Session_Pool(_pPolicy)
+Session_FailBack::Session_FailBack(  __in DATA_POLICY *_pPolicy, __in boost::asio::io_service *_pio_service ) : Session_Pool(_pPolicy)
 {
-	m_pSession_Active = new Session_RoundRobin( _pPolicy, _pio_service );
-	m_pSession_Standby = new Session_RoundRobin( _pPolicy, _pio_service );
+	m_pio_service = _pio_service;
+
+	if(nullptr != m_pio_service)
+	{
+		m_pSession_Active = new Session_RoundRobin( _pPolicy, _pio_service );
+		m_pSession_Standby = new Session_RoundRobin( _pPolicy, _pio_service );
+	}
 }
 
 Session_FailBack::~Session_FailBack()
@@ -21,6 +26,8 @@ Session_FailBack::~Session_FailBack()
 		delete m_pSession_Standby;
 		m_pSession_Standby = nullptr;
 	}
+
+	m_pio_service = nullptr;
 }
 
 bool Session_FailBack::Add_SessionPool_Connected( __in TCP_Client *_pSession, __in int _nOption )
@@ -170,19 +177,19 @@ TCP_Client * Session_FailBack::Get_Send_Session()
 	TCP_Client * pSession = nullptr;
 
 	// active 쪽 설정 세션 수 확인
-	if( Get_Policy()->m_vecFailOver_Change_Limit[SESSION_ACTIVE] <= m_pSession_Active->GetSize_Connected() )
+	if( Get_Policy()->m_vecFailOver_Change_Limit[SESSION_ACTIVE] <= (int)m_pSession_Active->GetSize_Connected() )
 	{
 		pSession = m_pSession_Active->Get_Send_Session();
 		// active가 null 이면 stand-by 쪽 설정 세션 수 확인
 		if(nullptr == pSession)
 		{
-			if( Get_Policy()->m_vecFailOver_Change_Limit[SESSION_STANDBY] <= m_pSession_Standby->GetSize_Connected() )
+			if( Get_Policy()->m_vecFailOver_Change_Limit[SESSION_STANDBY] <= (int)m_pSession_Standby->GetSize_Connected() )
 				pSession = m_pSession_Standby->Get_Send_Session();
 		}
 	}
 	else
 	{
-		if( Get_Policy()->m_vecFailOver_Change_Limit[SESSION_STANDBY] <= m_pSession_Standby->GetSize_Connected() )
+		if( Get_Policy()->m_vecFailOver_Change_Limit[SESSION_STANDBY] <= (int)m_pSession_Standby->GetSize_Connected() )
 			pSession = m_pSession_Standby->Get_Send_Session();
 	}
 

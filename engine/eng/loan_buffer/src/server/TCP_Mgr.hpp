@@ -3,10 +3,10 @@
 
 #include <fstream>
 #include <mutex>
-#include "Data_Policy.hpp"
+#include "../data/Data_Policy.hpp"
 #include "Rigi_TCPServerMgr.hpp"
-#include "Data_Policy.hpp"
-#include "MsgLog_Q.hpp"
+#include "../data/Data_Policy.hpp"
+#include "../data/MsgLog_Q.hpp"
 
 template <typename T>
 class TCP_Mgr : public Rigitaeda::Rigi_TCPServerMgr<T>

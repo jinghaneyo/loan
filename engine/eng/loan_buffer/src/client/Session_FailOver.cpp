@@ -1,12 +1,17 @@
-#include "Def.hpp"
+#include "../Def.hpp"
 #include "Session_FailOver.hpp"
 
-Session_FailOver::Session_FailOver(  __in DATA_POLICY *_pPolicy, __in boost::asio::io_service *_pio_service ) : m_pio_service(_pio_service), Session_Pool(_pPolicy)
+Session_FailOver::Session_FailOver(  __in DATA_POLICY *_pPolicy, __in boost::asio::io_service *_pio_service ) : Session_Pool(_pPolicy)
 {
 	m_bActive = true;
 
-	m_pSession_Active = new Session_RoundRobin( _pPolicy, _pio_service );
-	m_pSession_Standby = new Session_RoundRobin( _pPolicy, _pio_service );
+	m_pio_service = _pio_service;
+
+	if(nullptr != m_pio_service)
+	{
+		m_pSession_Active = new Session_RoundRobin( _pPolicy, _pio_service );
+		m_pSession_Standby = new Session_RoundRobin( _pPolicy, _pio_service );
+	}
 }
 
 Session_FailOver::~Session_FailOver()
@@ -23,6 +28,8 @@ Session_FailOver::~Session_FailOver()
 		delete m_pSession_Standby;
 		m_pSession_Standby = nullptr;
 	}
+
+	m_pio_service = nullptr;
 }
 
 bool Session_FailOver::Add_SessionPool_Connected( __in TCP_Client *_pSession, __in int _nOption )
@@ -174,13 +181,13 @@ TCP_Client * Session_FailOver::Get_Send_Session()
 	if(true == m_bActive)
 	{
 		// active 쪽 설정 세션 수 확인
-		if( Get_Policy()->m_vecFailOver_Change_Limit[SESSION_ACTIVE] <= m_pSession_Active->GetSize_Connected() )
+		if( Get_Policy()->m_vecFailOver_Change_Limit[SESSION_ACTIVE] <= (int)m_pSession_Active->GetSize_Connected() )
 		{
 			pSession = m_pSession_Active->Get_Send_Session();
 			// active가 null 이면 stand-by 쪽 설정 세션 수 확인
 			if(nullptr == pSession)
 			{
-				if( Get_Policy()->m_vecFailOver_Change_Limit[SESSION_STANDBY] <= m_pSession_Standby->GetSize_Connected() )
+				if( Get_Policy()->m_vecFailOver_Change_Limit[SESSION_STANDBY] <= (int)m_pSession_Standby->GetSize_Connected() )
 					pSession = m_pSession_Standby->Get_Send_Session();
 
 				if(nullptr != pSession)
@@ -189,7 +196,7 @@ TCP_Client * Session_FailOver::Get_Send_Session()
 		}
 		else
 		{
-			if( Get_Policy()->m_vecFailOver_Change_Limit[SESSION_STANDBY] <= m_pSession_Standby->GetSize_Connected() )
+			if( Get_Policy()->m_vecFailOver_Change_Limit[SESSION_STANDBY] <= (int)m_pSession_Standby->GetSize_Connected() )
 				pSession = m_pSession_Standby->Get_Send_Session();
 
 			if(nullptr != pSession)
@@ -199,13 +206,13 @@ TCP_Client * Session_FailOver::Get_Send_Session()
 	else
 	{
 		// stand-by 쪽 설정 세션 수 확인
-		if( Get_Policy()->m_vecFailOver_Change_Limit[SESSION_STANDBY] <= m_pSession_Standby->GetSize_Connected() )
+		if( Get_Policy()->m_vecFailOver_Change_Limit[SESSION_STANDBY] <= (int)m_pSession_Standby->GetSize_Connected() )
 		{
 			pSession = m_pSession_Standby->Get_Send_Session();
 			// stand-by가 null 이면 active 쪽 설정 세션 수 확인
 			if(nullptr == pSession)
 			{
-				if( Get_Policy()->m_vecFailOver_Change_Limit[SESSION_ACTIVE] <= m_pSession_Active->GetSize_Connected() )
+				if( Get_Policy()->m_vecFailOver_Change_Limit[SESSION_ACTIVE] <= (int)m_pSession_Active->GetSize_Connected() )
 					pSession = m_pSession_Active->Get_Send_Session();
 
 				if(nullptr != pSession)
@@ -215,7 +222,7 @@ TCP_Client * Session_FailOver::Get_Send_Session()
 		else
 		{
 			// active 쪽 설정 세션 수 확인
-			if( Get_Policy()->m_vecFailOver_Change_Limit[SESSION_ACTIVE] <= m_pSession_Active->GetSize_Connected() )
+			if( Get_Policy()->m_vecFailOver_Change_Limit[SESSION_ACTIVE] <= (int)m_pSession_Active->GetSize_Connected() )
 				pSession = m_pSession_Active->Get_Send_Session();
 
 			if(nullptr != pSession)

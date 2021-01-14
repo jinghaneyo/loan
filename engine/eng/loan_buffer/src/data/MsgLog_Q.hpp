@@ -3,7 +3,7 @@
 
 #include <mutex>
 #include <deque>
-#include "loan.pb.h"
+#include "../protobuf/loan.pb.h"
 
 typedef std::deque<std::string *>	DEQUE_MSG_LOG_PTR;
 

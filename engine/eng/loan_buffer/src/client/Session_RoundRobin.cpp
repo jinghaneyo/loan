@@ -1,11 +1,13 @@
 #include "Session_RoundRobin.hpp"
 
-Session_RoundRobin::Session_RoundRobin( __in DATA_POLICY *_pPolicy, __in boost::asio::io_service *_pio_service ) : m_pio_service(_pio_service), Session_Pool(_pPolicy)
+Session_RoundRobin::Session_RoundRobin( __in DATA_POLICY *_pPolicy, __in boost::asio::io_service *_pio_service ) : Session_Pool(_pPolicy)
 {
+	m_pio_service = _pio_service;
 }
 
 Session_RoundRobin::~Session_RoundRobin()
 {
+	m_pio_service = nullptr;
 }
 
 bool Session_RoundRobin::Add_SessionPool_Connected( __in TCP_Client *_pSession, __in int _nOption  )

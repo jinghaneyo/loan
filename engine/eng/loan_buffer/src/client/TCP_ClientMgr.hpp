@@ -4,10 +4,10 @@
 #include <mutex>
 #include <deque>
 #include <thread>
-#include "Def.hpp"
-#include "Data_Policy.hpp"
+#include "../Def.hpp"
+#include "../data/Data_Policy.hpp"
 #include "Rigi_ClientTCP.hpp"
-#include "MsgLog_Q.hpp"
+#include "../data/MsgLog_Q.hpp"
 #include "Session_RoundRobin.hpp"
 #include "Session_FailOver.hpp"
 #include "Session_FailBack.hpp"

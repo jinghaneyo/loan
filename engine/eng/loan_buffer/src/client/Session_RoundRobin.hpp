@@ -17,7 +17,7 @@ private:
 	std::mutex									m_mtxSessionPool_DisConnect;
 	std::deque<TCP_Client *>  					m_DqSessionPool_DisConnect;
 
-	boost::asio::io_service 					*m_pio_service = nullptr;
+	boost::asio::io_service 					*m_pio_service;
 public:
 	virtual bool Add_SessionPool_Connected( __in TCP_Client *_pSession, __in int _nOption = -1 );
 	virtual bool Add_SessionPool_DisConnected( __in TCP_Client *_pSession, __in int _nOption = -1 );

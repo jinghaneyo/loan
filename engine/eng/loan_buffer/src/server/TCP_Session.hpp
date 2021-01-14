@@ -3,8 +3,8 @@
 
 #include "loan.pb.h"
 #include "Rigi_Server.hpp"
-#include "MsgLog_Q.hpp"
-#include "Data_Policy.hpp"
+#include "../data/MsgLog_Q.hpp"
+#include "../data/Data_Policy.hpp"
 
 enum class MsgLog_Type : int
 {
