@@ -1,5 +1,23 @@
 [
-    {"loan_crol": [
+    {"loan_crol-1": [
+        { "server_ip":"172.17.0.6" },
+        { "server_port":"3333" },
+        { "service_name":"loan_crolling" },
+        { "log":"/share/engine/log.txt" },
+        { "file_start":"first"},
+        { "regex_include": [
+            "test",
+            "2"
+        ]},
+        { "regex_exclude": [
+            "test",
+            "2"
+        ]}
+    ]},
+    {"loan_crol-2": [
+        { "server_ip":"172.17.0.6" },
+        { "server_port":"3333" },
+        { "service_name":"loan_crolling" },
         { "log":"/share/engine/log.txt" },
         { "file_start":"first"}
     ]}
