@@ -19,6 +19,7 @@ namespace Rigitaeda
         Rigi_TCPServerMgr() : m_acceptor(m_io_service)
         {
             m_nPort = 3333;
+            m_pParents = nullptr;
         }
 
         virtual ~Rigi_TCPServerMgr()
@@ -36,6 +37,8 @@ namespace Rigitaeda
 
         Rigi_SessionPool                m_SessionPool;
         int                             m_nReceive_Packet_Size;
+
+        Rigi_Server                     *m_pParents;
 
         void AsyncAccept()
         {
@@ -95,7 +98,8 @@ namespace Rigitaeda
         int Get_Port() { return m_nPort; };
 
         bool Run(   __in int _nPort, 
-                    __in int _nMaxClient )
+                    __in int _nMaxClient,
+                    __in Rigi_Server *_pParents )
         {
             if(1 > _nPort)
             {
@@ -107,10 +111,17 @@ namespace Rigitaeda
                 //ASSERT(0 && "[Rigi_TCPServerMgr::Run] _nMaxClient < 0 !!");
                 return false;
             }
+            if( nullptr == _pParents)
+            {
+                //ASSERT(0 && "[Rigi_TCPServerMgr::Run] _nMaxClient < 0 !!");
+                return false;
+            }
 
             m_nPort = _nPort;
+            m_pParents = _pParents;
 
             m_SessionPool.Set_MaxClient(_nMaxClient);
+            m_SessionPool.Set_Rigi_Server( m_pParents );
             m_SessionPool.Set_Receive_Packet_Size(m_nReceive_Packet_Size);
 
             m_io_service.reset();

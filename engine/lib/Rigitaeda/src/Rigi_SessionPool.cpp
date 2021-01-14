@@ -1,4 +1,5 @@
 ﻿#include "Rigi_SessionPool.hpp"
+#include "Rigi_Server.hpp"
 
 using namespace Rigitaeda;
 
@@ -43,9 +44,15 @@ bool Rigi_SessionPool::Add_Session( __in Rigi_TCPSession *_pSession,
 		{
 			m_mapTCP.insert( std::make_pair(_pSession, _pSession) );
 
-			//LOG(INFO) << "[ACCEPT] " << strClientIP;
-
 			_pSession->SetSessionPool(this);
+			// _pSession->Add_Event_Handler_Close( m_pRigi_Server->Get_Event_Handler_Close() );
+			// _pSession->Add_Event_Handler_Init( m_pRigi_Server->Get_Event_Handler_Init() );
+			// _pSession->Add_Event_Handler_Receive( m_pRigi_Server->Get_Event_Handler_Receive() );
+			// _pSession->Add_Event_Handler_Send( m_pRigi_Server->Get_Event_Handler_Send() );
+			_pSession->Add_Event_Handler_Close( std::move(m_pRigi_Server->m_Func_Event_Close) );
+			_pSession->Add_Event_Handler_Init( std::move(m_pRigi_Server->m_Func_Event_Init) );
+			_pSession->Add_Event_Handler_Receive( std::move(m_pRigi_Server->m_Func_Event_Receive) );
+			_pSession->Add_Event_Handler_Send( std::move(m_pRigi_Server->m_Func_Event_Send) );
 
 			// Init 이벤트 호출
 			if( false == _pSession->OnEvent_Init() )

@@ -7,6 +7,8 @@
 
 namespace Rigitaeda
 {
+	class Rigi_Server;
+
 	class Rigi_SessionPool 
 	{
 	public:
@@ -18,6 +20,8 @@ namespace Rigitaeda
 
 		std::map<Rigi_TCPSession *, Rigi_TCPSession *>  m_mapTCP;
 		//std::map<Rigi_UDPSession *, Rigi_UDPSession *>  m_mapUDP;
+
+		Rigi_Server 	*m_pRigi_Server;
 	public:
 		void Set_MaxClient( __in int _nMaxClient );
 		void Set_Receive_Packet_Size( __in int _nReceive_Packet_Size );
@@ -29,6 +33,8 @@ namespace Rigitaeda
 		// bool Close_Session( __in Rigi_UDPSession *_pSession );
 
 		void Clear();
+
+		void Set_Rigi_Server( __in Rigi_Server *_pServer )	{	m_pRigi_Server = _pServer;	};
 	};
 };
 
