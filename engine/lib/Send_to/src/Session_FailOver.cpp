@@ -1,7 +1,7 @@
 #include "../Def.hpp"
 #include "Session_FailOver.hpp"
 
-Session_FailOver::Session_FailOver(  __in DATA_POLICY *_pPolicy, __in boost::asio::io_service *_pio_service ) : Session_Pool(_pPolicy)
+Session_FailOver::Session_FailOver(  __in POLICY *_pPolicy, __in boost::asio::io_service *_pio_service ) : Session_Pool(_pPolicy)
 {
 	m_bActive = true;
 
@@ -32,151 +32,103 @@ Session_FailOver::~Session_FailOver()
 	m_pio_service = nullptr;
 }
 
-bool Session_FailOver::Add_SessionPool_Connected( __in TCP_Client *_pSession, __in int _nOption )
+bool Session_FailOver::Add_SessionPool_Connected( __in Rigitaeda::Rigi_ClientTCP *_pSession, __in bool _bActive )
 {
-	switch(_nOption)
-	{
-		case SESSION_ACTIVE:
-			return m_pSession_Active->Add_SessionPool_Connected( _pSession );
-		case SESSION_STANDBY:
-			return m_pSession_Standby->Add_SessionPool_Connected( _pSession );
-		default:
-		{
-			if(true == _pSession->Get_Session_Type())
-				return m_pSession_Active->Add_SessionPool_Connected( _pSession );
-			else
-				return m_pSession_Standby->Add_SessionPool_Connected( _pSession );
-		}
-	}
-
-	return false;
+	if(true == _bActive)
+		return m_pSession_Active->Add_SessionPool_Connected( _pSession );
+	else
+		return m_pSession_Standby->Add_SessionPool_Connected( _pSession );
 }
 
-bool Session_FailOver::Add_SessionPool_Connected_Active( __in TCP_Client *_pSession )
+bool Session_FailOver::Add_SessionPool_Connected_Active( __in Rigitaeda::Rigi_ClientTCP *_pSession )
 {
 	return m_pSession_Active->Add_SessionPool_Connected( _pSession );
 }
 
-bool Session_FailOver::Add_SessionPool_Connected_Standby( __in TCP_Client *_pSession )
+bool Session_FailOver::Add_SessionPool_Connected_Standby( __in Rigitaeda::Rigi_ClientTCP *_pSession )
 {
 	return m_pSession_Standby->Add_SessionPool_Connected( _pSession );
 }
 
-bool Session_FailOver::Add_SessionPool_DisConnected( __in TCP_Client *_pSession, __in int _nOption )
+bool Session_FailOver::Add_SessionPool_DisConnected( __in Rigitaeda::Rigi_ClientTCP *_pSession, __in bool _bActive )
 {
-	switch(_nOption)
-	{
-		case SESSION_ACTIVE:
-			return m_pSession_Active->Add_SessionPool_DisConnected( _pSession );
-		case SESSION_STANDBY:
-			return m_pSession_Standby->Add_SessionPool_DisConnected( _pSession );
-		default:
-		{
-			if(true == _pSession->Get_Session_Type())
-				return m_pSession_Active->Add_SessionPool_DisConnected( _pSession );
-			else
-				return m_pSession_Standby->Add_SessionPool_DisConnected( _pSession );
-		}
-	}
-
-	return false;
+	if(true == _bActive)
+		return m_pSession_Active->Add_SessionPool_DisConnected( _pSession );
+	else
+		return m_pSession_Standby->Add_SessionPool_DisConnected( _pSession );
 }
 
-bool Session_FailOver::Add_SessionPool_DisConnected_Active( __in TCP_Client *_pSession )
+bool Session_FailOver::Add_SessionPool_DisConnected_Active( __in Rigitaeda::Rigi_ClientTCP *_pSession )
 
 {
 	return m_pSession_Active->Add_SessionPool_DisConnected( _pSession );
 }
 
-bool Session_FailOver::Add_SessionPool_DisConnected_Standby( __in TCP_Client *_pSession )
+bool Session_FailOver::Add_SessionPool_DisConnected_Standby( __in Rigitaeda::Rigi_ClientTCP *_pSession )
 {
 	return m_pSession_Standby->Add_SessionPool_DisConnected( _pSession );
 }
 
-bool Session_FailOver::Del_SessionPool_Connected( __in TCP_Client *_pSession, __in int _nOption )
+bool Session_FailOver::Del_SessionPool_Connected( __in Rigitaeda::Rigi_ClientTCP *_pSession, __in bool _bActive )
 {
-	switch(_nOption)
-	{
-		case SESSION_ACTIVE:
-			return m_pSession_Active->Del_SessionPool_Connected( _pSession );
-		case SESSION_STANDBY:
-			return m_pSession_Standby->Del_SessionPool_Connected( _pSession );
-		default:
-		{
-			if(true == _pSession->Get_Session_Type())
-				return m_pSession_Active->Del_SessionPool_Connected( _pSession );
-			else
-				return m_pSession_Standby->Del_SessionPool_Connected( _pSession );
-		}
-	}
-
-	return false;
+	if (true == _bActive)
+		return m_pSession_Active->Del_SessionPool_Connected( _pSession );
+	else
+		return m_pSession_Standby->Del_SessionPool_Connected( _pSession );
 }
 
-bool Session_FailOver::Del_SessionPool_Connected_Active( __in TCP_Client *_pSession )
+bool Session_FailOver::Del_SessionPool_Connected_Active( __in Rigitaeda::Rigi_ClientTCP *_pSession )
 {
 	return m_pSession_Active->Del_SessionPool_Connected( _pSession );
 }
 
-bool Session_FailOver::Del_SessionPool_Connected_Standby( __in TCP_Client *_pSession )
+bool Session_FailOver::Del_SessionPool_Connected_Standby( __in Rigitaeda::Rigi_ClientTCP *_pSession )
 {
 	return m_pSession_Standby->Del_SessionPool_Connected( _pSession );
 }
 
-bool Session_FailOver::Del_SessionPool_DisConnected( __in TCP_Client *_pSession, __in int _nOption )
+bool Session_FailOver::Del_SessionPool_DisConnected( __in Rigitaeda::Rigi_ClientTCP *_pSession, __in bool _bActive )
 {
-	switch(_nOption)
-	{
-		case SESSION_ACTIVE:
-			return m_pSession_Active->Del_SessionPool_DisConnected( _pSession );
-		case SESSION_STANDBY:
-			return m_pSession_Standby->Del_SessionPool_DisConnected( _pSession );
-		default:
-		{
-			if(true == _pSession->Get_Session_Type())
-				return m_pSession_Active->Del_SessionPool_DisConnected( _pSession );
-			else
-				return m_pSession_Standby->Del_SessionPool_DisConnected( _pSession );
-		}
-	}
-
-	return false;
+	if(true == _bActive)
+		return m_pSession_Active->Del_SessionPool_DisConnected( _pSession );
+	else
+		return m_pSession_Standby->Del_SessionPool_DisConnected( _pSession );
 }
 
-bool Session_FailOver::Del_SessionPool_DisConnected_Active( __in TCP_Client *_pSession )
+bool Session_FailOver::Del_SessionPool_DisConnected_Active( __in Rigitaeda::Rigi_ClientTCP *_pSession )
 {
 	return m_pSession_Active->Del_SessionPool_DisConnected( _pSession );
 }
 
-bool Session_FailOver::Del_SessionPool_DisConnected_Standby( __in TCP_Client *_pSession )
+bool Session_FailOver::Del_SessionPool_DisConnected_Standby( __in Rigitaeda::Rigi_ClientTCP *_pSession )
 {
 	return m_pSession_Standby->Del_SessionPool_DisConnected( _pSession );
 }
 
 // 3번째 인자에 mutex 를 받으므로써 호출하는 곳에서 강제로 mutx gaurd를 호출하도록 한다
-bool Session_FailOver::IsExist_SessionPool_Connected_Active( __in TCP_Client *_pSession )
+bool Session_FailOver::IsExist_SessionPool_Connected_Active( __in Rigitaeda::Rigi_ClientTCP *_pSession )
 {
 	return m_pSession_Active->IsExist_SessionPool_Connected( _pSession );
 }
 
-bool Session_FailOver::IsExist_SessionPool_Connected_Standby( __in TCP_Client *_pSession )
+bool Session_FailOver::IsExist_SessionPool_Connected_Standby( __in Rigitaeda::Rigi_ClientTCP *_pSession )
 {
 	return m_pSession_Standby->IsExist_SessionPool_Connected( _pSession );
 }
 
-bool Session_FailOver::IsExist_SessionPool_DisConnected_Active( __in TCP_Client *_pSession )
+bool Session_FailOver::IsExist_SessionPool_DisConnected_Active( __in Rigitaeda::Rigi_ClientTCP *_pSession )
 {
 	return m_pSession_Active->IsExist_SessionPool_DisConnected( _pSession );
 }
 
-bool Session_FailOver::IsExist_SessionPool_DisConnected_Standby( __in TCP_Client *_pSession )
+bool Session_FailOver::IsExist_SessionPool_DisConnected_Standby( __in Rigitaeda::Rigi_ClientTCP *_pSession )
 {
 	return m_pSession_Standby->IsExist_SessionPool_DisConnected( _pSession );
 }
 
-TCP_Client * Session_FailOver::Get_Send_Session()
+Rigitaeda::Rigi_ClientTCP * Session_FailOver::Get_Send_Session()
 {
-	TCP_Client * pSession = nullptr;
+	Rigitaeda::Rigi_ClientTCP * pSession = nullptr;
 
 	if(true == m_bActive)
 	{

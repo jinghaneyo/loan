@@ -1,6 +1,6 @@
 #include "Session_RoundRobin.hpp"
 
-Session_RoundRobin::Session_RoundRobin( __in DATA_POLICY *_pPolicy, __in boost::asio::io_service *_pio_service ) : Session_Pool(_pPolicy)
+Session_RoundRobin::Session_RoundRobin( __in POLICY *_pPolicy, __in boost::asio::io_service *_pio_service ) : Session_Pool(_pPolicy)
 {
 	m_pio_service = _pio_service;
 }
@@ -10,7 +10,7 @@ Session_RoundRobin::~Session_RoundRobin()
 	m_pio_service = nullptr;
 }
 
-bool Session_RoundRobin::Add_SessionPool_Connected( __in TCP_Client *_pSession, __in int _nOption  )
+bool Session_RoundRobin::Add_SessionPool_Connected( __in Rigitaeda::Rigi_ClientTCP *_pSession, __in bool _bActive )
 {
 	const std::lock_guard<std::mutex> lock(m_mtxSessionPool_Connect);
 
@@ -27,7 +27,7 @@ bool Session_RoundRobin::Add_SessionPool_Connected( __in TCP_Client *_pSession, 
 	return true;
 }
 
-bool Session_RoundRobin::Add_SessionPool_DisConnected( __in TCP_Client *_pSession, __in int _nOption  )
+bool Session_RoundRobin::Add_SessionPool_DisConnected( __in Rigitaeda::Rigi_ClientTCP *_pSession, __in bool _bActive )
 {
 	const std::lock_guard<std::mutex> lock(m_mtxSessionPool_DisConnect);
 
@@ -44,7 +44,7 @@ bool Session_RoundRobin::Add_SessionPool_DisConnected( __in TCP_Client *_pSessio
 	return true;
 }
 
-bool Session_RoundRobin::Del_SessionPool_Connected( __in TCP_Client *_pSession, __in int _nOption  )
+bool Session_RoundRobin::Del_SessionPool_Connected( __in Rigitaeda::Rigi_ClientTCP *_pSession, __in bool _bActive )
 {
 	const char *pszIP = _pSession->Get_ServerIP().c_str();
 	const char *pszPort = _pSession->Get_Port().c_str();
@@ -54,7 +54,7 @@ bool Session_RoundRobin::Del_SessionPool_Connected( __in TCP_Client *_pSession, 
 	auto itr = m_DqSessionPool_Connect.begin();
 	while(itr != m_DqSessionPool_Connect.end())
 	{
-		TCP_Client * pSe = *itr;
+		Rigitaeda::Rigi_ClientTCP * pSe = *itr;
 		if( (pSe->Get_ServerIP() == pszIP) && (pSe->Get_Port() == pszPort) )
 		{
 			itr = m_DqSessionPool_Connect.erase(itr);
@@ -68,7 +68,7 @@ bool Session_RoundRobin::Del_SessionPool_Connected( __in TCP_Client *_pSession, 
 	return false;
 }
 
-bool Session_RoundRobin::Del_SessionPool_DisConnected( __in TCP_Client *_pSession, __in int _nOption  )
+bool Session_RoundRobin::Del_SessionPool_DisConnected( __in Rigitaeda::Rigi_ClientTCP *_pSession, __in bool _bActive )
 {
 	const char *pszIP = _pSession->Get_ServerIP().c_str();
 	const char *pszPort = _pSession->Get_Port().c_str();
@@ -78,7 +78,7 @@ bool Session_RoundRobin::Del_SessionPool_DisConnected( __in TCP_Client *_pSessio
 	auto itr = m_DqSessionPool_DisConnect.begin();
 	while(itr != m_DqSessionPool_DisConnect.end())
 	{
-		TCP_Client * pSe = *itr;
+		Rigitaeda::Rigi_ClientTCP * pSe = *itr;
 		if( (pSe->Get_ServerIP() == pszIP ) && (pSe->Get_Port() == pszPort) )
 		{
 			itr = m_DqSessionPool_DisConnect.erase(itr);
@@ -93,7 +93,7 @@ bool Session_RoundRobin::Del_SessionPool_DisConnected( __in TCP_Client *_pSessio
 }
 
 // 3번째 인자에 mutex 를 받으므로써 호출하는 곳에서 강제로 mutx gaurd를 호출하도록 한다
-bool Session_RoundRobin::IsExist_SessionPool_Connected( __in TCP_Client *_pSession,
+bool Session_RoundRobin::IsExist_SessionPool_Connected( __in Rigitaeda::Rigi_ClientTCP *_pSession,
 														__in const std::lock_guard<std::mutex> *_pGarud )
 {
 	const char *pszIP = _pSession->Get_ServerIP().c_str();
@@ -107,7 +107,7 @@ bool Session_RoundRobin::IsExist_SessionPool_Connected( __in TCP_Client *_pSessi
 		auto itr = m_DqSessionPool_Connect.begin();
 		while(itr != m_DqSessionPool_Connect.end())
 		{
-			TCP_Client *pSession = *itr;
+			Rigitaeda::Rigi_ClientTCP *pSession = *itr;
 				std::cout << "[IsExist_SessionPool_Connected] << IP = " << pSession->Get_ServerIP() << " | Port = " << pSession->Get_Port() << std::endl;
 			if( (pSession->Get_ServerIP() == pszIP) && (pSession->Get_Port() == pszPort) )
 			{
@@ -121,7 +121,7 @@ bool Session_RoundRobin::IsExist_SessionPool_Connected( __in TCP_Client *_pSessi
 		auto itr = m_DqSessionPool_Connect.begin();
 		while(itr != m_DqSessionPool_Connect.end())
 		{
-			TCP_Client *pSession = *itr;
+			Rigitaeda::Rigi_ClientTCP *pSession = *itr;
 				std::cout << "[IsExist_SessionPool_Connected] << IP = " << pSession->Get_ServerIP() << " | Port = " << pSession->Get_Port() << std::endl;
 			if( (pSession->Get_ServerIP() == pszIP) && (pSession->Get_Port() == pszPort) )
 			{
@@ -135,7 +135,7 @@ bool Session_RoundRobin::IsExist_SessionPool_Connected( __in TCP_Client *_pSessi
 }
 
 // 3번째 인자에 mutex 를 받으므로써 호출하는 곳에서 강제로 mutx gaurd를 호출하도록 한다
-bool Session_RoundRobin::IsExist_SessionPool_DisConnected( 	__in TCP_Client *_pSession,
+bool Session_RoundRobin::IsExist_SessionPool_DisConnected( 	__in Rigitaeda::Rigi_ClientTCP *_pSession,
 															__in const std::lock_guard<std::mutex> *_pGarud )
 {
 	const char *pszIP = _pSession->Get_ServerIP().c_str();
@@ -149,7 +149,7 @@ bool Session_RoundRobin::IsExist_SessionPool_DisConnected( 	__in TCP_Client *_pS
 		auto itr = m_DqSessionPool_DisConnect.begin();
 		while(itr != m_DqSessionPool_DisConnect.end())
 		{
-			TCP_Client *pSession = *itr;
+			Rigitaeda::Rigi_ClientTCP *pSession = *itr;
 			if( (pSession->Get_ServerIP() == pszIP) && (pSession->Get_Port() == pszPort) )
 				return true;
 			itr++;
@@ -161,7 +161,7 @@ bool Session_RoundRobin::IsExist_SessionPool_DisConnected( 	__in TCP_Client *_pS
 		auto itr = m_DqSessionPool_DisConnect.begin();
 		while(itr != m_DqSessionPool_DisConnect.end())
 		{
-			TCP_Client *pSession = *itr;
+			Rigitaeda::Rigi_ClientTCP *pSession = *itr;
 			if( (pSession->Get_ServerIP() == pszIP) && (pSession->Get_Port() == pszPort) )
 				return true;
 			itr++;
@@ -171,14 +171,14 @@ bool Session_RoundRobin::IsExist_SessionPool_DisConnected( 	__in TCP_Client *_pS
 	return false;
 }
 
-TCP_Client * Session_RoundRobin::Get_Send_Session()
+Rigitaeda::Rigi_ClientTCP * Session_RoundRobin::Get_Send_Session()
 {
 	const std::lock_guard<std::mutex> lock1(m_mtxSessionPool_Connect);
 	if( true == m_DqSessionPool_Connect.empty())
 		return nullptr;
 
 	auto itr = m_DqSessionPool_Connect.begin();
-	TCP_Client * pSession = *itr;
+	Rigitaeda::Rigi_ClientTCP * pSession = *itr;
 
 	// 1개만 남을땐 굳이 돌릴 필요 없다
 	if( 1 == (int)m_DqSessionPool_Connect.size())
@@ -202,7 +202,7 @@ void Session_RoundRobin::Clear()
 	auto itr = m_DqSessionPool_Connect.begin();
 	while(itr != m_DqSessionPool_Connect.end())
 	{
-		TCP_Client * pSession = *itr;
+		Rigitaeda::Rigi_ClientTCP * pSession = *itr;
 		delete pSession;
 		itr++;
 	}
@@ -211,7 +211,7 @@ void Session_RoundRobin::Clear()
 	itr = m_DqSessionPool_DisConnect.begin();
 	while(itr != m_DqSessionPool_DisConnect.end())
 	{
-		TCP_Client * pSession = *itr;
+		Rigitaeda::Rigi_ClientTCP * pSession = *itr;
 		delete pSession;
 		itr++;
 	}
@@ -222,12 +222,12 @@ bool Session_RoundRobin::Reconnect_DisConnect_Pool()
 {
 	const std::lock_guard<std::mutex> lock(m_mtxSessionPool_DisConnect);
 
-	std::vector< std::deque<TCP_Client *>::iterator > vecDel;
+	std::vector< std::deque<Rigitaeda::Rigi_ClientTCP *>::iterator > vecDel;
 
 	auto itr = m_DqSessionPool_DisConnect.begin();
 	while(itr != m_DqSessionPool_DisConnect.end())
 	{
-		TCP_Client * pSession = *itr;
+		Rigitaeda::Rigi_ClientTCP * pSession = *itr;
 		if(false == pSession->IsConnected() )
 		{
 			std::cout << "[Reconnect] << IP = " << pSession->Get_SessionIP() << " | Port = " << pSession->Get_Port() << std::endl;
