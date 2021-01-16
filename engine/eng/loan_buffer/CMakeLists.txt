@@ -13,15 +13,16 @@ add_definitions("-Wall -std=c++11")
 
 set(RIGITAEDA_INCLUDE ../../lib/Rigitaeda/include)
 set(RIGITAEDA_SRC ../../lib/Rigitaeda/src)
+set(SENDTO_INCLUDE ../../lib/Send_to/include)
+set(SENDTO_SRC ../../lib/Send_to/src)
 
 INCLUDE_DIRECTORIES(/usr/include/boost/include)
 LINK_DIRECTORIES(/usr/include/boost/lib)
-INCLUDE_DIRECTORIES(/usr/include/glog/include)
-LINK_DIRECTORIES(/usr/include/glog/lib)
 INCLUDE_DIRECTORIES(/usr/include/gflags)
 LINK_DIRECTORIES(/usr/lib64/)
 INCLUDE_DIRECTORIES(/usr/local/include)
 LINK_DIRECTORIES(/usr/local/lib64)
+#INCLUDE_DIRECTORIES(/usr/local/include/glog)
 
 INCLUDE_DIRECTORIES(src)
 INCLUDE_DIRECTORIES(${RIGITAEDA_INCLUDE})
@@ -30,6 +31,7 @@ INCLUDE_DIRECTORIES(src/client)
 INCLUDE_DIRECTORIES(src/data)
 INCLUDE_DIRECTORIES(src/protobuf)
 INCLUDE_DIRECTORIES(src/server)
+INCLUDE_DIRECTORIES(${SENDTO_INCLUDE})
 
 ADD_EXECUTABLE(${APP_NAME}
 	src/main.cpp
@@ -37,10 +39,6 @@ ADD_EXECUTABLE(${APP_NAME}
 	src/Conf_Yaml.cpp
 	src/data/MsgLog_Q.hpp
 	src/client/TCP_Client.hpp
-	src/client/Session_Pool.hpp
-	src/client/Session_RoundRobin.cpp
-	src/client/Session_FailOver.cpp
-	src/client/Session_FailBack.cpp
 	src/client/TCP_ClientMgr.cpp
 	src/data/Data_Policy.hpp
 	src/server/TCP_Mgr.hpp
@@ -51,6 +49,10 @@ ADD_EXECUTABLE(${APP_NAME}
 	${RIGITAEDA_SRC}/Rigi_SessionPool.cpp
 	${RIGITAEDA_SRC}/Rigi_TCPSession.cpp
 	${RIGITAEDA_INCLUDE}/Rigi_TCPServerMgr.hpp
+	${SENDTO_INCLUDE}/Session_Pool.hpp
+	${SENDTO_SRC}/Session_RoundRobin.cpp
+	${SENDTO_SRC}/Session_FailOver.cpp
+	${SENDTO_SRC}/Session_FailBack.cpp
 	)
 
 TARGET_LINK_LIBRARIES( ${APP_NAME} gflags boost_system pthread boost_system protobuf glog yaml-cpp)

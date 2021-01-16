@@ -53,11 +53,9 @@ public:
 	// 전달할 분석 엔진 추가
 	bool Add_Eng_FailOver_Active( __in const char *_pszServerIP, __in const char *_pszPort );
 	bool Add_Eng_FailOver_Standby( __in const char *_pszServerIP, __in const char *_pszPort );
-	bool SendPacket_FailOver( __in std::string *_pLog );
 
 	bool Add_Eng_FailBack_Active( __in const char *_pszServerIP, __in const char *_pszPort );
 	bool Add_Eng_FailBack_Standby( __in const char *_pszServerIP, __in const char *_pszPort );
-	bool SendPacket_FailBack( __in std::string *_pLog );
 
 	DATA_POLICY * Get_Policy()	{	return m_pPolicy;	};
 };

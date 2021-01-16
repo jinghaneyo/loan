@@ -9,19 +9,19 @@ Conf_Yaml::~Conf_Yaml()
 {
 }
 
-void Conf_Yaml::Parse_Server( __in const YAML::Node &_node, __out DATA_POLICY &_Policy )
+void Conf_Yaml::Parse_Server( __in const YAML::Node &_node, __out DATA_POLICY *_pPolicy )
 {
 	for( auto itr : _node )
 	{
 		if ( "protocol" == itr.first.as<std::string>() )
 		{
-			_Policy.m_ServerInfo.strProtocol = itr.second.as<std::string>();
-			std::cout << _Policy.m_ServerInfo.strProtocol << std::endl;
+			_pPolicy->m_ServerInfo.strProtocol = itr.second.as<std::string>();
+			std::cout << _pPolicy->m_ServerInfo.strProtocol << std::endl;
 		}
 		else if ( "port" == itr.first.as<std::string>() )
 		{
-			_Policy.m_ServerInfo.strPort = itr.second.as<std::string>();
-			std::cout << _Policy.m_ServerInfo.strPort << std::endl;
+			_pPolicy->m_ServerInfo.strPort = itr.second.as<std::string>();
+			std::cout << _pPolicy->m_ServerInfo.strPort << std::endl;
 		}
 	}
 }
@@ -43,14 +43,14 @@ void Conf_Yaml::Parse_Group( __in const YAML::Node &_node, __out std::map<std::s
 	}
 }
 
-void Conf_Yaml::Parse_SendRule( 	__in const YAML::Node &_node, __out DATA_POLICY &_Policy )
+void Conf_Yaml::Parse_SendRule( 	__in const YAML::Node &_node, __out DATA_POLICY *_pPolicy )
 {
 	for( auto &itr : _node )
 	{
 		if ( "round-robin" == itr.first.as<std::string>() )
 		{
 			for( auto &data : itr.second )
-				_Policy.m_vecRoudRobin.emplace_back( data.as<std::string>() );
+				_pPolicy->m_vecRoudRobin.emplace_back( data.as<std::string>() );
 		}
 		else if ( "fail-over" == itr.first.as<std::string>() )
 		{
@@ -61,21 +61,21 @@ void Conf_Yaml::Parse_SendRule( 	__in const YAML::Node &_node, __out DATA_POLICY
 					for( auto &chg : data.second )
 					{
 						if( "active" == chg.first.as<std::string>() )
-							_Policy.m_vecFailOver_Change_Limit[INDEX_ACTIVE] = chg.second.as<int>();
+							_pPolicy->m_vecFailOver_Change_Limit[INDEX_ACTIVE] = chg.second.as<int>();
 						else if( "stand-by" == chg.first.as<std::string>() )
-							_Policy.m_vecFailOver_Change_Limit[INDEX_STANDBY] = chg.second.as<int>();
+							_pPolicy->m_vecFailOver_Change_Limit[INDEX_STANDBY] = chg.second.as<int>();
 					}
 				}
 				else if( "active" == data.first.as<std::string>() || "stand-by" == data.first.as<std::string>() )
 				{
 					for( auto &ip : data.second )
 					{
-						auto find = _Policy.m_mapFailOver_IP_Port.find( data.first.as<std::string>() );
-						if(find == _Policy.m_mapFailOver_IP_Port.end())
+						auto find = _pPolicy->m_mapFailOver_IP_Port.find( data.first.as<std::string>() );
+						if(find == _pPolicy->m_mapFailOver_IP_Port.end())
 						{
 							std::vector<std::string> vecIP;
 							vecIP.emplace_back( ip.as<std::string>() );
-							_Policy.m_mapFailOver_IP_Port.insert( std::make_pair(data.first.as<std::string>(), vecIP) );
+							_pPolicy->m_mapFailOver_IP_Port.insert( std::make_pair(data.first.as<std::string>(), vecIP) );
 						}
 						else
 							find->second.emplace_back( ip.as<std::string>() );
@@ -92,21 +92,21 @@ void Conf_Yaml::Parse_SendRule( 	__in const YAML::Node &_node, __out DATA_POLICY
 					for( auto &chg : data.second )
 					{
 						if( "active" == chg.first.as<std::string>() )
-							_Policy.m_vecFailBack_Change_Limit[INDEX_ACTIVE] = chg.second.as<int>();
+							_pPolicy->m_vecFailBack_Change_Limit[INDEX_ACTIVE] = chg.second.as<int>();
 						else if( "stand-by" == chg.first.as<std::string>() )
-							_Policy.m_vecFailBack_Change_Limit[INDEX_STANDBY] = chg.second.as<int>();
+							_pPolicy->m_vecFailBack_Change_Limit[INDEX_STANDBY] = chg.second.as<int>();
 					}
 				}
 				else if( "active" == data.first.as<std::string>() || "stand-by" == data.first.as<std::string>() )
 				{
 					for( auto &ip : data.second )
 					{
-						auto find = _Policy.m_mapFailBack_IP_Port.find( data.first.as<std::string>() );
-						if(find == _Policy.m_mapFailBack_IP_Port.end())
+						auto find = _pPolicy->m_mapFailBack_IP_Port.find( data.first.as<std::string>() );
+						if(find == _pPolicy->m_mapFailBack_IP_Port.end())
 						{
 							std::vector<std::string> vecIP;
 							vecIP.emplace_back( ip.as<std::string>() );
-							_Policy.m_mapFailBack_IP_Port.insert( std::make_pair(data.first.as<std::string>(), vecIP) );
+							_pPolicy->m_mapFailBack_IP_Port.insert( std::make_pair(data.first.as<std::string>(), vecIP) );
 						}
 						else
 							find->second.emplace_back( ip.as<std::string>() );
@@ -117,22 +117,22 @@ void Conf_Yaml::Parse_SendRule( 	__in const YAML::Node &_node, __out DATA_POLICY
 	}
 }
 
-void Conf_Yaml::Parse_Destination( __in const YAML::Node &_node, __out DATA_POLICY &_Policy )
+void Conf_Yaml::Parse_Destination( __in const YAML::Node &_node, __out DATA_POLICY *_pPolicy )
 {
 	for( auto &itr : _node )
 	{
 		if ( "period-retry-connect-time" == itr.first.as<std::string>() )
 		{
-			_Policy.m_period_retry_connect_time = itr.second.as<int>();
+			_pPolicy->m_period_retry_connect_time = itr.second.as<int>();
 		}
 		else if ( "send-rule" == itr.first.as<std::string>() )
 		{
-			_Policy.m_SendRule = itr.second.as<std::string>();
+			_pPolicy->m_SendRule = itr.second.as<std::string>();
 		}
 	}
 }
 
-bool Conf_Yaml::Load_yaml( __in const char *_pszPath_Conf, __out DATA_POLICY &_Policy )
+bool Conf_Yaml::Load_yaml( __in const char *_pszPath_Conf, __out DATA_POLICY *_pPolicy )
 {
 	if( 0 != access( _pszPath_Conf, 0 ) )
 		return false;
@@ -147,7 +147,7 @@ bool Conf_Yaml::Load_yaml( __in const char *_pszPath_Conf, __out DATA_POLICY &_P
 	// }
 
 	if ( node["server"] )
-		Parse_Server( node["server"], _Policy );
+		Parse_Server( node["server"], _pPolicy );
 	else
 	{
 		std::cout << "not exist section => server" << std::endl;
@@ -164,7 +164,7 @@ bool Conf_Yaml::Load_yaml( __in const char *_pszPath_Conf, __out DATA_POLICY &_P
 	}
 
 	if ( node["send-rule"] )
-		Parse_SendRule( node["send-rule"], _Policy );
+		Parse_SendRule( node["send-rule"], _pPolicy );
 	else
 	{
 		std::cout << "not exist section => send-rule" << std::endl;
@@ -172,32 +172,32 @@ bool Conf_Yaml::Load_yaml( __in const char *_pszPath_Conf, __out DATA_POLICY &_P
 	}
 
 	if ( node["destination"] )
-		Parse_Destination( node["destination"], _Policy );
+		Parse_Destination( node["destination"], _pPolicy );
 
 /*
-	for(auto &data : _Policy.m_vecRoudRobin)
+	for(auto &data : _pPolicy->m_vecRoudRobin)
 	{
 		std::cout << "[SEND-RULE][ROUND-ROBIN][VALUE = " << data << "]" << std::endl;
 	}
-	for(auto &data : _Policy.m_mapFailOver_IP_Port)
+	for(auto &data : _pPolicy->m_mapFailOver_IP_Port)
 	{
 		for(auto &ip : data.second)
 			std::cout << "[SEND-RULE][FAIL-OVER][KEY = " << data.first <<  "][VALUE = " << ip << "]" << std::endl;
 	}
-	std::cout << "[SEND-RULE][FAIL-OVER][KEY =   active][VALUE = " << _Policy.m_vecFailOver_Change_Limit[INDEX_ACTIVE] << "]" << std::endl;
-	std::cout << "[SEND-RULE][FAIL-OVER][KEY = stand-by][VALUE = " << _Policy.m_vecFailOver_Change_Limit[INDEX_STANDBY] << "]" << std::endl;
+	std::cout << "[SEND-RULE][FAIL-OVER][KEY =   active][VALUE = " << _pPolicy->m_vecFailOver_Change_Limit[INDEX_ACTIVE] << "]" << std::endl;
+	std::cout << "[SEND-RULE][FAIL-OVER][KEY = stand-by][VALUE = " << _pPolicy->m_vecFailOver_Change_Limit[INDEX_STANDBY] << "]" << std::endl;
 
-	for(auto &data : _Policy.m_mapFailBack_IP_Port)
+	for(auto &data : _pPolicy->m_mapFailBack_IP_Port)
 	{
 		for(auto &ip : data.second)
 			std::cout << "[SEND-RULE][FAIL-BACK][KEY = " << data.first <<  "][VALUE = " << ip << "]" << std::endl;
 	}
-	std::cout << "[SEND-RULE][FAIL-BACK][KEY =   active][VALUE = " << _Policy.m_vecFailBack_Change_Limit[INDEX_ACTIVE] << "]" << std::endl;
-	std::cout << "[SEND-RULE][FAIL-BACK][KEY = stand-by][VALUE = " << _Policy.m_vecFailBack_Change_Limit[INDEX_STANDBY] << "]" << std::endl;
+	std::cout << "[SEND-RULE][FAIL-BACK][KEY =   active][VALUE = " << _pPolicy->m_vecFailBack_Change_Limit[INDEX_ACTIVE] << "]" << std::endl;
+	std::cout << "[SEND-RULE][FAIL-BACK][KEY = stand-by][VALUE = " << _pPolicy->m_vecFailBack_Change_Limit[INDEX_STANDBY] << "]" << std::endl;
 
-	std::cout << "[SEND-RULE][DESTINATION][CONNECT TIME = " << _Policy.m_period_retry_connect_time << "]" << std::endl;
+	std::cout << "[SEND-RULE][DESTINATION][CONNECT TIME = " << _pPolicy->m_period_retry_connect_time << "]" << std::endl;
 	//*/
-	std::cout << "[SEND-RULE][DESTINATION][SEND-RULE = " << _Policy.m_SendRule << "]" << std::endl;
+	std::cout << "[SEND-RULE][DESTINATION][SEND-RULE = " << _pPolicy->m_SendRule << "]" << std::endl;
 
 	return true;
 }

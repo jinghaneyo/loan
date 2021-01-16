@@ -55,14 +55,14 @@ void TCP_ClientMgr::Run()
 		while(true == m_bRun_Thread)
 		{
 			bRet_Send = false;
-			std::string *pLog = m_pLogQ->Pop_front( "172.17.0.2:4444" );
+			std::string *pLog = m_pLogQ->Pop_front();
 			if(nullptr != pLog) 
 			{
 				bRet_Send = SendPacket(pLog);
 
 				// 실패인 경우는 모든 세션이 전송 실패인 경우이다. 따라서, 현재 데이터는 다시 전송할 수 있도록 큐의 앞에 넣어 주도록 하자
 				if(false == bRet_Send)
-					m_pLogQ->Push_front("172.17.0.2:4444", pLog);
+					m_pLogQ->Push_front(pLog);
 				else
 					delete pLog;
 			}
@@ -88,7 +88,7 @@ bool TCP_ClientMgr::SendPacket( __in std::string *_pData )
 {
 	while(true)
 	{
-		TCP_Client * pSession = m_pSendSession->Get_Send_Session();
+		TCP_Client * pSession = (TCP_Client *)m_pSendSession->Get_Send_Session();
 		if(nullptr != pSession)
 		{
 			// pSession->ASync_Send( _pData->c_str(), _pData->length() );
@@ -96,16 +96,17 @@ bool TCP_ClientMgr::SendPacket( __in std::string *_pData )
 			int nLength = pSession->Sync_Send( _pData->c_str(), _pData->length() );
 			if(nLength > 0)
 			{
-				std::cout << "Send Packet >> " << *_pData << std::endl;
+				std::cout << "[TCP_ClientMgr::SendPacke][SUCC] >> " << *_pData << std::endl;
 				return true;
 			}
 
-			std::cout << "[FAIL] Send Packet >> " << *_pData << std::endl;
+			std::cout << "[TCP_ClientMgr::SendPacke][FAIL] >> " << *_pData << std::endl;
 
 			// 여기로 왔다는건 전송 실패인 경우
 			// 다음 세션으로 다시 전송 시도한다 
-			m_pSendSession->Del_SessionPool_Connected( pSession );
-			m_pSendSession->Add_SessionPool_DisConnected( pSession );
+			bool bActive = pSession->Get_Session_Type();
+			m_pSendSession->Del_SessionPool_Connected( pSession, bActive );
+			m_pSendSession->Add_SessionPool_DisConnected( pSession, bActive );
 		}
 		else
 			return false;
@@ -118,11 +119,10 @@ void TCP_ClientMgr::OnEvent_Close( __in Rigitaeda::Rigi_ClientTCP *_pSession )
 {
 	std::cout << "[TCP_ClientMgr::OnEvent_Close] <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<< OnClosed !! " << std::endl;
 
-	// fail-over는 호출하면 안된다. 정보를 가지고 있어야 한다
-	//if("fail-over" != m_pPolicy->m_SendRule)
-		m_pSendSession->Del_SessionPool_Connected( (TCP_Client *)_pSession );
-
-	m_pSendSession->Add_SessionPool_DisConnected( (TCP_Client *)_pSession );
+	TCP_Client *pClient = (TCP_Client *)_pSession;
+	bool bActive = pClient->Get_Session_Type();
+	m_pSendSession->Del_SessionPool_Connected( (TCP_Client *)_pSession, bActive );
+	m_pSendSession->Add_SessionPool_DisConnected( (TCP_Client *)_pSession, bActive );
 }
 
 void TCP_ClientMgr::Stop()
@@ -145,67 +145,6 @@ void TCP_ClientMgr::Clear_Eng()
 	}
 }
 
-bool TCP_ClientMgr::SendPacket_FailOver( __in std::string *_pLog )
-{
-	// if("fail-over" == m_pPolicy->m_SendRule)
-	// {
-	// 	Rigitaeda::Rigi_ClientTCP * pSession = m_pSendSession->GetSession_begin();
-
-	// 	while(nullptr != pSession)
-	// 	{
-	// 		//pSession->ASync_Send( _pLog->c_str(), _pLog->length() );
-	// 		int nLength = pSession->Sync_Send( _pLog->c_str(), _pLog->length() );
-	// 		if(nLength > 0)
-	// 		{
-	// 			std::cout << "[%s] Send Packet >> " << *_pLog << std::endl;
-	// 			return true;
-	// 		}
-
-	// 		OnEvent_Close(pSession);
-
-	// 		pSession = GetSession_begin_FailOver();
-	// 	}
-
-	// 	return false;
-	// }
-	// else
-	{
-		// // fail back
-		// // active 가 전송 실패 시 s/b 로 전송했다가 active 가 세션 연결 시 다시 active 로 전송
-		// if( true == m_DqSessionPool_Connect[SESSION_ACTIVE]->IsConnected() )
-		// {
-		// 	//m_DqSessionPool_Connect[SESSION_ACTIVE]->ASync_Send( _pLog->c_str(), _pLog->length() );
-		// 	int nLength = m_DqSessionPool_Connect[SESSION_ACTIVE]->Sync_Send( _pLog->c_str(), _pLog->length() );
-		// 	if(nLength > 0)
-		// 	{
-		// 		std::cout << "[Active] Send Packet >> " << *_pLog << std::endl;
-		// 		return true;
-		// 	}
-
-		// 	OnEvent_Close(m_DqSessionPool_Connect[SESSION_ACTIVE]);
-		// }
-		// else
-		// {
-		// 	if( true == m_DqSessionPool_Connect[SESSION_STANDBY]->IsConnected() )
-		// 	{
-		// 		//m_DqSessionPool_Connect[SESSION_STANDBY]->ASync_Send( _pLog->c_str(), _pLog->length() );
-		// 		int nLength = m_DqSessionPool_Connect[SESSION_STANDBY]->Sync_Send( _pLog->c_str(), _pLog->length() );
-		// 		if(nLength > 0)
-		// 		{
-		// 			std::cout << "[StandBy] Send Packet >> " << *_pLog << std::endl;
-		// 			return true;
-		// 		}
-		// 	}
-
-		// 	OnEvent_Close(m_DqSessionPool_Connect[SESSION_STANDBY]);
-		// }
-	}
-
-	std::cout << "[FAIL] Send Packet >> " << *_pLog << std::endl;
-
-	return false;
-}
-
 bool TCP_ClientMgr::Add_Eng_RoundRobin( __in const char *_pszServerIP, __in const char *_pszPort )
 {
 	if( nullptr == m_pSendSession )
@@ -219,12 +158,12 @@ bool TCP_ClientMgr::Add_Eng_RoundRobin( __in const char *_pszServerIP, __in cons
 	// 일단 세션 풀을 만들기 위해서 연결을 시도하자 
 	if( true == pClient->Connect( _pszServerIP, _pszPort, m_io_service ) )
 	{
-		if(false == m_pSendSession->Add_SessionPool_Connected(pClient))
+		if(false == m_pSendSession->Add_SessionPool_Connected(pClient, true))
 			delete pClient;
 	}
 	else
 	{
-		if(false == m_pSendSession->Add_SessionPool_DisConnected(pClient))
+		if(false == m_pSendSession->Add_SessionPool_DisConnected(pClient, true))
 			delete pClient;
 	}
 
@@ -245,12 +184,12 @@ bool TCP_ClientMgr::Add_Eng_FailOver_Active( __in const char *_pszServerIP, __in
 	// 일단 세션 풀을 만들기 위해서 연결을 시도하자 
 	if( true == pClient->Connect( _pszServerIP, _pszPort, m_io_service ) )
 	{
-		if(false == m_pSendSession->Add_SessionPool_Connected(pClient, SESSION_ACTIVE))
+		if(false == m_pSendSession->Add_SessionPool_Connected(pClient, true))
 			delete pClient;
 	}
 	else
 	{
-		if(false == m_pSendSession->Add_SessionPool_DisConnected(pClient, SESSION_ACTIVE))
+		if(false == m_pSendSession->Add_SessionPool_DisConnected(pClient, true))
 			delete pClient;
 	}
 
@@ -271,12 +210,12 @@ bool TCP_ClientMgr::Add_Eng_FailOver_Standby( __in const char *_pszServerIP, __i
 	// 일단 세션 풀을 만들기 위해서 연결을 시도하자 
 	if( true == pClient->Connect( _pszServerIP, _pszPort, m_io_service ) )
 	{
-		if(false == m_pSendSession->Add_SessionPool_Connected(pClient, SESSION_STANDBY))
+		if(false == m_pSendSession->Add_SessionPool_Connected(pClient, false))
 			delete pClient;
 	}
 	else
 	{
-		if(false == m_pSendSession->Add_SessionPool_DisConnected(pClient, SESSION_STANDBY))
+		if(false == m_pSendSession->Add_SessionPool_DisConnected(pClient, false))
 			delete pClient;
 	}
 
@@ -297,12 +236,12 @@ bool TCP_ClientMgr::Add_Eng_FailBack_Active( __in const char *_pszServerIP, __in
 	// 일단 세션 풀을 만들기 위해서 연결을 시도하자 
 	if( true == pClient->Connect( _pszServerIP, _pszPort, m_io_service ) )
 	{
-		if(false == m_pSendSession->Add_SessionPool_Connected(pClient, SESSION_ACTIVE))
+		if(false == m_pSendSession->Add_SessionPool_Connected(pClient, true))
 			delete pClient;
 	}
 	else
 	{
-		if(false == m_pSendSession->Add_SessionPool_DisConnected(pClient, SESSION_ACTIVE))
+		if(false == m_pSendSession->Add_SessionPool_DisConnected(pClient, true))
 			delete pClient;
 	}
 
@@ -323,12 +262,12 @@ bool TCP_ClientMgr::Add_Eng_FailBack_Standby( __in const char *_pszServerIP, __i
 	// 일단 세션 풀을 만들기 위해서 연결을 시도하자 
 	if( true == pClient->Connect( _pszServerIP, _pszPort, m_io_service ) )
 	{
-		if(false == m_pSendSession->Add_SessionPool_Connected(pClient, SESSION_STANDBY))
+		if(false == m_pSendSession->Add_SessionPool_Connected(pClient, false))
 			delete pClient;
 	}
 	else
 	{
-		if(false == m_pSendSession->Add_SessionPool_DisConnected(pClient, SESSION_STANDBY))
+		if(false == m_pSendSession->Add_SessionPool_DisConnected(pClient, false))
 			delete pClient;
 	}
 

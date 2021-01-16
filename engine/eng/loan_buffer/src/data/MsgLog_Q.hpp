@@ -44,7 +44,7 @@ public:
 		m_mapQueue.clear();
 	}
 	
-	void Push_back( __in const char * _szKey, __in std::string *_pData )
+	void Push_back( __in std::string *_pData, __in const char * _szKey = "")
 	{
 		const std::lock_guard<std::mutex> lock(m_LockQueue);
 
@@ -61,7 +61,7 @@ public:
 		}
 	}
 
-	void Push_front( __in const char * _szKey, __in std::string *_pData )
+	void Push_front( __in std::string *_pData, __in const char * _szKey = "" )
 	{
 		const std::lock_guard<std::mutex> lock(m_LockQueue);
 
@@ -78,7 +78,7 @@ public:
 		}
 	}
 
-	std::string * Pop_front( __in const char *_pszKey )
+	std::string * Pop_front( __in const char *_pszKey = "" )
 	{
 		std::string *pRet = nullptr;
 

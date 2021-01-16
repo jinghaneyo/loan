@@ -3,8 +3,8 @@
 
 #include "Rigi_ClientTCP.hpp"
 
-typedef std::string 	STR_IP_PORT;
-typedef std::vector<Rigitaeda::Rigi_ClientTCP *>	VEC_RIGI_SESSION;
+// typedef std::string 	STR_IP_PORT;
+// typedef std::vector<Rigitaeda::Rigi_ClientTCP *>	VEC_RIGI_SESSION;
 typedef std::chrono::system_clock::time_point 		STD_TIME;
 
 #ifndef SESSION_ACTIVE

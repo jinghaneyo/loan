@@ -5,7 +5,7 @@
 #include "TCP_ClientMgr.hpp"
 #include "MsgLog_Q.hpp"
 #include "Conf_Yaml.hpp"
-//#include <glog/logging.h>
+#include <glog/logging.h>
 
 bool Split_IP_Port( __in std::string &_strSource, __out std::string &_strIP, __out std::string &_strPort )
 {
@@ -117,11 +117,11 @@ void Stop_All( 	__in TCP_ClientMgr &_ClientMgr,
     std::cout << "[FINISH] << server stop" << std::endl;
 }
 
-int main()
+int main( int argc, char* argv[] )
 {
 	GOOGLE_PROTOBUF_VERIFY_VERSION;
 
-    // google::InitGoogleLogging("DUMP");   
+    // google::InitGoogleLogging(argv[0]);   
  	// google::SetLogDestination( google::GLOG_INFO, "./DUMP." );  
 	// google::EnableLogCleaner(3);
 
@@ -131,8 +131,11 @@ int main()
 	std::string strPath_Conf = strCurrentPath + "/conf.yaml";
 
 	DATA_POLICY Policy;
-	if(false == Conf_Yaml::Load_yaml(strPath_Conf.c_str(), Policy) )
+	if(false == Conf_Yaml::Load_yaml(strPath_Conf.c_str(), &Policy) )
+	{
+		std::cout << "[MAIN][FAIL] Conf_Yaml::Load_yaml" << std::endl;
 		return 1;
+	}
 
 	MsgLog_Q logQ;
 	TCP_ClientMgr clientMgr(&logQ, &Policy);

@@ -234,7 +234,7 @@ bool Session_RoundRobin::Reconnect_DisConnect_Pool()
 
 			if(true == pSession->Reconnect( *m_pio_service ) )
 			{
-				Add_SessionPool_Connected( pSession );
+				Add_SessionPool_Connected( pSession, true );
 
 				vecDel.emplace_back(itr);
 			}
