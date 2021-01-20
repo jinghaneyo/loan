@@ -5,7 +5,31 @@
 #include <deque>
 #include "../protobuf/loan.pb.h"
 
-typedef std::deque<std::string *>	DEQUE_MSG_LOG_PTR;
+struct _MsgLog_Data
+{
+	bool bProtobuf;
+	std::string *pstrLog;
+
+	_MsgLog_Data()
+	{
+		bProtobuf = false;
+		pstrLog = nullptr;
+	}
+	virtual ~_MsgLog_Data()
+	{
+		// 자동 소멸이아닌 직접 삭제를 해주도록 주석 처리
+		// if(nullptr != pstrLog)
+		// 	delete pstrLog;
+	}
+
+	void Clear()
+	{
+		if(nullptr != pstrLog)
+			delete pstrLog;
+	}
+};
+
+typedef std::deque<_MsgLog_Data *>	DEQUE_MSG_LOG_PTR;
 
 class MsgLog_Q
 {
@@ -19,8 +43,7 @@ public:
 	~MsgLog_Q() {};
 private:
 	std::mutex  m_LockQueue;
-	// key => ip + port
-	std::map<std::string, DEQUE_MSG_LOG_PTR *> m_mapQueue;
+	DEQUE_MSG_LOG_PTR	m_DeQueue;
 	int			m_nStart_Q;	
 	int			m_nLimit_Q;
 	int			m_nFull_Q;
@@ -30,81 +53,64 @@ public:
 	{
 		const std::lock_guard<std::mutex> lock(m_LockQueue);
 
-		for(auto &pDeque: m_mapQueue)
+		while ( false == m_DeQueue.empty()  )
 		{
-			while ( false == pDeque.second->empty()  )
-			{
-				auto *ptr = pDeque.second->front();
-				delete ptr;
+			auto *ptr = m_DeQueue.front();
+			delete ptr;
 
-				pDeque.second->pop_front();
-			}
-			delete pDeque.second;
+			m_DeQueue.pop_front();
 		}
-		m_mapQueue.clear();
 	}
 	
-	void Push_back( __in std::string *_pData, __in const char * _szKey = "")
+	void Push_back( __in std::string *_pData, __in bool _bProtobuf )
 	{
 		const std::lock_guard<std::mutex> lock(m_LockQueue);
-
-		auto find = m_mapQueue.find(_szKey);
-		if( find == m_mapQueue.end())
-		{
-			DEQUE_MSG_LOG_PTR *pDque = new DEQUE_MSG_LOG_PTR();
-			pDque->push_back(_pData);
-			m_mapQueue.insert( std::make_pair(_szKey, pDque) );
-		}
+		_MsgLog_Data *pLog = new _MsgLog_Data();
+		pLog->pstrLog = _pData;
+		if(true == _bProtobuf)
+			pLog->bProtobuf = true;
 		else
-		{
-			find->second->push_back(_pData);
-		}
+			pLog->bProtobuf = false;
+
+		m_DeQueue.push_back(pLog);
 	}
 
-	void Push_front( __in std::string *_pData, __in const char * _szKey = "" )
+	void Push_front( __in std::string *_pData, __in bool _bProtobuf )
 	{
 		const std::lock_guard<std::mutex> lock(m_LockQueue);
-
-		auto find = m_mapQueue.find(_szKey);
-		if( find == m_mapQueue.end())
-		{
-			DEQUE_MSG_LOG_PTR *pDque = new DEQUE_MSG_LOG_PTR();
-			pDque->push_back(_pData);
-			m_mapQueue.insert( std::make_pair(_szKey, pDque) );
-		}
+		_MsgLog_Data *pLog = new _MsgLog_Data();
+		pLog->pstrLog = _pData;
+		if(true == _bProtobuf)
+			pLog->bProtobuf = true;
 		else
-		{
-			find->second->push_front(_pData);
-		}
+			pLog->bProtobuf = false;
+		m_DeQueue.push_front(pLog);
 	}
 
-	std::string * Pop_front( __in const char *_pszKey = "" )
+	_MsgLog_Data * Pop_front()
 	{
-		std::string *pRet = nullptr;
+		_MsgLog_Data *pRet = nullptr;
 
 		const std::lock_guard<std::mutex> lock(m_LockQueue);
+		if( true == m_DeQueue.empty()  )
+			return nullptr;
 
-		auto find = m_mapQueue.find( _pszKey );
-		if(find != m_mapQueue.end())
-		{
-			if(false == find->second->empty())
-			{
-				pRet = find->second->front();
-				find->second->pop_front();
-			}
-		}
+		pRet = m_DeQueue.front();
+		m_DeQueue.pop_front();
 
 		return pRet;
 	}
 
-	int GetQ_Size()
+	size_t GetQ_Size()
 	{
-		return m_mapQueue.size();
+		const std::lock_guard<std::mutex> lock(m_LockQueue);
+		return (int)m_DeQueue.size();
 	}
 
 	bool QEmpty()
 	{
-		return m_mapQueue.empty();
+		const std::lock_guard<std::mutex> lock(m_LockQueue);
+		return m_DeQueue.empty();
 	}
 
 	int GetQ_LimitSize()

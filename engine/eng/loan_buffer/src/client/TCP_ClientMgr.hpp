@@ -58,6 +58,8 @@ public:
 	bool Add_Eng_FailBack_Standby( __in const char *_pszServerIP, __in const char *_pszPort );
 
 	DATA_POLICY * Get_Policy()	{	return m_pPolicy;	};
+
+	bool Input_Filter( __in loan::MsgLog &_Packet );
 };
 
 #endif

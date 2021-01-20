@@ -30,6 +30,7 @@ public:
 	virtual ~TCP_Session();
 private:
 	std::string m_strIP_Port;
+	std::string m_strTempBuff;
 
 	MsgLog_Q 	*m_pLogQ;
 	DATA_POLICY *m_pPolicy;
@@ -47,6 +48,10 @@ public:
 	bool Input_Filter( 	__in loan::MsgLog &_oPacket );
 
 	void Set_LogQ( __in MsgLog_Q *_pLogQ );
+
+	void Split_Protobuf(__in const char *_pszData, 
+						__in size_t _nData_len,
+						__out std::string &_strTemp );
 };
 
 #endif
