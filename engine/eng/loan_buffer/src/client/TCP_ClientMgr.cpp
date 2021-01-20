@@ -71,7 +71,7 @@ void TCP_ClientMgr::Run()
 						msgLog.SerializeToString(&strSendData);
 
 						// todo
-						//Task_Filter( msgLog );
+						//Input_Filter( msgLog );
 
 						bRet_Send = SendPacket(&strSendData);
 
@@ -324,11 +324,12 @@ bool TCP_ClientMgr::Input_Filter( __in loan::MsgLog &_Packet )
 	{
 		loan::MsgLog msg_stop;
 		msg_stop.set_msg_type( MSG_TYPE_GEN );
-		msg_stop.set_msg_cmd( (int)MsgLog_Cmd_Crolling::STOP_REQU );
+		//msg_stop.set_msg_cmd( (int)MsgLog_Cmd_Crolling::STOP_REQU );
+		msg_stop.set_msg_cmd( 1 );
 
 		std::string strSendData;
 		msg_stop.SerializeToString(&strSendData);
-		ASync_Send( strSendData.c_str(), msg_stop.ByteSizeLong() );
+		// Sync_Send( strSendData.c_str(), msg_stop.ByteSizeLong() );
 	}
 
 	// full 크기에 도착하면 버린다
