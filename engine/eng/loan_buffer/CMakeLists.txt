@@ -34,6 +34,8 @@ INCLUDE_DIRECTORIES(src/server)
 INCLUDE_DIRECTORIES(${SENDTO_INCLUDE})
 
 ADD_EXECUTABLE(${APP_NAME}
+	# ${RIGITAEDA_INCLUDE}/Rigi_Header.hpp
+	# ${SENDTO_INCLUDE}/Session_Header.hpp
 	src/main.cpp
 	src/Def.hpp
 	src/Conf_Yaml.cpp

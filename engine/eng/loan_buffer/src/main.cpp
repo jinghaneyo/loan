@@ -24,56 +24,67 @@ bool Split_IP_Port( __in std::string &_strSource, __out std::string &_strIP, __o
 void Add_Eng( 	__in TCP_ClientMgr &_ClientMgr, 
 				__in DATA_POLICY &_Policy )
 {
-	if( "round-robin" == _Policy.m_SendRule )
+	try
 	{
-		for(auto &data : _Policy.m_vecRoudRobin)
+		if( "round-robin" == _Policy.m_SendRule )
 		{
-			std::string strIP, strPort;
-			if( true == Split_IP_Port(data, strIP, strPort) )
-				_ClientMgr.Add_Eng_RoundRobin( strIP.c_str(), strPort.c_str() );
-		}
-	}
-	else if( "fail-over" == _Policy.m_SendRule )
-	{
-		for(auto &map_vec : _Policy.m_mapFailOver_IP_Port)
-		{
-			for(auto &data : map_vec.second )
+			for(auto &data : _Policy.m_vecRoudRobin)
 			{
-				if("active" == map_vec.first)
+				std::string strIP, strPort;
+				if( true == Split_IP_Port(data, strIP, strPort) )
+					_ClientMgr.Add_Eng_RoundRobin( strIP.c_str(), strPort.c_str() );
+			}
+		}
+		else if( "fail-over" == _Policy.m_SendRule )
+		{
+			for(auto &map_vec : _Policy.m_mapFailOver_IP_Port)
+			{
+				for(auto &data : map_vec.second )
 				{
-					std::string strIP, strPort;
-					if( true == Split_IP_Port(data, strIP, strPort) )
-						_ClientMgr.Add_Eng_FailOver_Active( strIP.c_str(), strPort.c_str() );
+					if("active" == map_vec.first)
+					{
+						std::string strIP, strPort;
+						if( true == Split_IP_Port(data, strIP, strPort) )
+							_ClientMgr.Add_Eng_FailOver_Active( strIP.c_str(), strPort.c_str() );
+					}
+					else if("stand-by" == map_vec.first)
+					{
+						std::string strIP, strPort;
+						if( true == Split_IP_Port(data, strIP, strPort) )
+							_ClientMgr.Add_Eng_FailOver_Standby( strIP.c_str(), strPort.c_str() );
+					}
 				}
-				else if("stand-by" == map_vec.first)
+			}
+		}
+		else if( "fail-back" == _Policy.m_SendRule )
+		{
+			for(auto &map_vec : _Policy.m_mapFailOver_IP_Port)
+			{
+				for(auto &data : map_vec.second )
 				{
-					std::string strIP, strPort;
-					if( true == Split_IP_Port(data, strIP, strPort) )
-						_ClientMgr.Add_Eng_FailOver_Standby( strIP.c_str(), strPort.c_str() );
+					if("active" == map_vec.first)
+					{
+						std::string strIP, strPort;
+						if( true == Split_IP_Port(data, strIP, strPort) )
+							_ClientMgr.Add_Eng_FailBack_Active( strIP.c_str(), strPort.c_str() );
+					}
+					else if("stand-by" == map_vec.first)
+					{
+						std::string strIP, strPort;
+						if( true == Split_IP_Port(data, strIP, strPort) )
+							_ClientMgr.Add_Eng_FailBack_Standby( strIP.c_str(), strPort.c_str() );
+					}
 				}
 			}
 		}
 	}
-	else if( "fail-back" == _Policy.m_SendRule )
+	// catch(std::exception &e)
+	// {
+	// 	std::cout << "[Exception][MAIN] Add_Eng | Err = " << e.what() << std::endl;
+	// }
+	catch(...)
 	{
-		for(auto &map_vec : _Policy.m_mapFailOver_IP_Port)
-		{
-			for(auto &data : map_vec.second )
-			{
-				if("active" == map_vec.first)
-				{
-					std::string strIP, strPort;
-					if( true == Split_IP_Port(data, strIP, strPort) )
-						_ClientMgr.Add_Eng_FailBack_Active( strIP.c_str(), strPort.c_str() );
-				}
-				else if("stand-by" == map_vec.first)
-				{
-					std::string strIP, strPort;
-					if( true == Split_IP_Port(data, strIP, strPort) )
-						_ClientMgr.Add_Eng_FailBack_Standby( strIP.c_str(), strPort.c_str() );
-				}
-			}
-		}
+		std::cout << "[Exception][MAIN] Add_Eng" << std::endl;
 	}
 }
 
@@ -136,6 +147,8 @@ int main( int argc, char* argv[] )
 		std::cout << "[MAIN][FAIL] Conf_Yaml::Load_yaml" << std::endl;
 		return 1;
 	}
+
+	std::cout << "[MAIN][SUCC] Conf_Yaml::Load_yaml" << std::endl;
 
 	MsgLog_Q logQ;
 	TCP_ClientMgr clientMgr(&logQ, &Policy);
