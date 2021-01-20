@@ -9,6 +9,13 @@ typedef std::vector<STR_IP_PORT> 	VEC_IP_PORT;
 #define INDEX_ACTIVE	0
 #define INDEX_STANDBY	1	
 
+#ifndef SESSION_ACTIVE
+#define SESSION_ACTIVE		0
+#endif
+#ifndef SESSION_STANDBY	
+#define SESSION_STANDBY 	1	
+#endif
+
 class POLICY
 {
 public:

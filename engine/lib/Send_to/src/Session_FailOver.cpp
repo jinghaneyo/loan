@@ -1,4 +1,3 @@
-#include "../Def.hpp"
 #include "Session_FailOver.hpp"
 
 Session_FailOver::Session_FailOver(  __in POLICY *_pPolicy, __in boost::asio::io_service *_pio_service ) : Session_Pool(_pPolicy)
