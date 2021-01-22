@@ -1,10 +1,12 @@
+#include <stdio.h>
+#include <thread>
+#include "TCP_Mgr.hpp"
+#include "TCP_Session.hpp"
 #include "TCP_ClientMgr.hpp"
 #include "MsgLog_Q.hpp"
 #include "Conf_Yaml.hpp"
+#include "protobuf/loan.pb.h"
 #include <glog/logging.h>
-#include <iostream>
-#include <fstream>
-#include <string>
 
 bool Event_Init()
 {
@@ -134,7 +136,7 @@ void Read_Tail( __in std::ifstream &_fsLog, __inout MsgLog_Q &_LogQ )
 					std::string *pstrLine = new std::string();
 					msgLog.SerializeToString(&(*pstrLine));
 
-					_LogQ.Push_back(pstrLine);
+					_LogQ.Push_back(pstrLine, true);
 				}
 				else
 					break;
@@ -205,11 +207,10 @@ int main( int argc, char* argv[])
 	}
 
 	std::string strHostIP = boost::asio::ip::host_name();
-    std::cout << "[START] << Host IP = " << strHostIP << " | PORT = " << nPort << std::endl;
+    std::cout << "[START] << Host IP = " << strHostIP << std::endl;
 
 	MsgLog_Q logQ;
 	TCP_ClientMgr clientMgr(&logQ, &Policy);
-	//Tail tail(&logQ);
 
 	std::thread thr_client;
 	Run_Client( clientMgr, Policy, thr_client );

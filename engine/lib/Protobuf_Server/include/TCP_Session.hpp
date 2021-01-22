@@ -44,9 +44,6 @@ public:
 	// ---------------------------------------------------------------
 
 	// 일반 함수
-	bool Task_Filter( 	__in loan::MsgLog &_oPacket );
-	bool Input_Filter( 	__in loan::MsgLog &_oPacket );
-
 	void Set_LogQ( __in MsgLog_Q *_pLogQ );
 
 	void Split_Protobuf(__in const char *_pszData, 
