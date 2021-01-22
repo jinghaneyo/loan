@@ -55,13 +55,13 @@ namespace Rigitaeda
 
 		virtual void OnEvent_Close()
 		{ 
-			if( nullptr != m_Func_Event_Close )
-				m_Func_Event_Close();
+			// if( nullptr != m_Func_Event_Close )
+			// 	m_Func_Event_Close();
 		}
 		virtual bool OnEvent_Init()	
 		{	
-			if(nullptr != m_Func_Event_Init)
-				return m_Func_Event_Init();
+			// if(nullptr != m_Func_Event_Init)
+			// 	return m_Func_Event_Init();
 
 			return true;	
 		};

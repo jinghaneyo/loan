@@ -1,5 +1,11 @@
 #include <stdio.h>
-#include "loan_Server.hpp"
+#include "TCP_Mgr.hpp"
+#include "TCP_Session.hpp"
+//#include "client/TCP_ClientMgr.hpp"
+#include "TCP_ClientMgr.hpp"
+#include "MsgLog_Q.hpp"
+#include "Conf_Yaml.hpp"
+#include <glog/logging.h>
 
 bool Event_Init()
 {
@@ -12,41 +18,177 @@ void Event_Close()
 
 void Event_Receive( __in char *_pData, __in size_t _nData_len )
 {
-	loan::MsgLog msgLog;
-	msgLog.ParseFromString(_pData);
+	// loan::MsgLog msgLog;
+	// msgLog.ParseFromString(_pData);
 
-	if (false == msgLog.service_name().empty())
-		std::cout << "[Event_Receive] << Service Name : " << msgLog.service_name() << " << Log contents : " << msgLog.logcontents() << std::endl;
+	// if (false == msgLog.service_name().empty())
+	// 	std::cout << "[Event_Receive] << Service Name : " << msgLog.service_name() << " << Log contents : " << msgLog.logcontents() << std::endl;
+}
+
+bool Split_IP_Port( __in std::string &_strSource, __out std::string &_strIP, __out std::string &_strPort )
+{
+	int nPos = (int)_strSource.find(":");
+	if(-1 != nPos )
+	{
+		_strIP = _strSource.substr(0, nPos);
+		_strPort = _strSource.substr(nPos + 1, _strSource.length()-1-nPos );
+
+		return true;
+	}
+
+	return false;
+}
+
+void Add_Eng( 	__in TCP_ClientMgr &_ClientMgr, 
+				__in DATA_POLICY &_Policy )
+{
+	try
+	{
+		if( "round-robin" == _Policy.m_SendRule )
+		{
+			for(auto &data : _Policy.m_vecRoudRobin)
+			{
+				std::string strIP, strPort;
+				if( true == Split_IP_Port(data, strIP, strPort) )
+					_ClientMgr.Add_Eng_RoundRobin( strIP.c_str(), strPort.c_str() );
+			}
+		}
+		else if( "fail-over" == _Policy.m_SendRule )
+		{
+			for(auto &map_vec : _Policy.m_mapFailOver_IP_Port)
+			{
+				for(auto &data : map_vec.second )
+				{
+					if("active" == map_vec.first)
+					{
+						std::string strIP, strPort;
+						if( true == Split_IP_Port(data, strIP, strPort) )
+							_ClientMgr.Add_Eng_FailOver_Active( strIP.c_str(), strPort.c_str() );
+					}
+					else if("stand-by" == map_vec.first)
+					{
+						std::string strIP, strPort;
+						if( true == Split_IP_Port(data, strIP, strPort) )
+							_ClientMgr.Add_Eng_FailOver_Standby( strIP.c_str(), strPort.c_str() );
+					}
+				}
+			}
+		}
+		else if( "fail-back" == _Policy.m_SendRule )
+		{
+			for(auto &map_vec : _Policy.m_mapFailOver_IP_Port)
+			{
+				for(auto &data : map_vec.second )
+				{
+					if("active" == map_vec.first)
+					{
+						std::string strIP, strPort;
+						if( true == Split_IP_Port(data, strIP, strPort) )
+							_ClientMgr.Add_Eng_FailBack_Active( strIP.c_str(), strPort.c_str() );
+					}
+					else if("stand-by" == map_vec.first)
+					{
+						std::string strIP, strPort;
+						if( true == Split_IP_Port(data, strIP, strPort) )
+							_ClientMgr.Add_Eng_FailBack_Standby( strIP.c_str(), strPort.c_str() );
+					}
+				}
+			}
+		}
+	}
+	// catch(std::exception &e)
+	// {
+	// 	std::cout << "[Exception][MAIN] Add_Eng | Err = " << e.what() << std::endl;
+	// }
+	catch(...)
+	{
+		std::cout << "[Exception][MAIN] Add_Eng" << std::endl;
+	}
+}
+
+void Run_Client( 	__in TCP_ClientMgr &_ClientMgr, 
+					__in DATA_POLICY &_Policy,
+					__out std::thread &_Thr_Clinet )
+{
+	// 분석 엔진 등록 
+	Add_Eng( _ClientMgr, _Policy );
+
+	_Thr_Clinet = std::thread( [&]()
+	{
+		_ClientMgr.Run();
+ 	});
+	_Thr_Clinet.detach();
+
+    std::cout << "[START] << ClientMgr Run" << std::endl;
+}
+
+void Run_Server( __in TCP_Mgr<TCP_Session> &_ServerMgr, __in int _nPort )
+{
+    std::cout << "[START] << server run" << std::endl;
+
+	Rigitaeda::Rigi_Server server(10240);
+	server.Run( _nPort, 100, &_ServerMgr );
+}
+
+void Stop_All( 	__in TCP_ClientMgr &_ClientMgr, 
+				__in TCP_Mgr<TCP_Session> &_ServerMgr, 
+				__in std::thread &_Thr_Clinet,
+				__in MsgLog_Q &_LogQ )
+{
+	// -----------------------------------------------------
+	// 종료-> 리소스 해제 
+	// -----------------------------------------------------
+	_ClientMgr.Stop();
+	_Thr_Clinet.join();
+	_ServerMgr.Stop();
+	_LogQ.Clear_Q();
+
+    std::cout << "[FINISH] << server stop" << std::endl;
 }
 
 int main( int argc, char* argv[])
 {
-    // google::InitGoogleLogging("DUMP");   
- 	// google::SetLogDestination( google::GLOG_INFO, "./DUMP." );  
-	//google::EnableLogCleaner(3);
-
     std::cout << "argc = " << argc << std::endl;
 
 	int nPort = 5555;
 	if( 2 == argc)
 		nPort = atoi(argv[1]);
 
-    std::cout << "[START] << server run (port = " << nPort << ")" << std::endl;
+	GOOGLE_PROTOBUF_VERIFY_VERSION;
 
-	Rigitaeda::Rigi_Server server;
-	//server.Load_Conf();
+    // google::InitGoogleLogging(argv[0]);   
+ 	// google::SetLogDestination( google::GLOG_INFO, "./DUMP." );  
+	// google::EnableLogCleaner(3);
 
-	/*
-	server.Add_Event_Handler_Close( Event_Close );
-	server.Add_Event_Handler_Init( Event_Init );
-	server.Add_Event_Handler_Receive( Event_Receive );
-	server.Run( nPort, 100 );
-	//*/
+	std::string strCurrentPath;
+	char strBuffer[1024] = { 0, };
+	strCurrentPath = getcwd( strBuffer, sizeof(strBuffer) );
+	std::string strPath_Conf = strCurrentPath + "/conf.yaml";
 
-	//*
-	Rigitaeda::Rigi_TCPServerMgr<TCP_Session> mgr;
-	server.Run( nPort, 100, &mgr );
-	//*/
+	DATA_POLICY Policy;
+	if(false == Conf_Yaml::Load_yaml(strPath_Conf.c_str(), &Policy) )
+	{
+		std::cout << "[MAIN][FAIL] Conf_Yaml::Load_yaml" << std::endl;
+		return 1;
+	}
+
+	std::cout << "[MAIN][SUCC] Conf_Yaml::Load_yaml" << std::endl;
+
+	MsgLog_Q logQ;
+	TCP_ClientMgr clientMgr(&logQ, &Policy);
+	TCP_Mgr<TCP_Session> serverMgr(&logQ, &Policy);
+
+	std::thread thr_client;
+	Run_Client( clientMgr, Policy, thr_client );
+
+	std::string strHostIP = boost::asio::ip::host_name();
+    std::cout << "[START] << server run (IP = " << strHostIP << " | PORT = " << nPort << ")" << std::endl;
+
+	Run_Server( serverMgr, nPort );
+
+	Stop_All( clientMgr, serverMgr, thr_client, logQ );
+
+	google::protobuf::ShutdownProtobufLibrary();
 
     return 0;
 }

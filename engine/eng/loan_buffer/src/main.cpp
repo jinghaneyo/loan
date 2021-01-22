@@ -104,12 +104,12 @@ void Run_Client( 	__in TCP_ClientMgr &_ClientMgr,
     std::cout << "[START] << ClientMgr Run" << std::endl;
 }
 
-void Run_Server( __in TCP_Mgr<TCP_Session> &_ServerMgr )
+void Run_Server( __in TCP_Mgr<TCP_Session> &_ServerMgr, __in int _nPort )
 {
     std::cout << "[START] << server run" << std::endl;
 
 	Rigitaeda::Rigi_Server server(10240);
-	server.Run( 3333, 100, &_ServerMgr );
+	server.Run( _nPort, 100, &_ServerMgr );
 }
 
 void Stop_All( 	__in TCP_ClientMgr &_ClientMgr, 
@@ -157,7 +157,11 @@ int main( int argc, char* argv[] )
 	std::thread thr_client;
 	Run_Client( clientMgr, Policy, thr_client );
 
-	Run_Server( serverMgr );
+	int nPort = 3333;
+	std::string strHostIP = boost::asio::ip::host_name();
+    std::cout << "[START] << server run (Host IP = " << strHostIP << " | PORT = " << nPort << ")" << std::endl;
+
+	Run_Server( serverMgr, nPort );
 
 	Stop_All( clientMgr, serverMgr, thr_client, logQ );
 

@@ -1,0 +1,4 @@
+#ifndef PROTOBUF_SERVER_HEADER_H_
+#define PROTOBUF_SERVER_HEADER_H_
+
+#endif

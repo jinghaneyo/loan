@@ -1,7 +1,7 @@
 #ifndef TCP_SESSION_H_
 #define TCP_SESSION_H_
 
-#include "loan.pb.h"
+#include "../data/protobuf/loan.pb.h"
 #include "Rigi_Server.hpp"
 #include "../data/MsgLog_Q.hpp"
 #include "../data/Data_Policy.hpp"

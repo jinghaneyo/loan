@@ -1,4 +1,4 @@
-#include "client/TCP_ClientMgr.hpp"
+#include "TCP_ClientMgr.hpp"
 #include "MsgLog_Q.hpp"
 #include "Conf_Yaml.hpp"
 #include <glog/logging.h>
@@ -203,6 +203,9 @@ int main( int argc, char* argv[])
 		std::cout << "[MAIN][FAIL] Conf_Yaml::Load_yaml" << std::endl;
 		return 1;
 	}
+
+	std::string strHostIP = boost::asio::ip::host_name();
+    std::cout << "[START] << Host IP = " << strHostIP << " | PORT = " << nPort << std::endl;
 
 	MsgLog_Q logQ;
 	TCP_ClientMgr clientMgr(&logQ, &Policy);

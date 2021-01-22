@@ -43,8 +43,9 @@ void Rigi_TCPSession::OnEvent_Receive(	__in char *_pData,
 										__in size_t _nData_len )
 {
 	// 재정의하여 데이터 처리 부분을 추가한다.
-	if( nullptr != m_Func_Event_Receive )
-		m_Func_Event_Receive( _pData, _nData_len );
+	// if( nullptr != m_Func_Event_Receive )
+	// 	m_Func_Event_Receive( _pData, _nData_len );
+	std::cout << "[Rigi_TCPSession::OnEvent_Receive] << " << _pData << std::endl;
 }
 
 void Rigi_TCPSession::Handler_Receive( 	__in const boost::system::error_code& _error, 
@@ -75,8 +76,8 @@ void Rigi_TCPSession::Handler_Receive( 	__in const boost::system::error_code& _e
 void Rigi_TCPSession::OnEvent_Sended (__in size_t _bytes_transferre )
 {
 	// 재정의하여 데이터 처리 부분을 추가한다.
-	if( nullptr != m_Func_Event_Send)
-		m_Func_Event_Send( _bytes_transferre );
+	// if( nullptr != m_Func_Event_Send)
+	// 	m_Func_Event_Send( _bytes_transferre );
 }
 
 void Rigi_TCPSession::Handler_Send( __in const boost::system::error_code& _error, 

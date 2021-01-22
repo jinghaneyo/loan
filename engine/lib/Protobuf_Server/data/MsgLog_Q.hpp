@@ -3,7 +3,20 @@
 
 #include <mutex>
 #include <deque>
-#include "../protobuf/loan.pb.h"
+
+#ifndef _WIN32
+	#ifndef __in
+	#define __in
+	#endif
+
+	#ifndef __inout
+	#define __inout
+	#endif
+
+	#ifndef __out
+	#define __out
+	#endif
+#endif
 
 struct _MsgLog_Data
 {
@@ -124,6 +137,8 @@ public:
 	}
 };
 
+#ifndef MSG_TYPE_GEN
 #define MSG_TYPE_GEN 	"MSG_TYPE_GEN"
+#endif
 
 #endif

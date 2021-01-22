@@ -5,7 +5,6 @@
 #include <mutex>
 #include "../data/Data_Policy.hpp"
 #include "Rigi_TCPServerMgr.hpp"
-#include "../data/Data_Policy.hpp"
 #include "../data/MsgLog_Q.hpp"
 
 template <typename T>
@@ -48,10 +47,6 @@ public:
 
 		std::cout << "[" << __FUNCTION__ << "][CURRENT PATH] >> " << strPath << std::endl;
 
-		DATA_POLICY conf;
-		if( false == Load_ConfJson( strPath.c_str(), conf ) )
-			return false;
-
 		return true;
 	}
 	// ------------------------------------------------------------------
@@ -69,28 +64,6 @@ public:
 	{
 		std::ifstream infile(_szFilePath);
 		return infile.good();
-	}
-
-	bool Load_ConfJson( __in const char *_pszPath, __out DATA_POLICY &conf )
-	{
-		return true;
-
-		std::ifstream file;
-		file.open(_pszPath);
-		if(true == file.is_open())
-		{
-			std::string strBuffer;
-			while ( std::getline(file, strBuffer) )
-			{
-				std::cout << strBuffer << std::endl;
-
-				strBuffer = "";
-			}
-			file.close();
-			return true;
-		}
-
-		return false;
 	}
 
 	DATA_POLICY * Get_Policy()	{	return m_pPolicy;	};

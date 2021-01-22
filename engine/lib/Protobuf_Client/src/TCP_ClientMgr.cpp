@@ -2,14 +2,15 @@
 // 해서 Rigi_Def.hpp 보다 먼저 선언을 해야 한다
 #include <regex>
 #include <chrono>
+#include "protobuf/loan.pb.h"
 #include "TCP_ClientMgr.hpp"
 
 TCP_ClientMgr::TCP_ClientMgr( __in MsgLog_Q *_pLogQ, __in DATA_POLICY *_pPolicy ) : m_pLogQ(_pLogQ), m_pPolicy(_pPolicy)
 { 
 	m_bRun_Thread = false;
-	// m_nFailOver_Active_Standby = SESSION_ACTIVE;
-
 	m_pSendSession = nullptr;
+	m_Callback_Filter = nullptr;
+	m_eSend_Rule = SEND_RULE::NONE;
 }
 
 TCP_ClientMgr::~TCP_ClientMgr() 
@@ -52,19 +53,65 @@ void TCP_ClientMgr::Run()
 	m_thr_send = std::thread( [&]()
 	{
 		bool bRet_Send = false;
+		bool bFilter = false;
+		std::string strSendData;
+		std::vector<std::string *> vecLines;
+
 		while(true == m_bRun_Thread)
 		{
 			bRet_Send = false;
-			std::string *pLog = m_pLogQ->Pop_front();
+			bFilter = false;
+			if(nullptr == m_Callback_Filter)
+				bFilter = true;
+
+			_MsgLog_Data *pLog = m_pLogQ->Pop_front();
 			if(nullptr != pLog) 
 			{
-				bRet_Send = SendPacket(pLog);
+				if( true == pLog->bProtobuf )
+				{
+					loan::MsgLog msgLog;
+					msgLog.ParseFromString(pLog->pstrLog->c_str());
 
-				// 실패인 경우는 모든 세션이 전송 실패인 경우이다. 따라서, 현재 데이터는 다시 전송할 수 있도록 큐의 앞에 넣어 주도록 하자
-				if(false == bRet_Send)
-					m_pLogQ->Push_front(pLog);
+					if ( MSG_TYPE_GEN == msgLog.msg_type() )
+					{
+						strSendData = "";
+						msgLog.SerializeToString(&strSendData);
+
+						if(nullptr != m_Callback_Filter)
+						{
+							bFilter = m_Callback_Filter(msgLog);
+						}
+
+						if(true == bFilter)
+							bRet_Send = SendPacket(&strSendData);
+
+						// 실패인 경우는 모든 세션이 전송 실패인 경우이다. 따라서, 현재 데이터는 다시 전송할 수 있도록 큐의 앞에 넣어 주도록 하자
+						if(false == bRet_Send)
+							m_pLogQ->Push_front(pLog->pstrLog, false);
+						else
+							pLog->Clear();
+
+						delete pLog;
+					}
+					else
+					{
+						pLog->Clear();
+						delete pLog;
+					}
+				}
 				else
+				{
+					bRet_Send = SendPacket(pLog->pstrLog);
+
+					// 실패인 경우는 모든 세션이 전송 실패인 경우이다. 따라서, 현재 데이터는 다시 전송할 수 있도록 큐의 앞에 넣어 주도록 하자
+					if(false == bRet_Send)
+						m_pLogQ->Push_front(pLog->pstrLog, false);
+					else
+						// 전송 성공했으므로 더이상 로그 메모리는 사용하지않는다. 해서 삭제한다
+						pLog->Clear();
+
 					delete pLog;
+				}
 			}
 
 			if(false == bRet_Send)
@@ -93,15 +140,14 @@ bool TCP_ClientMgr::SendPacket( __in std::string *_pData )
 		{
 			// pSession->ASync_Send( _pData->c_str(), _pData->length() );
 			// return true;
-			int nLength = pSession->Sync_Send( _pData->c_str(), _pData->length() );
-			if(nLength == (int)_pData->length())
+			int nSend_Length = pSession->Sync_Send( _pData->c_str(), _pData->length() );
+			if(nSend_Length == (int)_pData->length())
 			{
-				std::cout << "[TCP_ClientMgr::SendPacke][SUCC] >> " << *_pData << std::endl;
-
+				std::cout << "[TCP_ClientMgr::SendPacket][SUCC] SEND >> " << *_pData << std::endl;
 				return true;
 			}
 
-			std::cout << "[TCP_ClientMgr::SendPacke][FAIL] >> " << *_pData << std::endl;
+			std::cout << "[TCP_ClientMgr::SendPacket][FAIL] >> " << *_pData << std::endl;
 
 			// 여기로 왔다는건 전송 실패인 경우
 			// 다음 세션으로 다시 전송 시도한다 
@@ -148,6 +194,17 @@ void TCP_ClientMgr::Clear_Eng()
 
 bool TCP_ClientMgr::Add_Eng_RoundRobin( __in const char *_pszServerIP, __in const char *_pszPort )
 {
+	if( SEND_RULE::ROUND_ROBIN != m_eSend_Rule )
+	{
+		if( nullptr != m_pSendSession )
+		{
+			delete m_pSendSession;
+			m_pSendSession = nullptr;
+		}
+	}
+
+	m_eSend_Rule = SEND_RULE::ROUND_ROBIN;
+
 	if( nullptr == m_pSendSession )
 		m_pSendSession = new Session_RoundRobin( m_pPolicy, &m_io_service );
 
@@ -173,6 +230,17 @@ bool TCP_ClientMgr::Add_Eng_RoundRobin( __in const char *_pszServerIP, __in cons
 
 bool TCP_ClientMgr::Add_Eng_FailOver_Active( __in const char *_pszServerIP, __in const char *_pszPort )
 {
+	if( SEND_RULE::FAIL_OVER != m_eSend_Rule )
+	{
+		if( nullptr != m_pSendSession )
+		{
+			delete m_pSendSession;
+			m_pSendSession = nullptr;
+		}
+	}
+
+	m_eSend_Rule = SEND_RULE::FAIL_OVER;
+
 	if( nullptr == m_pSendSession )
 		m_pSendSession = new Session_FailOver( m_pPolicy, &m_io_service );
 
@@ -199,6 +267,17 @@ bool TCP_ClientMgr::Add_Eng_FailOver_Active( __in const char *_pszServerIP, __in
 
 bool TCP_ClientMgr::Add_Eng_FailOver_Standby( __in const char *_pszServerIP, __in const char *_pszPort )
 {
+	if( SEND_RULE::FAIL_OVER != m_eSend_Rule )
+	{
+		if( nullptr != m_pSendSession )
+		{
+			delete m_pSendSession;
+			m_pSendSession = nullptr;
+		}
+	}
+
+	m_eSend_Rule = SEND_RULE::FAIL_OVER;
+
 	if( nullptr == m_pSendSession )
 		m_pSendSession = new Session_FailOver( m_pPolicy, &m_io_service );
 
@@ -225,6 +304,17 @@ bool TCP_ClientMgr::Add_Eng_FailOver_Standby( __in const char *_pszServerIP, __i
 
 bool TCP_ClientMgr::Add_Eng_FailBack_Active( __in const char *_pszServerIP, __in const char *_pszPort )
 {
+	if( SEND_RULE::FAIL_BACK != m_eSend_Rule )
+	{
+		if( nullptr != m_pSendSession )
+		{
+			delete m_pSendSession;
+			m_pSendSession = nullptr;
+		}
+	}
+
+	m_eSend_Rule = SEND_RULE::FAIL_BACK;
+
 	if( nullptr == m_pSendSession )
 		m_pSendSession = new Session_FailBack( m_pPolicy, &m_io_service );
 
@@ -251,6 +341,17 @@ bool TCP_ClientMgr::Add_Eng_FailBack_Active( __in const char *_pszServerIP, __in
 
 bool TCP_ClientMgr::Add_Eng_FailBack_Standby( __in const char *_pszServerIP, __in const char *_pszPort )
 {
+	if( SEND_RULE::FAIL_BACK != m_eSend_Rule )
+	{
+		if( nullptr != m_pSendSession )
+		{
+			delete m_pSendSession;
+			m_pSendSession = nullptr;
+		}
+	}
+
+	m_eSend_Rule = SEND_RULE::FAIL_BACK;
+
 	if( nullptr == m_pSendSession )
 		m_pSendSession = new Session_FailBack( m_pPolicy, &m_io_service );
 
@@ -273,4 +374,112 @@ bool TCP_ClientMgr::Add_Eng_FailBack_Standby( __in const char *_pszServerIP, __i
 	}
 
 	return true;
+}
+
+// bool TCP_ClientMgr::Input_Filter( __in loan::MsgLog &_Packet )
+// {
+// 	if(nullptr == m_pLogQ || nullptr == m_pPolicy)
+// 	{
+// 		//ASSERT(0 && "[TCP_Session::Input_Filter] m_pLogQ is nullptr");
+// 		return false;
+// 	}
+
+// 	// 큐에 설정 리미트에 도달하면 중지 명령을 보내자 
+// 	if(m_pLogQ->GetQ_LimitSize() == (int)m_pLogQ->GetQ_Size())
+// 	{
+// 		loan::MsgLog msg_stop;
+// 		msg_stop.set_msg_type( MSG_TYPE_GEN );
+// 		//msg_stop.set_msg_cmd( (int)MsgLog_Cmd_Crolling::STOP_REQU );
+// 		msg_stop.set_msg_cmd( 1 );
+
+// 		std::string strSendData;
+// 		msg_stop.SerializeToString(&strSendData);
+// 		// Sync_Send( strSendData.c_str(), msg_stop.ByteSizeLong() );
+// 	}
+
+// 	// full 크기에 도착하면 버린다
+// 	if(m_pLogQ->GetQ_FullSize() == (int)m_pLogQ->GetQ_Size())
+// 		return false;
+
+// 	bool bIsPushQ = false;
+// 	bool bPass = false;
+// 	std::string strIP_Port;
+// 	/*
+// 	for(auto &policy : *m_pPolicy)
+// 	{
+// 		// ip port 검색
+// 		// 아무것도 없으면 무조건 다 받는다
+// 		if( true == policy.second.vec_ip_port.empty())
+// 			bPass = true;
+// 		else
+// 		{
+// 			for(auto &ip_port : policy.second.vec_ip_port )
+// 			{
+// 				if( ip_port == m_strIP_Port )
+// 				{
+// 					bPass = true;
+// 					break;
+// 				}
+// 			}
+// 		}
+// 		if( false == bPass )
+// 			continue;
+
+// 		// 정규식 검색
+// 		// 아무것도 없으면 무조건 다 받는다
+// 		if( true == policy.second.vec_regex.empty())
+// 			bPass = true;
+// 		else
+// 		{
+// 			for(auto &reg : policy.second.vec_regex)
+// 			{
+// 				std::regex reg_ex(reg);
+// 				std::smatch result;
+
+// 				if( std::regex_search(_Packet.logcontents(), result, reg_ex) )
+// 				{
+// 					bPass = true;
+// 					break;
+// 				}
+// 			}
+// 		}
+// 		if( false == bPass )
+// 			continue;
+
+// 		// 서비스 로그
+// 		// 아무것도 없으면 무조건 다 받는다
+// 		if( true == policy.second.vec_service.empty())
+// 			bPass = true;
+// 		else
+// 		{
+// 			for(auto &service : policy.second.vec_service)
+// 			{
+// 				if(service == _Packet.service_name())
+// 				{
+// 					bPass = true;
+// 					break;
+// 				}
+// 			}
+// 		}
+// 		if( false == bPass )
+// 			continue;
+
+// 		if (true == bPass)
+// 		{
+// 			std::string *pstrSendData = new std::string();
+// 			_Packet.SerializeToString(&(*pstrSendData));
+
+// 			// Push_Data 안에 delete를 자동 호출 해준다. 따로 delete 를 호출 하지 말자 
+// 			m_pLogQ->Push_back( policy.first.c_str(), pstrSendData );
+
+// 			bIsPushQ = true;
+// 		}
+// 	}
+// //*/
+// 	return bIsPushQ;
+// }
+
+bool TCP_ClientMgr::Set_SaveFile( __in const char *_pszFilePath )
+{
+	return false;
 }

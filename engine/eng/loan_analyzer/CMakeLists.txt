@@ -13,25 +13,47 @@ add_definitions("-Wall -std=c++11")
 
 set(RIGITAEDA_INCLUDE ../../lib/Rigitaeda/include)
 set(RIGITAEDA_SRC ../../lib/Rigitaeda/src)
+set(SENDTO_INCLUDE ../../lib/Send_to/include)
+set(SENDTO_SRC ../../lib/Send_to/src)
+set(PROTOBUF_SERVER_INCLUDE ../../lib/Protobuf_Server/include)
+set(PROTOBUF_SERVER_SRC ../../lib/Protobuf_Server/src)
+set(PROTOBUF_SERVER_DATA ../../lib/Protobuf_Server/data)
+set(PROTOBUF_CLIENT_INCLUDE ../../lib/Protobuf_Client/include)
+set(PROTOBUF_CLIENT_SRC ../../lib/Protobuf_Client/src)
 
 INCLUDE_DIRECTORIES(${RIGITAEDA_INCLUDE})
 INCLUDE_DIRECTORIES(${RIGITAEDA_SRC})
-INCLUDE_DIRECTORIES(/usr/include/boost/include)
-LINK_DIRECTORIES(/usr/include/boost/lib)
-INCLUDE_DIRECTORIES(/usr/include/glog/include)
-LINK_DIRECTORIES(/usr/include/glog/lib)
-INCLUDE_DIRECTORIES(/usr/include/gflags)
-LINK_DIRECTORIES(/usr/lib64/)
+INCLUDE_DIRECTORIES(${SENDTO_INCLUDE})
+INCLUDE_DIRECTORIES(${SENDTO_SRC})
+INCLUDE_DIRECTORIES(${PROTOBUF_SERVER_INCLUDE})
+INCLUDE_DIRECTORIES(${PROTOBUF_SERVER_SRC})
+INCLUDE_DIRECTORIES(${PROTOBUF_SERVER_DATA})
+INCLUDE_DIRECTORIES(${PROTOBUF_SERVER_DATA}/protbuf/)
+INCLUDE_DIRECTORIES(${PROTOBUF_CLIENT_INCLUDE})
+INCLUDE_DIRECTORIES(${PROTOBUF_CLIENT_SRC})
 
 ADD_EXECUTABLE(${APP_NAME}
+	# ${RIGITAEDA_INCLUDE}/Rigi_Header.hpp
+	# ${SENDTO_INCLUDE}/Session_Header.hpp
 	src/main.cpp
-	src/loan_Server.hpp
-	src/loan.pb.cc
+	src/Conf_Yaml.cpp
+	# src/client/TCP_Client.hpp
+	# src/client/TCP_ClientMgr.cpp
+	${PROTOBUF_SERVER_SRC}/TCP_Session.cpp
+	${PROTOBUF_SERVER_DATA}/MsgLog_Q.hpp
+	${PROTOBUF_SERVER_DATA}/Data_Policy.hpp
+	${PROTOBUF_SERVER_DATA}/protobuf/loan.pb.cc
+	${PROTOBUF_CLIENT_SRC}/TCP_ClientMgr.cpp
+	${PROTOBUF_CLIENT_INCLUDE}/TCP_Client.hpp
+	${RIGITAEDA_INCLUDE}/Rigi_ClientTCP.hpp
+	${RIGITAEDA_INCLUDE}/Rigi_TCPServerMgr.hpp
 	${RIGITAEDA_SRC}/Rigi_Server.cpp
 	${RIGITAEDA_SRC}/Rigi_SessionPool.cpp
 	${RIGITAEDA_SRC}/Rigi_TCPSession.cpp
-	${RIGITAEDA_INCLUDE}/Rigi_TCPServerMgr.hpp
+	${SENDTO_INCLUDE}/Session_Pool.hpp
+	${SENDTO_SRC}/Session_RoundRobin.cpp
+	${SENDTO_SRC}/Session_FailOver.cpp
+	${SENDTO_SRC}/Session_FailBack.cpp
 	)
 
-#TARGET_LINK_LIBRARIES( ${APP_NAME} gflags glog pthread boost_system boost_thread )
-TARGET_LINK_LIBRARIES( ${APP_NAME} gflags pthread boost_system protobuf glog )
+TARGET_LINK_LIBRARIES( ${APP_NAME} gflags boost_system pthread boost_system protobuf glog yaml-cpp)
