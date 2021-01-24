@@ -2,14 +2,20 @@
 // 해서 Rigi_Def.hpp 보다 먼저 선언을 해야 한다
 #include <regex>
 #include <chrono>
-#include "protobuf/loan.pb.h"
 #include "TCP_ClientMgr.hpp"
+#include "Policy.hpp"
+#include "MsgLog_Q.hpp"
+#include "Session_RoundRobin.hpp"
+#include "Session_FailOver.hpp"
+#include "Session_FailBack.hpp"
+#include "TCP_Client.hpp"
+#include "loan_util.hpp"
 
-TCP_ClientMgr::TCP_ClientMgr( __in MsgLog_Q *_pLogQ, __in DATA_POLICY *_pPolicy ) : m_pLogQ(_pLogQ), m_pPolicy(_pPolicy)
+TCP_ClientMgr::TCP_ClientMgr( __in MsgLog_Q *_pLogQ, __in POLICY *_pPolicy ) : m_pLogQ(_pLogQ), m_pPolicy(_pPolicy)
 { 
 	m_bRun_Thread = false;
 	m_pSendSession = nullptr;
-	m_Callback_Filter = nullptr;
+	m_Event_Send_Filter = nullptr;
 	m_eSend_Rule = SEND_RULE::NONE;
 }
 
@@ -25,7 +31,7 @@ void TCP_ClientMgr::Run()
 {
 	if(nullptr == m_pLogQ || nullptr == m_pPolicy )
 	{
-		//ASSERT(0 && "[TCP_ClientMgr::Async_Run] m_pLogQ is nullptr");
+		ASSERT(0 && "[TCP_ClientMgr::Async_Run] m_pLogQ is nullptr");
 		return ;
 	}
 
@@ -35,17 +41,21 @@ void TCP_ClientMgr::Run()
 
 	// -------------------------------------------------------
 	// 서버 접속 스레드 
-	int nSec_wait = 1;
-	m_thr_conn = std::thread( [&]()
+	if(SEND_RULE::SAVE_FILE != m_eSend_Rule && SEND_RULE::NONE != m_eSend_Rule)
 	{
-		while(true == m_bRun_Thread)
+		int nSec_wait = 1 * 10;
+		m_thr_conn = std::thread( [&]()
 		{
-			m_pSendSession->Reconnect_DisConnect_Pool();
+			while(true == m_bRun_Thread)
+			{
+				m_pSendSession->Reconnect_DisConnect_Pool();
 
-			std::this_thread::sleep_for( std::chrono::seconds(nSec_wait) );
-		}
-	});
-	m_thr_conn.detach();
+				std::this_thread::sleep_for( std::chrono::seconds(nSec_wait) );
+				//sleep(nSec_wait);
+			}
+		});
+		m_thr_conn.detach();
+	}
 	// -------------------------------------------------------
 
 	// -------------------------------------------------------
@@ -54,64 +64,35 @@ void TCP_ClientMgr::Run()
 	{
 		bool bRet_Send = false;
 		bool bFilter = false;
-		std::string strSendData;
 		std::vector<std::string *> vecLines;
 
 		while(true == m_bRun_Thread)
 		{
 			bRet_Send = false;
 			bFilter = false;
-			if(nullptr == m_Callback_Filter)
+			if(nullptr == m_Event_Send_Filter)
 				bFilter = true;
 
-			_MsgLog_Data *pLog = m_pLogQ->Pop_front();
+			std::string *pLog = m_pLogQ->Pop_front();
 			if(nullptr != pLog) 
 			{
-				if( true == pLog->bProtobuf )
+				if(nullptr != m_Event_Send_Filter)
+					bFilter = m_Event_Send_Filter( *pLog );
+
+				if(true == bFilter)
 				{
-					loan::MsgLog msgLog;
-					msgLog.ParseFromString(pLog->pstrLog->c_str());
-
-					if ( MSG_TYPE_GEN == msgLog.msg_type() )
-					{
-						strSendData = "";
-						msgLog.SerializeToString(&strSendData);
-
-						if(nullptr != m_Callback_Filter)
-						{
-							bFilter = m_Callback_Filter(msgLog);
-						}
-
-						if(true == bFilter)
-							bRet_Send = SendPacket(&strSendData);
-
-						// 실패인 경우는 모든 세션이 전송 실패인 경우이다. 따라서, 현재 데이터는 다시 전송할 수 있도록 큐의 앞에 넣어 주도록 하자
-						if(false == bRet_Send)
-							m_pLogQ->Push_front(pLog->pstrLog, false);
-						else
-							pLog->Clear();
-
-						delete pLog;
-					}
-					else
-					{
-						pLog->Clear();
-						delete pLog;
-					}
-				}
-				else
-				{
-					bRet_Send = SendPacket(pLog->pstrLog);
+					if(SEND_RULE::SAVE_FILE == m_eSend_Rule)
+						bRet_Send = Write_Data( pLog );
+					else if(SEND_RULE::SAVE_FILE != m_eSend_Rule && SEND_RULE::NONE != m_eSend_Rule)
+						bRet_Send = SendPacket( pLog );
 
 					// 실패인 경우는 모든 세션이 전송 실패인 경우이다. 따라서, 현재 데이터는 다시 전송할 수 있도록 큐의 앞에 넣어 주도록 하자
 					if(false == bRet_Send)
-						m_pLogQ->Push_front(pLog->pstrLog, false);
-					else
-						// 전송 성공했으므로 더이상 로그 메모리는 사용하지않는다. 해서 삭제한다
-						pLog->Clear();
-
-					delete pLog;
+						m_pLogQ->Push_front( pLog );
 				}
+				// else -> false 경우는 삭제
+
+				delete pLog;
 			}
 
 			if(false == bRet_Send)
@@ -131,8 +112,15 @@ void TCP_ClientMgr::Set_LogQ( __in MsgLog_Q *_pLogQ )
 	m_pLogQ = _pLogQ;
 }
 
-bool TCP_ClientMgr::SendPacket( __in std::string *_pData )
+bool TCP_ClientMgr::SendPacket( __in std::string *_pstrProtobufRaw )
 {
+	// 0x17 0x17 을추가해서 패킷의 끝임을 알려주자
+	if( 0x17 != _pstrProtobufRaw->at(_pstrProtobufRaw->length() - 2) && 0x17 != _pstrProtobufRaw->at(_pstrProtobufRaw->length() - 1) )
+	{
+		*_pstrProtobufRaw += 0x17;
+		*_pstrProtobufRaw += 0x17;
+	}
+
 	while(true)
 	{
 		TCP_Client * pSession = (TCP_Client *)m_pSendSession->Get_Send_Session();
@@ -140,14 +128,14 @@ bool TCP_ClientMgr::SendPacket( __in std::string *_pData )
 		{
 			// pSession->ASync_Send( _pData->c_str(), _pData->length() );
 			// return true;
-			int nSend_Length = pSession->Sync_Send( _pData->c_str(), _pData->length() );
-			if(nSend_Length == (int)_pData->length())
+			int nSend_Length = pSession->Sync_Send( _pstrProtobufRaw->c_str(), _pstrProtobufRaw->length() );
+			if(nSend_Length == (int)_pstrProtobufRaw->length())
 			{
-				std::cout << "[TCP_ClientMgr::SendPacket][SUCC] SEND >> " << *_pData << std::endl;
+				std::cout << "[TCP_ClientMgr::SendPacket][SUCC] SEND >> " << _pstrProtobufRaw->c_str() << std::endl;
 				return true;
 			}
 
-			std::cout << "[TCP_ClientMgr::SendPacket][FAIL] >> " << *_pData << std::endl;
+			std::cout << "[TCP_ClientMgr::SendPacket][FAIL] >> " << _pstrProtobufRaw->c_str() << std::endl;
 
 			// 여기로 왔다는건 전송 실패인 경우
 			// 다음 세션으로 다시 전송 시도한다 
@@ -376,110 +364,89 @@ bool TCP_ClientMgr::Add_Eng_FailBack_Standby( __in const char *_pszServerIP, __i
 	return true;
 }
 
-// bool TCP_ClientMgr::Input_Filter( __in loan::MsgLog &_Packet )
-// {
-// 	if(nullptr == m_pLogQ || nullptr == m_pPolicy)
-// 	{
-// 		//ASSERT(0 && "[TCP_Session::Input_Filter] m_pLogQ is nullptr");
-// 		return false;
-// 	}
-
-// 	// 큐에 설정 리미트에 도달하면 중지 명령을 보내자 
-// 	if(m_pLogQ->GetQ_LimitSize() == (int)m_pLogQ->GetQ_Size())
-// 	{
-// 		loan::MsgLog msg_stop;
-// 		msg_stop.set_msg_type( MSG_TYPE_GEN );
-// 		//msg_stop.set_msg_cmd( (int)MsgLog_Cmd_Crolling::STOP_REQU );
-// 		msg_stop.set_msg_cmd( 1 );
-
-// 		std::string strSendData;
-// 		msg_stop.SerializeToString(&strSendData);
-// 		// Sync_Send( strSendData.c_str(), msg_stop.ByteSizeLong() );
-// 	}
-
-// 	// full 크기에 도착하면 버린다
-// 	if(m_pLogQ->GetQ_FullSize() == (int)m_pLogQ->GetQ_Size())
-// 		return false;
-
-// 	bool bIsPushQ = false;
-// 	bool bPass = false;
-// 	std::string strIP_Port;
-// 	/*
-// 	for(auto &policy : *m_pPolicy)
-// 	{
-// 		// ip port 검색
-// 		// 아무것도 없으면 무조건 다 받는다
-// 		if( true == policy.second.vec_ip_port.empty())
-// 			bPass = true;
-// 		else
-// 		{
-// 			for(auto &ip_port : policy.second.vec_ip_port )
-// 			{
-// 				if( ip_port == m_strIP_Port )
-// 				{
-// 					bPass = true;
-// 					break;
-// 				}
-// 			}
-// 		}
-// 		if( false == bPass )
-// 			continue;
-
-// 		// 정규식 검색
-// 		// 아무것도 없으면 무조건 다 받는다
-// 		if( true == policy.second.vec_regex.empty())
-// 			bPass = true;
-// 		else
-// 		{
-// 			for(auto &reg : policy.second.vec_regex)
-// 			{
-// 				std::regex reg_ex(reg);
-// 				std::smatch result;
-
-// 				if( std::regex_search(_Packet.logcontents(), result, reg_ex) )
-// 				{
-// 					bPass = true;
-// 					break;
-// 				}
-// 			}
-// 		}
-// 		if( false == bPass )
-// 			continue;
-
-// 		// 서비스 로그
-// 		// 아무것도 없으면 무조건 다 받는다
-// 		if( true == policy.second.vec_service.empty())
-// 			bPass = true;
-// 		else
-// 		{
-// 			for(auto &service : policy.second.vec_service)
-// 			{
-// 				if(service == _Packet.service_name())
-// 				{
-// 					bPass = true;
-// 					break;
-// 				}
-// 			}
-// 		}
-// 		if( false == bPass )
-// 			continue;
-
-// 		if (true == bPass)
-// 		{
-// 			std::string *pstrSendData = new std::string();
-// 			_Packet.SerializeToString(&(*pstrSendData));
-
-// 			// Push_Data 안에 delete를 자동 호출 해준다. 따로 delete 를 호출 하지 말자 
-// 			m_pLogQ->Push_back( policy.first.c_str(), pstrSendData );
-
-// 			bIsPushQ = true;
-// 		}
-// 	}
-// //*/
-// 	return bIsPushQ;
-// }
-
-bool TCP_ClientMgr::Set_SaveFile( __in const char *_pszFilePath )
+bool TCP_ClientMgr::Set_SaveFile( __in const char *_pszFilePath, __in const char *_pszLocale )
 {
-	return false;
+	if( SEND_RULE::SAVE_FILE != m_eSend_Rule )
+	{
+		if( nullptr != m_pSendSession )
+		{
+			delete m_pSendSession;
+			m_pSendSession = nullptr;
+		}
+	}
+
+	m_eSend_Rule = SEND_RULE::SAVE_FILE;
+
+	m_strSavePath_Pattern = _pszFilePath;
+	m_strLocale = _pszLocale;
+
+	return true;
+}
+
+bool TCP_ClientMgr::OpenFile( __in const char *_pszFilePath, __in const char *_pszLocale )
+{
+	
+	try
+	{
+		if(false == m_of_Data.is_open())
+		{
+			//m_of_Data.imbue("ko_KR.UTF-8");
+			//m_of_Data.imbue( _pszLocale );
+			m_of_Data.open( _pszFilePath, std::ios::out | std::ios::ate );
+			if(true == m_of_Data.is_open())
+				std::cout << "[TCP_ClientMgr::Set_SaveFile] Open file ret = " << "SUCC | Path = " << _pszFilePath << "\n";
+			else
+				std::cout << "[TCP_ClientMgr::Set_SaveFile] Open file ret = " << "FAIL | Path = " << _pszFilePath << "\n";
+		}
+	}
+	catch(const std::exception& e)
+	{
+		std::cerr << "[Exception][TCP_ClientMgr::Set_SaveFile] Err = " << e.what() << "\n";
+		return false;
+	}
+	catch(...)
+	{
+		std::cerr << "[Exception][TCP_ClientMgr::Set_SaveFile] Err = Unknown" << "\n";
+		return false;
+	}
+
+	return m_of_Data.is_open();
+}
+
+bool TCP_ClientMgr::Write_Data( __in std::string *_pstrProtobufRaw )
+{
+	if( SEND_RULE::SAVE_FILE != m_eSend_Rule )
+		return false;
+
+	if(true == m_of_Data.is_open())
+	{
+		std::string strFilePath = Replace_Macro(m_strSavePath_Pattern);
+
+		if( false == OpenFile( strFilePath.c_str(), m_strLocale.c_str() ) )
+			return false;
+	}
+
+	try
+	{
+		// 실제로는 프로토버프 디코딩한 로그데이터만 저장해야한다 
+		m_of_Data << _pstrProtobufRaw->c_str() << std::endl;
+		std::cout << "[TCP_ClientMgr::Write_Data] Data << " << _pstrProtobufRaw->c_str() << std::endl;
+	}
+	catch(std::exception const &e)
+	{
+		std::cerr << "[Exception][TCP_ClientMgr::Write_Data] Err = " << e.what() << "\n";
+		return false;
+	}
+	catch(...)
+	{
+		std::cerr << "[Exception][TCP_ClientMgr::Write_Data] Err = Unknown" <<  "\n";
+		return false;
+	}
+
+	return true;
+}
+
+POLICY * TCP_ClientMgr::Get_Policy()	
+{	
+	return m_pPolicy;	
 }

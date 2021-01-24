@@ -49,7 +49,7 @@ namespace Rigitaeda
         {
             if(nullptr == _pMgr)
             {
-                //ASSERT(0 && "Rigi_TCPMgr is not nullptr!!!");
+                ASSERT(0 && "Rigi_TCPMgr is not nullptr!!!");
                 return false;
             }
 

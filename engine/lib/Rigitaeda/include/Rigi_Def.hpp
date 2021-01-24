@@ -21,11 +21,15 @@
 #include <boost/system/error_code.hpp>
 #include <assert.h>
 
-// #ifdef DEBUG
-// 	ASSERT(...)    assert(__ARGS__)
-// #else
-// 	ASSERT(x)	   
-// #endif
+#ifdef DEBUG
+	#ifndef ASSERT
+		#define	ASSERT    		assert
+	#endif
+#else
+	#ifndef ASSERT
+		#define ASSERT
+	#endif
+#endif
 
 //#include <glog/logging.h>
 

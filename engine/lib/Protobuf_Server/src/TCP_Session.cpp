@@ -2,7 +2,10 @@
 // 해서 Rigi_Def.hpp 보다 먼저 선언을 해야 한다
 #include <regex>
 #include "TCP_Session.hpp"
-#include "TCP_Mgr.hpp"
+#include "TCP_ServerMgr.hpp"
+#include "MsgLog_Q.hpp"
+#include "Policy.hpp"
+
 #include <google/protobuf/descriptor.h>
 #include <google/protobuf/dynamic_message.h>
 #include <google/protobuf/io/zero_copy_stream_impl.h>
@@ -16,6 +19,7 @@ using namespace google::protobuf::compiler;
 TCP_Session::TCP_Session() 
 { 
 	m_pLogQ = nullptr;
+	m_Event_RecvFilter = nullptr;
 }
 
 TCP_Session::~TCP_Session() 
@@ -26,53 +30,66 @@ void TCP_Session::Split_Protobuf( 	__in const char *_pData,
 									__in size_t _nData_len,
 									__out std::string &_strTemp )
 {
-	std::string strSendData;
-	for(int i=0; i<(int)_nData_len; i++)
+	bool bRet = false;
+	if(nullptr == m_Event_RecvFilter)
+		bRet = true;
+
+	std::string strSendData = "";
+	strSendData += _pData[0];
+	//printf("[ 0] %02X => %c\n", _pData[0], _pData[0]);
+	for(int i=1; i<(int)_nData_len; i++)
 	{
 		strSendData += _pData[i];
 
-		// 패킷을 다 받았다면 문장의 끝은 \n\n(0x0a 0x0a) 이다 
-		if(i > 0)
+		//printf("[%2d] %02X => %c\n", i, _pData[i], _pData[i]);
+
+		// 패킷을 다 받았다면 문장의 끝은 \n\n(0x1b 0x1b) 이다 
+		if( 0x17 == _pData[i] && 0x17 == _pData[i-1] )
 		{
-			if( 0x1b == _pData[i] )
+			if(nullptr != m_Event_RecvFilter)
+				bRet = m_Event_RecvFilter(strSendData);
+
+			if(true == bRet)
 			{
-				if( 0x1b == _pData[i-1] )
-				{
-					// if(false == strSendData.empty())
-					{
-						std::string *pstrSendData = new std::string();
-						//pstrSendData->swap(strSendData);
-						*pstrSendData = strSendData;
-						strSendData = "";
-						m_pLogQ->Push_back( pstrSendData, true );
-					}
-				}
+				//std::cout << "[SPLIT 1][" << strSendData << "]" << std::endl;
+
+				std::string *pstrSendData = new std::string();
+				pstrSendData->swap(strSendData);
+				strSendData = "";
+
+				m_pLogQ->Push_back( pstrSendData );
 			}
 		}
 	}
 
 	if( 1 < (int)strSendData.length() )
 	{
-		// 패킷을 다 받았다면 문장의 끝은 0x0b 0x0b 이다 
-		if( (0x1b == strSendData[ strSendData.length()-1 ] ) &&
-			(0x1b == strSendData[ strSendData.length()-2 ] ) )
+		// 패킷을 다 받았다면 문장의 끝은 0x1b 0x1b 이다 
+		if( (0x17 == strSendData[ strSendData.length()-1 ] ) &&
+			(0x17 == strSendData[ strSendData.length()-2 ] ) )
 		{
-			std::string *pstrSendData = new std::string();
-			//pstrSendData->swap(strSendData);
-			*pstrSendData = strSendData;
-			strSendData = "";
-			m_pLogQ->Push_back( pstrSendData, true );
+			if(nullptr != m_Event_RecvFilter)
+				bRet = m_Event_RecvFilter(strSendData);
+
+			if(true == bRet)
+			{
+				//std::cout << "[SPLIT 2][" << strSendData << "]" << std::endl;
+
+				std::string *pstrSendData = new std::string();
+				pstrSendData->swap(strSendData);
+				strSendData = "";
+
+				m_pLogQ->Push_back( pstrSendData );
+			}
 		}
 		else
 		{
-			//_strTemp.swap( strSendData );
-			_strTemp = strSendData;
+			_strTemp.swap( strSendData );
 		}
 	}
 	else
 	{
-		//_strTemp.swap( strSendData );
-		_strTemp = strSendData;
+		_strTemp.swap( strSendData );
 	}
 }
 
@@ -94,8 +111,7 @@ void TCP_Session::OnEvent_Receive(	__in char *_pData,
 		else
 		{
 			std::string strTemp;
-			//strTemp.swap(m_strTempBuff);
-			strTemp = m_strTempBuff;
+			strTemp.swap(m_strTempBuff);
 			strTemp += _pData;
 			m_strTempBuff = "";
 
@@ -115,7 +131,7 @@ void TCP_Session::OnEvent_Close()
 
 bool TCP_Session::OnEvent_Init()
 {
-	TCP_Mgr<TCP_Session> *pMgr = (TCP_Mgr<TCP_Session> *)Get_TCPMgr();
+	TCP_ServerMgr<TCP_Session> *pMgr = (TCP_ServerMgr<TCP_Session> *)Get_TCPMgr();
 
 	m_pLogQ = pMgr->Get_LogQ();
 	m_pPolicy = pMgr->Get_Policy();

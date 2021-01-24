@@ -3,18 +3,18 @@
 
 #include <fstream>
 #include <mutex>
-#include "../data/Data_Policy.hpp"
 #include "Rigi_TCPServerMgr.hpp"
-#include "../data/MsgLog_Q.hpp"
+#include "MsgLog_Q.hpp"
+#include "Policy.hpp"
 
 template <typename T>
-class TCP_Mgr : public Rigitaeda::Rigi_TCPServerMgr<T>
+class TCP_ServerMgr : public Rigitaeda::Rigi_TCPServerMgr<T>
 {
 public:
-	TCP_Mgr( __in MsgLog_Q *_pLogQ, __in DATA_POLICY *_pPolicy ) : m_pLogQ(_pLogQ), m_pPolicy(_pPolicy)
+	TCP_ServerMgr( __in MsgLog_Q *_pLogQ, __in POLICY *_pPolicy ) : m_pLogQ(_pLogQ), m_pPolicy(_pPolicy)
 	{
 	}
-	virtual ~TCP_Mgr()
+	virtual ~TCP_ServerMgr()
 	{
 		m_pLogQ = nullptr;
 		m_pPolicy = nullptr;
@@ -22,7 +22,7 @@ public:
 
 private:
 	MsgLog_Q *m_pLogQ;
-	DATA_POLICY *m_pPolicy;
+	POLICY *m_pPolicy;
 
 public:
 	// ------------------------------------------------------------------
@@ -32,20 +32,11 @@ public:
 	{
 		if(nullptr == m_pLogQ)
 		{
-			//assert(0 && "[TCP_Mgr::OnEvent_Init] m_pLogQ is nullptr");
+			ASSERT(0 && "[TCP_Mgr::OnEvent_Init] m_pLogQ is nullptr");
 			return false;
 		}
 
-		char szPath[1024] = {0,};
-		if (getcwd(szPath, sizeof(szPath)) == NULL) 
-		{
-			fprintf(stderr, "getcwd error\n");
-			exit(1);
-		}
-		std::string strPath = szPath;
-		strPath += "/conf.json";
-
-		std::cout << "[" << __FUNCTION__ << "][CURRENT PATH] >> " << strPath << std::endl;
+		std::cout << "[START] << Server Run (IP = " << Get_LocalServerIP() << " | PORT = " << std::to_string( Get_Port() ) << ")" << std::endl;
 
 		return true;
 	}
@@ -66,7 +57,17 @@ public:
 		return infile.good();
 	}
 
-	DATA_POLICY * Get_Policy()	{	return m_pPolicy;	};
+	POLICY * Get_Policy()	{	return m_pPolicy;	};
+
+	int Get_Port()
+	{
+        return Rigitaeda::Rigi_TCPServerMgr<T>::Get_Port() ; 
+    }
+
+	std::string Get_LocalServerIP()
+	{
+        return Rigitaeda::Rigi_TCPServerMgr<T>::Get_LocalServerIP() ; 
+    }
 };
 
 #endif

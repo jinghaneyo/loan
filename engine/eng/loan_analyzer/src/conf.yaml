@@ -42,9 +42,12 @@ send-rule:
         session-change-count: 
             active: 2
 
+    #$save-file: /share/engine/eng/loan_analyzer/cbuild/data_[HOST_IP].dat"
+    save-file: /share/engine/eng/loan_analyzer/cbuild/data.dat"
+
 destination:
     # 재접속 주기
     period-retry-connect-time : 10
     # milisecond
     time-out: 3000
-    send-rule: "fail-over"
+    send-rule: "save-file"

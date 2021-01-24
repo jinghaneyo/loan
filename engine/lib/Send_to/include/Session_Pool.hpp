@@ -2,12 +2,7 @@
 #define SESSION_POOL_H_
 
 #include "Rigi_ClientTCP.hpp"
-
-typedef std::string 				STR_IP_PORT;
-typedef std::vector<STR_IP_PORT> 	VEC_IP_PORT;
-
-#define INDEX_ACTIVE	0
-#define INDEX_STANDBY	1	
+#include "Policy.hpp"
 
 #ifndef SESSION_ACTIVE
 #define SESSION_ACTIVE		0
@@ -15,34 +10,6 @@ typedef std::vector<STR_IP_PORT> 	VEC_IP_PORT;
 #ifndef SESSION_STANDBY	
 #define SESSION_STANDBY 	1	
 #endif
-
-class POLICY
-{
-public:
-	POLICY() { Init(); };
-	~POLICY() {};
-
-	VEC_IP_PORT							m_vecRoudRobin;
-	std::map<std::string, VEC_IP_PORT>  m_mapFailOver_IP_Port;
-	std::vector<int>					m_vecFailOver_Change_Limit;
-	std::map<std::string, VEC_IP_PORT>  m_mapFailBack_IP_Port;
-	std::vector<int>					m_vecFailBack_Change_Limit;
-	int									m_period_retry_connect_time = 5;
-	std::string							m_SendRule;
-
-	void Init()
-	{
-		m_vecRoudRobin.clear();
-		m_mapFailOver_IP_Port.clear();
-		m_mapFailBack_IP_Port.clear();
-		// active, stand-by 기본값 입력
-		m_vecFailOver_Change_Limit.emplace_back(0);
-		m_vecFailOver_Change_Limit.emplace_back(0);
-		// active, stand-by 기본값 입력
-		m_vecFailBack_Change_Limit.emplace_back(0);
-		m_vecFailBack_Change_Limit.emplace_back(0);
-	}
-};
 
 class Session_Pool
 {

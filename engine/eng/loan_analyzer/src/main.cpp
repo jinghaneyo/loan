@@ -1,10 +1,8 @@
 #include <stdio.h>
-#include "TCP_Mgr.hpp"
-#include "TCP_Session.hpp"
-//#include "client/TCP_ClientMgr.hpp"
-#include "TCP_ClientMgr.hpp"
-#include "MsgLog_Q.hpp"
+#include <thread>
 #include "Conf_Yaml.hpp"
+#include "protobuf/loan.pb.h"
+#include "Run.hpp"
 #include <glog/logging.h>
 
 bool Event_Init()
@@ -25,136 +23,118 @@ void Event_Receive( __in char *_pData, __in size_t _nData_len )
 	// 	std::cout << "[Event_Receive] << Service Name : " << msgLog.service_name() << " << Log contents : " << msgLog.logcontents() << std::endl;
 }
 
-bool Split_IP_Port( __in std::string &_strSource, __out std::string &_strIP, __out std::string &_strPort )
-{
-	int nPos = (int)_strSource.find(":");
-	if(-1 != nPos )
-	{
-		_strIP = _strSource.substr(0, nPos);
-		_strPort = _strSource.substr(nPos + 1, _strSource.length()-1-nPos );
+// bool TCP_ClientMgr::Input_Filter( __in loan::MsgLog &_Packet )
+// {
+// 	if(nullptr == m_pLogQ || nullptr == m_pPolicy)
+// 	{
+// 		//ASSERT(0 && "[TCP_Session::Input_Filter] m_pLogQ is nullptr");
+// 		return false;
+// 	}
 
-		return true;
-	}
+// 	// 큐에 설정 리미트에 도달하면 중지 명령을 보내자 
+// 	if(m_pLogQ->GetQ_LimitSize() == (int)m_pLogQ->GetQ_Size())
+// 	{
+// 		loan::MsgLog msg_stop;
+// 		msg_stop.set_msg_type( MSG_TYPE_GEN );
+// 		//msg_stop.set_msg_cmd( (int)MsgLog_Cmd_Crolling::STOP_REQU );
+// 		msg_stop.set_msg_cmd( 1 );
 
-	return false;
-}
+// 		std::string strSendData;
+// 		msg_stop.SerializeToString(&strSendData);
+// 		// Sync_Send( strSendData.c_str(), msg_stop.ByteSizeLong() );
+// 	}
 
-void Add_Eng( 	__in TCP_ClientMgr &_ClientMgr, 
-				__in DATA_POLICY &_Policy )
-{
-	try
-	{
-		if( "round-robin" == _Policy.m_SendRule )
-		{
-			for(auto &data : _Policy.m_vecRoudRobin)
-			{
-				std::string strIP, strPort;
-				if( true == Split_IP_Port(data, strIP, strPort) )
-					_ClientMgr.Add_Eng_RoundRobin( strIP.c_str(), strPort.c_str() );
-			}
-		}
-		else if( "fail-over" == _Policy.m_SendRule )
-		{
-			for(auto &map_vec : _Policy.m_mapFailOver_IP_Port)
-			{
-				for(auto &data : map_vec.second )
-				{
-					if("active" == map_vec.first)
-					{
-						std::string strIP, strPort;
-						if( true == Split_IP_Port(data, strIP, strPort) )
-							_ClientMgr.Add_Eng_FailOver_Active( strIP.c_str(), strPort.c_str() );
-					}
-					else if("stand-by" == map_vec.first)
-					{
-						std::string strIP, strPort;
-						if( true == Split_IP_Port(data, strIP, strPort) )
-							_ClientMgr.Add_Eng_FailOver_Standby( strIP.c_str(), strPort.c_str() );
-					}
-				}
-			}
-		}
-		else if( "fail-back" == _Policy.m_SendRule )
-		{
-			for(auto &map_vec : _Policy.m_mapFailOver_IP_Port)
-			{
-				for(auto &data : map_vec.second )
-				{
-					if("active" == map_vec.first)
-					{
-						std::string strIP, strPort;
-						if( true == Split_IP_Port(data, strIP, strPort) )
-							_ClientMgr.Add_Eng_FailBack_Active( strIP.c_str(), strPort.c_str() );
-					}
-					else if("stand-by" == map_vec.first)
-					{
-						std::string strIP, strPort;
-						if( true == Split_IP_Port(data, strIP, strPort) )
-							_ClientMgr.Add_Eng_FailBack_Standby( strIP.c_str(), strPort.c_str() );
-					}
-				}
-			}
-		}
-	}
-	// catch(std::exception &e)
-	// {
-	// 	std::cout << "[Exception][MAIN] Add_Eng | Err = " << e.what() << std::endl;
-	// }
-	catch(...)
-	{
-		std::cout << "[Exception][MAIN] Add_Eng" << std::endl;
-	}
-}
+// 	// full 크기에 도착하면 버린다
+// 	if(m_pLogQ->GetQ_FullSize() == (int)m_pLogQ->GetQ_Size())
+// 		return false;
 
-void Run_Client( 	__in TCP_ClientMgr &_ClientMgr, 
-					__in DATA_POLICY &_Policy,
-					__out std::thread &_Thr_Clinet )
-{
-	// 분석 엔진 등록 
-	Add_Eng( _ClientMgr, _Policy );
+// 	bool bIsPushQ = false;
+// 	bool bPass = false;
+// 	std::string strIP_Port;
+// 	/*
+// 	for(auto &policy : *m_pPolicy)
+// 	{
+// 		// ip port 검색
+// 		// 아무것도 없으면 무조건 다 받는다
+// 		if( true == policy.second.vec_ip_port.empty())
+// 			bPass = true;
+// 		else
+// 		{
+// 			for(auto &ip_port : policy.second.vec_ip_port )
+// 			{
+// 				if( ip_port == m_strIP_Port )
+// 				{
+// 					bPass = true;
+// 					break;
+// 				}
+// 			}
+// 		}
+// 		if( false == bPass )
+// 			continue;
 
-	_Thr_Clinet = std::thread( [&]()
-	{
-		_ClientMgr.Run();
- 	});
-	_Thr_Clinet.detach();
+// 		// 정규식 검색
+// 		// 아무것도 없으면 무조건 다 받는다
+// 		if( true == policy.second.vec_regex.empty())
+// 			bPass = true;
+// 		else
+// 		{
+// 			for(auto &reg : policy.second.vec_regex)
+// 			{
+// 				std::regex reg_ex(reg);
+// 				std::smatch result;
 
-    std::cout << "[START] << ClientMgr Run" << std::endl;
-}
+// 				if( std::regex_search(_Packet.logcontents(), result, reg_ex) )
+// 				{
+// 					bPass = true;
+// 					break;
+// 				}
+// 			}
+// 		}
+// 		if( false == bPass )
+// 			continue;
 
-void Run_Server( __in TCP_Mgr<TCP_Session> &_ServerMgr, __in int _nPort )
-{
-    std::cout << "[START] << server run" << std::endl;
+// 		// 서비스 로그
+// 		// 아무것도 없으면 무조건 다 받는다
+// 		if( true == policy.second.vec_service.empty())
+// 			bPass = true;
+// 		else
+// 		{
+// 			for(auto &service : policy.second.vec_service)
+// 			{
+// 				if(service == _Packet.service_name())
+// 				{
+// 					bPass = true;
+// 					break;
+// 				}
+// 			}
+// 		}
+// 		if( false == bPass )
+// 			continue;
 
-	Rigitaeda::Rigi_Server server(10240);
-	server.Run( _nPort, 100, &_ServerMgr );
-}
+// 		if (true == bPass)
+// 		{
+// 			std::string *pstrSendData = new std::string();
+// 			_Packet.SerializeToString(&(*pstrSendData));
 
-void Stop_All( 	__in TCP_ClientMgr &_ClientMgr, 
-				__in TCP_Mgr<TCP_Session> &_ServerMgr, 
-				__in std::thread &_Thr_Clinet,
-				__in MsgLog_Q &_LogQ )
-{
-	// -----------------------------------------------------
-	// 종료-> 리소스 해제 
-	// -----------------------------------------------------
-	_ClientMgr.Stop();
-	_Thr_Clinet.join();
-	_ServerMgr.Stop();
-	_LogQ.Clear_Q();
+// 			// Push_Data 안에 delete를 자동 호출 해준다. 따로 delete 를 호출 하지 말자 
+// 			m_pLogQ->Push_back( policy.first.c_str(), pstrSendData );
 
-    std::cout << "[FINISH] << server stop" << std::endl;
-}
+// 			bIsPushQ = true;
+// 		}
+// 	}
+// //*/
+// 	return bIsPushQ;
+// }
 
 int main( int argc, char* argv[])
 {
+	GOOGLE_PROTOBUF_VERIFY_VERSION;
+
     std::cout << "argc = " << argc << std::endl;
 
 	int nPort = 5555;
 	if( 2 == argc)
 		nPort = atoi(argv[1]);
-
-	GOOGLE_PROTOBUF_VERIFY_VERSION;
 
     // google::InitGoogleLogging(argv[0]);   
  	// google::SetLogDestination( google::GLOG_INFO, "./DUMP." );  
@@ -165,28 +145,24 @@ int main( int argc, char* argv[])
 	strCurrentPath = getcwd( strBuffer, sizeof(strBuffer) );
 	std::string strPath_Conf = strCurrentPath + "/conf.yaml";
 
-	DATA_POLICY Policy;
-	if(false == Conf_Yaml::Load_yaml(strPath_Conf.c_str(), &Policy) )
+    DATA_POLICY Policy;
+    bool bRet = Conf_Yaml::Load_yaml(strPath_Conf.c_str(), &Policy);
+    if( false == bRet )
 	{
-		std::cout << "[MAIN][FAIL] Conf_Yaml::Load_yaml" << std::endl;
-		return 1;
+        return 1;
 	}
-
 	std::cout << "[MAIN][SUCC] Conf_Yaml::Load_yaml" << std::endl;
 
-	MsgLog_Q logQ;
-	TCP_ClientMgr clientMgr(&logQ, &Policy);
-	TCP_Mgr<TCP_Session> serverMgr(&logQ, &Policy);
+ 	std::thread Thr_Client;
+	MsgLog_Q LogQ;
+	TCP_ClientMgr clientMgr(&LogQ, &Policy);
+	TCP_ServerMgr<TCP_Session> serverMgr(&LogQ, &Policy);
 
-	std::thread thr_client;
-	Run_Client( clientMgr, Policy, thr_client );
+	Loan_Run run;
+	run.Run( Policy, &clientMgr, Thr_Client, &serverMgr, nPort );
 
-	std::string strHostIP = boost::asio::ip::host_name();
-    std::cout << "[START] << server run (IP = " << strHostIP << " | PORT = " << nPort << ")" << std::endl;
-
-	Run_Server( serverMgr, nPort );
-
-	Stop_All( clientMgr, serverMgr, thr_client, logQ );
+	std::cout << "[FINISH] << loan_analyzer stop" << std::endl;
+	run.Stop_All(&clientMgr, &serverMgr, Thr_Client, LogQ);
 
 	google::protobuf::ShutdownProtobufLibrary();
 

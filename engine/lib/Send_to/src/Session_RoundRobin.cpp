@@ -224,8 +224,7 @@ bool Session_RoundRobin::Reconnect_DisConnect_Pool()
 
 	std::vector< std::deque<Rigitaeda::Rigi_ClientTCP *>::iterator > vecDel;
 
-	auto itr = m_DqSessionPool_DisConnect.begin();
-	while(itr != m_DqSessionPool_DisConnect.end())
+	for (auto itr = m_DqSessionPool_DisConnect.begin(); itr != m_DqSessionPool_DisConnect.end(); ++itr)
 	{
 		Rigitaeda::Rigi_ClientTCP * pSession = *itr;
 		if(false == pSession->IsConnected() )
@@ -239,8 +238,6 @@ bool Session_RoundRobin::Reconnect_DisConnect_Pool()
 				vecDel.emplace_back(itr);
 			}
 		}
-
-		itr++;
 	}
 
 	for(auto &itr : vecDel)

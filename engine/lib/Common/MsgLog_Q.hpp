@@ -42,7 +42,8 @@ struct _MsgLog_Data
 	}
 };
 
-typedef std::deque<_MsgLog_Data *>	DEQUE_MSG_LOG_PTR;
+//typedef std::deque<_MsgLog_Data *>	DEQUE_MSG_LOG_PTR;
+typedef std::deque<std::string *>	DEQUE_MSG_LOG_PTR;
 
 class MsgLog_Q
 {
@@ -75,34 +76,21 @@ public:
 		}
 	}
 	
-	void Push_back( __in std::string *_pData, __in bool _bProtobuf )
+	void Push_back( __in std::string *_pData )
 	{
 		const std::lock_guard<std::mutex> lock(m_LockQueue);
-		_MsgLog_Data *pLog = new _MsgLog_Data();
-		pLog->pstrLog = _pData;
-		if(true == _bProtobuf)
-			pLog->bProtobuf = true;
-		else
-			pLog->bProtobuf = false;
-
-		m_DeQueue.push_back(pLog);
+		m_DeQueue.push_back(_pData);
 	}
 
-	void Push_front( __in std::string *_pData, __in bool _bProtobuf )
+	void Push_front( __in std::string *_pData )
 	{
 		const std::lock_guard<std::mutex> lock(m_LockQueue);
-		_MsgLog_Data *pLog = new _MsgLog_Data();
-		pLog->pstrLog = _pData;
-		if(true == _bProtobuf)
-			pLog->bProtobuf = true;
-		else
-			pLog->bProtobuf = false;
-		m_DeQueue.push_front(pLog);
+		m_DeQueue.push_front(_pData);
 	}
 
-	_MsgLog_Data * Pop_front()
+	std::string * Pop_front()
 	{
-		_MsgLog_Data *pRet = nullptr;
+		std::string *pRet = nullptr;
 
 		const std::lock_guard<std::mutex> lock(m_LockQueue);
 		if( true == m_DeQueue.empty()  )

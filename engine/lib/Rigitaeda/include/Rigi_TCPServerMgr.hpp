@@ -103,17 +103,17 @@ namespace Rigitaeda
         {
             if(1 > _nPort)
             {
-                //ASSERT(0 && "[Rigi_TCPServerMgr::Run] port < 0 !!");
+                ASSERT(0 && "[Rigi_TCPServerMgr::Run] port < 0 !!");
                 return false;
             }
             if(1 > _nMaxClient)
             {
-                //ASSERT(0 && "[Rigi_TCPServerMgr::Run] _nMaxClient < 0 !!");
+                ASSERT(0 && "[Rigi_TCPServerMgr::Run] _nMaxClient < 0 !!");
                 return false;
             }
             if( nullptr == _pParents)
             {
-                //ASSERT(0 && "[Rigi_TCPServerMgr::Run] _nMaxClient < 0 !!");
+                ASSERT(0 && "[Rigi_TCPServerMgr::Run] _nMaxClient < 0 !!");
                 return false;
             }
 
@@ -131,7 +131,7 @@ namespace Rigitaeda
             // Init 이벤트 호출
             if( false == OnEvent_Init() )
             {
-                //ASSERT(0 && "[Rigi_TCPMgr::Run] OnEvent_Init is false !!");
+                ASSERT(0 && "[Rigi_TCPMgr::Run] OnEvent_Init is false !!");
                 return false;
             }
 
@@ -143,8 +143,10 @@ namespace Rigitaeda
             m_acceptor.bind(endpoint);
             m_acceptor.listen(_nMaxClient);
 
+            std::cout << "[Rigi_TCPServerMgr] Accept Start >> " << std::endl;
             AsyncAccept();
 
+            std::cout << "[Rigi_TCPServerMgr] Server Start >> " << std::endl;
             boost::system::error_code ec;
             m_io_service.run(ec);
 
@@ -159,6 +161,18 @@ namespace Rigitaeda
             m_io_service.stop();
 
             m_SessionPool.Clear();
+        }
+
+        std::string Get_LocalServerIP()
+        {
+            boost::asio::ip::tcp::resolver resolver(m_io_service);
+            boost::asio::ip::tcp::resolver::query query(boost::asio::ip::host_name(), "");
+            boost::asio::ip::tcp::resolver::iterator iter = resolver.resolve( query );
+            boost::asio::ip::tcp::endpoint ep = *iter;
+
+            std::string strLocalIP = ep.address().to_string();
+
+            return strLocalIP;
         }
     };
 }

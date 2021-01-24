@@ -1,12 +1,6 @@
 #ifndef CONF_YAML_H_
 #define CONF_YAML_H_
 
-#ifdef _WIN32
-   #include <io.h> 
-   #define access    _access_s
-#else
-   #include <unistd.h>
-#endif
 #include <yaml-cpp/yaml.h>
 #include "Data_Policy.hpp"
 
@@ -22,6 +16,14 @@
 	#ifndef __out
 	#define __out
 	#endif
+#endif
+
+#ifndef INDEX_ACTIVE
+#define INDEX_ACTIVE	0
+#endif
+
+#ifndef INDEX_STANDBY
+#define INDEX_STANDBY	1	
 #endif
 
 class Conf_Yaml

@@ -4,16 +4,12 @@
 #include <mutex>
 #include <deque>
 #include <thread>
-#include "Data_Policy.hpp"
-#include "MsgLog_Q.hpp"
-#include "Session_RoundRobin.hpp"
-#include "Session_FailOver.hpp"
-#include "Session_FailBack.hpp"
-#include "TCP_Client.hpp"
 #include <functional>
 #include <fstream>
 
-typedef std::function<bool( __in loan::MsgLog &_Packet )>  Callback_Filter;
+#include "Rigi_ClientTCP.hpp"
+
+typedef std::function<bool( __in std::string &_strProtobufRaw )> 	Event_Send_Filter;
 
 enum class SEND_RULE
 {
@@ -25,10 +21,14 @@ enum class SEND_RULE
 	MAX
 };
 
+class MsgLog_Q;
+class POLICY;
+class Session_Pool;
+
 class TCP_ClientMgr
 {
 public:
-	TCP_ClientMgr( __in MsgLog_Q *_pLogQ, __in DATA_POLICY *_pPolicy );
+	TCP_ClientMgr( __in MsgLog_Q *_pLogQ, __in POLICY *_pPolicy );
 	virtual ~TCP_ClientMgr();
 private:
 	boost::asio::io_service m_io_service;
@@ -37,15 +37,18 @@ private:
 	std::ofstream	m_of_Data;
 
 	MsgLog_Q	*m_pLogQ;
-	DATA_POLICY *m_pPolicy;
+	POLICY *m_pPolicy;
 
 	bool		m_bRun_Thread;
 	std::thread	m_thr_conn;
 	std::thread	m_thr_send;
 
-	Callback_Filter		m_Callback_Filter;
+	Event_Send_Filter	m_Event_Send_Filter;
 
-	SEND_RULE	m_eSend_Rule;
+	SEND_RULE			m_eSend_Rule;
+
+	std::string			m_strSavePath_Pattern;
+	std::string			m_strLocale;
 public:
 	// // ---------------------------------------------------------------
 	// // 이벤트 함수
@@ -60,7 +63,7 @@ public:
 
 	void Set_LogQ( __in MsgLog_Q *_pLogQ );
 
-	bool SendPacket( __in std::string *_pData );
+	bool SendPacket( __in std::string *_pstrProtobufRaw );
 
 	// ---------------------------------------------------------------------
 	// 라운드로빈 관련 
@@ -74,14 +77,15 @@ public:
 	bool Add_Eng_FailBack_Active( __in const char *_pszServerIP, __in const char *_pszPort );
 	bool Add_Eng_FailBack_Standby( __in const char *_pszServerIP, __in const char *_pszPort );
 
-	bool Set_SaveFile( __in const char *_pszFilePath );
+	bool Set_SaveFile( __in const char *_pszFilePath, __in const char *_pszLocale = "ko_KR.UTF-8" );
+	bool OpenFile( __in const char *_pszFilePath, __in const char *_pszLocale );
+	bool Write_Data( __in std::string *_pstrProtobufRaw );
 
-	DATA_POLICY * Get_Policy()	{	return m_pPolicy;	};
+	POLICY * Get_Policy();
 
-	// bool Input_Filter( __in loan::MsgLog &_Packet );
-	void Add_Handler_Filter( __in Callback_Filter &&_Func )
+	void AddEventHandler_Send_Filter( __in Event_Send_Filter &&_Func )
 	{
-		m_Callback_Filter = std::move(_Func);
+		m_Event_Send_Filter = std::move(_Func);
 	}
 };
 

@@ -16,6 +16,7 @@ namespace Rigitaeda
 		Rigi_ClientTCP( __in int _nReceive_Packet_Size = 1024 )
 		{
 			m_bConnected = false;
+			m_pio_service = nullptr;
 
 			Make_Receive_Packet_Size(_nReceive_Packet_Size);
 		}
@@ -29,6 +30,8 @@ namespace Rigitaeda
 		bool		m_bConnected;
 		std::string m_strServerIP;
 		std::string m_strServerPort;
+
+		boost::asio::io_service *m_pio_service;
 	public:
 		bool Connect( 	__in const char *_pszHost, 
 						__in const char *_pszPort,
@@ -57,6 +60,8 @@ namespace Rigitaeda
 
 				m_strServerIP 	= _pszHost;
 				m_strServerPort = _pszPort;
+
+				m_pio_service = &io_service;
 
 				std::cout << "CONNECT >> SUCC" << std::endl;
 
@@ -100,9 +105,13 @@ namespace Rigitaeda
 				else
 					return false;
 			}
-			catch( std::exception &e)
+			catch( std::exception const & e)
 			{
-				std::cout << "[Exception][Reconnect] << " << e.what() <<std::endl;
+				std::cerr << "[Exception][Reconnect] Err = " << e.what() << "\n";
+			}
+			catch( ... )
+			{
+				std::cerr << "[Exception][Reconnect] Err = Unknown " << "\n";
 			}
 			return false;
 		}
@@ -121,6 +130,18 @@ namespace Rigitaeda
 		{
 			return m_strServerPort;
 		}
+
+        std::string Get_LocalHostIP()
+        {
+            boost::asio::ip::tcp::resolver resolver(*m_pio_service);
+            boost::asio::ip::tcp::resolver::query query(boost::asio::ip::host_name(),"");
+            boost::asio::ip::tcp::resolver::iterator iter = resolver.resolve( query );
+            boost::asio::ip::tcp::endpoint ep = *iter;
+
+            std::string strLocalIP = ep.address().to_string();
+
+            return strLocalIP;
+        }
 	};
 };
 

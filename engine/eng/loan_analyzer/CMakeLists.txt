@@ -11,6 +11,8 @@ add_definitions("-Wall -std=c++11")
 #find_package (glog REQUIRED)
 #find_package(gflags REQUIRED)
 
+set(COMMON ../common)
+set(LIB_COMM ../../lib/Common)
 set(RIGITAEDA_INCLUDE ../../lib/Rigitaeda/include)
 set(RIGITAEDA_SRC ../../lib/Rigitaeda/src)
 set(SENDTO_INCLUDE ../../lib/Send_to/include)
@@ -21,6 +23,8 @@ set(PROTOBUF_SERVER_DATA ../../lib/Protobuf_Server/data)
 set(PROTOBUF_CLIENT_INCLUDE ../../lib/Protobuf_Client/include)
 set(PROTOBUF_CLIENT_SRC ../../lib/Protobuf_Client/src)
 
+INCLUDE_DIRECTORIES(${COMMON})
+INCLUDE_DIRECTORIES(${LIB_COMM})
 INCLUDE_DIRECTORIES(${RIGITAEDA_INCLUDE})
 INCLUDE_DIRECTORIES(${RIGITAEDA_SRC})
 INCLUDE_DIRECTORIES(${SENDTO_INCLUDE})
@@ -28,7 +32,7 @@ INCLUDE_DIRECTORIES(${SENDTO_SRC})
 INCLUDE_DIRECTORIES(${PROTOBUF_SERVER_INCLUDE})
 INCLUDE_DIRECTORIES(${PROTOBUF_SERVER_SRC})
 INCLUDE_DIRECTORIES(${PROTOBUF_SERVER_DATA})
-INCLUDE_DIRECTORIES(${PROTOBUF_SERVER_DATA}/protbuf/)
+INCLUDE_DIRECTORIES(${PROTOBUF_SERVER_DATA}/protbuf)
 INCLUDE_DIRECTORIES(${PROTOBUF_CLIENT_INCLUDE})
 INCLUDE_DIRECTORIES(${PROTOBUF_CLIENT_SRC})
 
@@ -36,13 +40,15 @@ ADD_EXECUTABLE(${APP_NAME}
 	# ${RIGITAEDA_INCLUDE}/Rigi_Header.hpp
 	# ${SENDTO_INCLUDE}/Session_Header.hpp
 	src/main.cpp
-	src/Conf_Yaml.cpp
-	# src/client/TCP_Client.hpp
-	# src/client/TCP_ClientMgr.cpp
+	${COMMON}/Run.cpp
+	${COMMON}/Data_Policy.hpp
+	${COMMON}/Conf_Yaml.cpp
+	${LIB_COMM}/protobuf/loan.pb.cc
+	${LIB_COMM}/Policy.hpp
+	${LIB_COMM}/MsgLog_Q.hpp
+	${LIB_COMM}/loan_util.cpp
+	${PROTOBUF_SERVER_INCLUDE}/TCP_ServerMgr.hpp
 	${PROTOBUF_SERVER_SRC}/TCP_Session.cpp
-	${PROTOBUF_SERVER_DATA}/MsgLog_Q.hpp
-	${PROTOBUF_SERVER_DATA}/Data_Policy.hpp
-	${PROTOBUF_SERVER_DATA}/protobuf/loan.pb.cc
 	${PROTOBUF_CLIENT_SRC}/TCP_ClientMgr.cpp
 	${PROTOBUF_CLIENT_INCLUDE}/TCP_Client.hpp
 	${RIGITAEDA_INCLUDE}/Rigi_ClientTCP.hpp

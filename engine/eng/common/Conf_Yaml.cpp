@@ -1,6 +1,13 @@
 #include <iostream>
 #include "Conf_Yaml.hpp"
 
+#ifdef _WIN32
+   #include <io.h> 
+   #define access    _access_s
+#else
+   #include <unistd.h>
+#endif
+
 Conf_Yaml::Conf_Yaml()
 {
 }
@@ -114,6 +121,10 @@ void Conf_Yaml::Parse_SendRule( 	__in const YAML::Node &_node, __out DATA_POLICY
 				}
 			}
 		}
+		else if ( "save-file" == itr.first.as<std::string>() )
+		{
+			_pPolicy->m_strSavePath_Pattern = itr.second.as<std::string>();
+		}
 	}
 }
 
@@ -151,7 +162,7 @@ bool Conf_Yaml::Load_yaml( __in const char *_pszPath_Conf, __out DATA_POLICY *_p
 	else
 	{
 		std::cout << "not exist section => server" << std::endl;
-		return false;
+		//return false;
 	}
 
 	std::map<std::string, std::string> mapGroup;
@@ -160,7 +171,7 @@ bool Conf_Yaml::Load_yaml( __in const char *_pszPath_Conf, __out DATA_POLICY *_p
 	else
 	{
 		std::cout << "not exist section => group" << std::endl;
-		return false;
+		//return false;
 	}
 
 	if ( node["send-rule"] )
@@ -168,7 +179,7 @@ bool Conf_Yaml::Load_yaml( __in const char *_pszPath_Conf, __out DATA_POLICY *_p
 	else
 	{
 		std::cout << "not exist section => send-rule" << std::endl;
-		return false;
+		//return false;
 	}
 
 	if ( node["destination"] )

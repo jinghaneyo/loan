@@ -1,10 +1,10 @@
 #ifndef TCP_SESSION_H_
 #define TCP_SESSION_H_
 
-#include "../data/protobuf/loan.pb.h"
 #include "Rigi_Server.hpp"
-#include "../data/MsgLog_Q.hpp"
-#include "../data/Data_Policy.hpp"
+#include <functional>
+
+typedef std::function<bool( __in std::string &_strProtobufRaw )> 	Event_Receive_Filter;
 
 enum class MsgLog_Type : int
 {
@@ -23,6 +23,9 @@ enum class MsgLog_Cmd_Crolling: int
 	MAX
 };
 
+class MsgLog_Q;
+class POLICY;
+
 class TCP_Session : public Rigitaeda::Rigi_TCPSession
 {
 public:
@@ -33,7 +36,9 @@ private:
 	std::string m_strTempBuff;
 
 	MsgLog_Q 	*m_pLogQ;
-	DATA_POLICY *m_pPolicy;
+	POLICY *m_pPolicy;
+
+	Event_Receive_Filter	m_Event_RecvFilter;
 public:
 	// ---------------------------------------------------------------
 	// 이벤트 함수
@@ -49,6 +54,11 @@ public:
 	void Split_Protobuf(__in const char *_pszData, 
 						__in size_t _nData_len,
 						__out std::string &_strTemp );
+
+	void AddEventHandler_Receive_Filter( __in Event_Receive_Filter &&_Func )
+	{
+		m_Event_RecvFilter = std::move(_Func);
+	}
 };
 
 #endif
