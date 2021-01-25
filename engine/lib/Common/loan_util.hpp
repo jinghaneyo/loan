@@ -31,4 +31,8 @@ std::string GetCurrentTime( __in const char *_pszFormat = "%Y-%m-%d %H:%M:%S" );
 
 std::string Replace_Macro( __in std::string &_strSource );
 
+bool OpenFile( 	__in const char *_pszFilePath, 
+				__in const char *_pszLocale, 
+				__in std::ofstream &_ofstream );
+
 #endif

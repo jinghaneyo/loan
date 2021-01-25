@@ -56,17 +56,19 @@ void Read_Tail( __in std::ifstream &_fsLog, __inout MsgLog_Q &_LogQ )
 
 std::thread Run_Tail( __in const char *_pszFilePath, __inout MsgLog_Q &_LogQ )
 {
-	std::thread thr = std::thread( [&]() 
+	std::thread thr = std::thread( [_pszFilePath, &_LogQ]() 
 	{
 		while(true)
 		{
+			std::cout << "[Run_Tail][Fail] 2" << _pszFilePath << " is not exist." << std::endl;
+
 			std::ifstream fsLog;
 			//fsLog.open( _pszFilePath, std::ios::in | std::ios::ate);
 			fsLog.open( _pszFilePath, std::ios::in );
 
-			if (!fsLog.is_open()) 
+			if (false == fsLog.is_open()) 
 			{
-				std::cout << _pszFilePath << " is not exist." << std::endl;
+				std::cout << "[Run_Tail][Fail]" << _pszFilePath << " is not exist." << std::endl;
 				sleep(1000);
 				continue;
 			}
@@ -104,6 +106,11 @@ int main( int argc, char* argv[])
  	std::thread Thr_Client;
 	MsgLog_Q LogQ;
 	TCP_ClientMgr clientMgr(&LogQ, &Policy);
+
+	// for( auto &service : Policy.m_mapLogService )
+	// {
+
+	// }
 
 	std::thread Thr_tail = Run_Tail( "/share/engine/log.txt", LogQ );
 

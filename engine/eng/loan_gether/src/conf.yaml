@@ -16,7 +16,7 @@ send-rule:
         active: 
             - "172.17.0.6:3333"
         stand-by: 
-            - "172.17.0.6:3333"
+            - "172.17.0.8:3333"
         session-change-count: 
             # 설정 숫자 보다 connected 된 세션수가 적으면 stand-by로 넘어간다(미만)
             active: 1
@@ -27,9 +27,12 @@ send-rule:
         active: 
             - "172.17.0.6:3333"
         stand-by: 
-            - "172.17.0.6:3333"
+            - "172.17.0.8:3333"
         session-change-count: 
             active: 2
+
+log-service:
+    test: "/share/engine/log.txt"
 
 destination:
     # 재접속 주기
@@ -37,3 +40,4 @@ destination:
     # milisecond
     time-out: 3000
     send-rule: "round-robin"
+    log-service: "test"

@@ -1,11 +1,6 @@
 #include "loan_util.hpp"
-// #include <iostream>
-// #include <algorithm>
-// #include <boost/bind.hpp>
-// #include <boost/asio.hpp>
-// #include <boost/system/error_code.hpp>
-// #include <sys/timeb.h> 
-// #include <time.h>
+#include <fstream>
+#include <iostream>
 
 std::string Replace_All(	__in const std::string &_strSource,
 							__in const char *_pstrOld,
@@ -85,4 +80,35 @@ std::string Replace_Macro( __in std::string &_strSource )
 	}
 
 	return strFilePath;
+}
+
+bool OpenFile( 	__in const char *_pszFilePath, 
+				__in const char *_pszLocale, 
+				__in std::ofstream &_ofstream )
+{
+	try
+	{
+		if(false == _ofstream.is_open())
+		{
+			//_ofstream.imbue("ko_KR.UTF-8");
+			//_ofstream.imbue( _pszLocale );
+			_ofstream.open( _pszFilePath, std::ios::out | std::ios::ate );
+			if(true == _ofstream.is_open())
+				std::cout << "[OpenFile] Open file ret = " << "SUCC | Path = " << _pszFilePath << "\n";
+			else
+				std::cout << "[OpenFile] Open file ret = " << "FAIL | Path = " << _pszFilePath << "\n";
+		}
+	}
+	catch(const std::exception& e)
+	{
+		std::cerr << "[Exception][OpenFile] Err = " << e.what() << "\n";
+		return false;
+	}
+	catch(...)
+	{
+		std::cerr << "[Exception][OpenFile] Err = Unknown" << "\n";
+		return false;
+	}
+
+	return _ofstream.is_open();
 }

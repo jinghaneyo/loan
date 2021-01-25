@@ -124,7 +124,20 @@ void Conf_Yaml::Parse_SendRule( 	__in const YAML::Node &_node, __out DATA_POLICY
 		else if ( "save-file" == itr.first.as<std::string>() )
 		{
 			_pPolicy->m_strSavePath_Pattern = itr.second.as<std::string>();
+			std::cout << "[Parse_SendRule] save-file = " << _pPolicy->m_strSavePath_Pattern << std::endl;
 		}
+	}
+}
+
+void Conf_Yaml::Parse_LogService( 	__in const YAML::Node &_node, __out DATA_POLICY *_pPolicy )
+{
+	for( auto &itr : _node )
+	{
+		auto find = _pPolicy->m_mapLogService.find( itr.first.as<std::string>() );
+		if( find == _pPolicy->m_mapLogService.end() )
+			_pPolicy->m_mapLogService.insert( std::make_pair(itr.first.as<std::string>(),itr.second.as<std::string>()) );
+		// else
+		// 	find.second = itr.second.as<std::string>();
 	}
 }
 
@@ -176,6 +189,14 @@ bool Conf_Yaml::Load_yaml( __in const char *_pszPath_Conf, __out DATA_POLICY *_p
 
 	if ( node["send-rule"] )
 		Parse_SendRule( node["send-rule"], _pPolicy );
+	else
+	{
+		std::cout << "not exist section => send-rule" << std::endl;
+		//return false;
+	}
+
+	if ( node["log-service"] )
+		Parse_LogService( node["log-service"], _pPolicy );
 	else
 	{
 		std::cout << "not exist section => send-rule" << std::endl;

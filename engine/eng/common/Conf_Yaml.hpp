@@ -36,6 +36,7 @@ public:
 	static void Parse_Group( __in const YAML::Node &_node, __out std::map<std::string, std::string> &_mapOut );
 	static void Parse_SendRule( __in const YAML::Node &_node, __out DATA_POLICY *_pPolicy );
 	static void Parse_Destination( __in const YAML::Node &_node, __out DATA_POLICY *_pPolicy );
+	static void Parse_LogService( __in const YAML::Node &_node, __out DATA_POLICY *_pPolicy );
 	static bool Load_yaml( __in const char *_pszPath_Conf, __out DATA_POLICY *_pPolicy );
 };
 

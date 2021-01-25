@@ -9,7 +9,8 @@
 
 #include "Rigi_ClientTCP.hpp"
 
-typedef std::function<bool( __in std::string &_strProtobufRaw )> 	Event_Send_Filter;
+typedef std::function<bool( __in std::string &_strProtobufRaw )> 	LoanEvent_Send_Filter;
+typedef std::function<bool( __in std::ofstream &_ofstream, __in std::string &_strProtobufRaw )> 	LoanEvent_Write;
 
 enum class SEND_RULE
 {
@@ -43,7 +44,8 @@ private:
 	std::thread	m_thr_conn;
 	std::thread	m_thr_send;
 
-	Event_Send_Filter	m_Event_Send_Filter;
+	LoanEvent_Send_Filter	m_Event_Send_Filter;
+	LoanEvent_Write			m_Event_Write;
 
 	SEND_RULE			m_eSend_Rule;
 
@@ -78,14 +80,18 @@ public:
 	bool Add_Eng_FailBack_Standby( __in const char *_pszServerIP, __in const char *_pszPort );
 
 	bool Set_SaveFile( __in const char *_pszFilePath, __in const char *_pszLocale = "ko_KR.UTF-8" );
-	bool OpenFile( __in const char *_pszFilePath, __in const char *_pszLocale );
 	bool Write_Data( __in std::string *_pstrProtobufRaw );
 
 	POLICY * Get_Policy();
 
-	void AddEventHandler_Send_Filter( __in Event_Send_Filter &&_Func )
+	void AddEventHandler_Send_Filter( __in LoanEvent_Send_Filter &&_Func )
 	{
 		m_Event_Send_Filter = std::move(_Func);
+	}
+
+	void AddEventHandler_Write( __in LoanEvent_Write &&_Func )
+	{
+		m_Event_Write = std::move(_Func);
 	}
 };
 

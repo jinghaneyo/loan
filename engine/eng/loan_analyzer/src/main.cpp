@@ -4,24 +4,9 @@
 #include "protobuf/loan.pb.h"
 #include "Run.hpp"
 #include <glog/logging.h>
+#include "loan_util.hpp"
 
-bool Event_Init()
-{
-	return true;
-}
-
-void Event_Close()
-{
-}
-
-void Event_Receive( __in char *_pData, __in size_t _nData_len )
-{
-	// loan::MsgLog msgLog;
-	// msgLog.ParseFromString(_pData);
-
-	// if (false == msgLog.service_name().empty())
-	// 	std::cout << "[Event_Receive] << Service Name : " << msgLog.service_name() << " << Log contents : " << msgLog.logcontents() << std::endl;
-}
+DATA_POLICY g_Policy;
 
 // bool TCP_ClientMgr::Input_Filter( __in loan::MsgLog &_Packet )
 // {
@@ -126,6 +111,40 @@ void Event_Receive( __in char *_pData, __in size_t _nData_len )
 // 	return bIsPushQ;
 // }
 
+bool Event_Write( __in std::ofstream &_ofstream, __in std::string &_strProtobufRaw )
+{
+	if(false == _ofstream.is_open())
+	{
+		std::string strFilePath = Replace_Macro(g_Policy.m_strSavePath_Pattern);
+
+		//if( false == OpenFile( _ofstream, strFilePath.c_str(), m_strLocale.c_str() ) )
+		if( false == OpenFile( strFilePath.c_str(), "ko_KR.UTF-8", _ofstream ) )
+			return false;
+	}
+
+	try
+	{
+		loan::MsgLog msgLog;
+		msgLog.ParseFromString( _strProtobufRaw );
+
+		// 프로토버프 디코딩한 로그데이터만 저장한다 
+		_ofstream << msgLog.logcontents() << std::endl;
+		std::cout << "[Write_Data] Data << " << msgLog.logcontents() << std::endl;
+	}
+	catch(std::exception const &e)
+	{
+		std::cerr << "[Exception][Write_Data] Err = " << e.what() << "\n";
+		return false;
+	}
+	catch(...)
+	{
+		std::cerr << "[Exception][Write_Data] Err = Unknown" <<  "\n";
+		return false;
+	}
+
+	return true;
+}
+
 int main( int argc, char* argv[])
 {
 	GOOGLE_PROTOBUF_VERIFY_VERSION;
@@ -145,8 +164,7 @@ int main( int argc, char* argv[])
 	strCurrentPath = getcwd( strBuffer, sizeof(strBuffer) );
 	std::string strPath_Conf = strCurrentPath + "/conf.yaml";
 
-    DATA_POLICY Policy;
-    bool bRet = Conf_Yaml::Load_yaml(strPath_Conf.c_str(), &Policy);
+    bool bRet = Conf_Yaml::Load_yaml(strPath_Conf.c_str(), &g_Policy);
     if( false == bRet )
 	{
         return 1;
@@ -155,11 +173,12 @@ int main( int argc, char* argv[])
 
  	std::thread Thr_Client;
 	MsgLog_Q LogQ;
-	TCP_ClientMgr clientMgr(&LogQ, &Policy);
-	TCP_ServerMgr<TCP_Session> serverMgr(&LogQ, &Policy);
+	TCP_ServerMgr<TCP_Session> serverMgr(&LogQ, &g_Policy);
+	TCP_ClientMgr clientMgr(&LogQ, &g_Policy);
+	clientMgr.AddEventHandler_Write(Event_Write);
 
 	Loan_Run run;
-	run.Run( Policy, &clientMgr, Thr_Client, &serverMgr, nPort );
+	run.Run( g_Policy, &clientMgr, Thr_Client, &serverMgr, nPort );
 
 	std::cout << "[FINISH] << loan_analyzer stop" << std::endl;
 	run.Stop_All(&clientMgr, &serverMgr, Thr_Client, LogQ);

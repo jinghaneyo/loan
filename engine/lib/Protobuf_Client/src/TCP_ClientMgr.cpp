@@ -380,37 +380,9 @@ bool TCP_ClientMgr::Set_SaveFile( __in const char *_pszFilePath, __in const char
 	m_strSavePath_Pattern = _pszFilePath;
 	m_strLocale = _pszLocale;
 
+	std::cout << "[TCP_ClientMgr::Set_SaveFile] Path = " << m_strSavePath_Pattern << " | Locale = " << m_strLocale << std::endl;
+
 	return true;
-}
-
-bool TCP_ClientMgr::OpenFile( __in const char *_pszFilePath, __in const char *_pszLocale )
-{
-	
-	try
-	{
-		if(false == m_of_Data.is_open())
-		{
-			//m_of_Data.imbue("ko_KR.UTF-8");
-			//m_of_Data.imbue( _pszLocale );
-			m_of_Data.open( _pszFilePath, std::ios::out | std::ios::ate );
-			if(true == m_of_Data.is_open())
-				std::cout << "[TCP_ClientMgr::Set_SaveFile] Open file ret = " << "SUCC | Path = " << _pszFilePath << "\n";
-			else
-				std::cout << "[TCP_ClientMgr::Set_SaveFile] Open file ret = " << "FAIL | Path = " << _pszFilePath << "\n";
-		}
-	}
-	catch(const std::exception& e)
-	{
-		std::cerr << "[Exception][TCP_ClientMgr::Set_SaveFile] Err = " << e.what() << "\n";
-		return false;
-	}
-	catch(...)
-	{
-		std::cerr << "[Exception][TCP_ClientMgr::Set_SaveFile] Err = Unknown" << "\n";
-		return false;
-	}
-
-	return m_of_Data.is_open();
 }
 
 bool TCP_ClientMgr::Write_Data( __in std::string *_pstrProtobufRaw )
@@ -418,32 +390,39 @@ bool TCP_ClientMgr::Write_Data( __in std::string *_pstrProtobufRaw )
 	if( SEND_RULE::SAVE_FILE != m_eSend_Rule )
 		return false;
 
-	if(true == m_of_Data.is_open())
+	if(nullptr != m_Event_Write)
+		return m_Event_Write( m_of_Data, *_pstrProtobufRaw );
+	else
 	{
-		std::string strFilePath = Replace_Macro(m_strSavePath_Pattern);
-
-		if( false == OpenFile( strFilePath.c_str(), m_strLocale.c_str() ) )
+		if(true == m_strSavePath_Pattern.empty())
 			return false;
-	}
 
-	try
-	{
-		// 실제로는 프로토버프 디코딩한 로그데이터만 저장해야한다 
-		m_of_Data << _pstrProtobufRaw->c_str() << std::endl;
-		std::cout << "[TCP_ClientMgr::Write_Data] Data << " << _pstrProtobufRaw->c_str() << std::endl;
-	}
-	catch(std::exception const &e)
-	{
-		std::cerr << "[Exception][TCP_ClientMgr::Write_Data] Err = " << e.what() << "\n";
-		return false;
-	}
-	catch(...)
-	{
-		std::cerr << "[Exception][TCP_ClientMgr::Write_Data] Err = Unknown" <<  "\n";
-		return false;
-	}
+		if(false == m_of_Data.is_open())
+		{
+			std::string strFilePath = Replace_Macro(m_strSavePath_Pattern);
 
-	return true;
+			if( false == OpenFile( strFilePath.c_str(), m_strLocale.c_str(), m_of_Data ) )
+				return false;
+		}
+
+		try
+		{
+			m_of_Data << _pstrProtobufRaw->c_str() << std::endl;
+			std::cout << "[TCP_ClientMgr::Write_Data] Data << " << _pstrProtobufRaw->c_str() << std::endl;
+		}
+		catch(std::exception const &e)
+		{
+			std::cerr << "[Exception][TCP_ClientMgr::Write_Data] Err = " << e.what() << "\n";
+			return false;
+		}
+		catch(...)
+		{
+			std::cerr << "[Exception][TCP_ClientMgr::Write_Data] Err = Unknown" <<  "\n";
+			return false;
+		}
+
+		return true;
+	}
 }
 
 POLICY * TCP_ClientMgr::Get_Policy()	
