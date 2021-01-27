@@ -47,9 +47,12 @@ const ::PROTOBUF_NAMESPACE_ID::uint32 TableStruct_loan_2eproto::offsets[] PROTOB
   ~0u,  // no _weak_field_map_
   PROTOBUF_FIELD_OFFSET(::loan::MsgLog, msg_type_),
   PROTOBUF_FIELD_OFFSET(::loan::MsgLog, msg_cmd_),
+  PROTOBUF_FIELD_OFFSET(::loan::MsgLog, log_time_seconds_),
+  PROTOBUF_FIELD_OFFSET(::loan::MsgLog, log_time_index_),
   PROTOBUF_FIELD_OFFSET(::loan::MsgLog, service_name_),
   PROTOBUF_FIELD_OFFSET(::loan::MsgLog, service_path_),
-  PROTOBUF_FIELD_OFFSET(::loan::MsgLog, logcontents_),
+  PROTOBUF_FIELD_OFFSET(::loan::MsgLog, log_contents_),
+  PROTOBUF_FIELD_OFFSET(::loan::MsgLog, log_option_),
 };
 static const ::PROTOBUF_NAMESPACE_ID::internal::MigrationSchema schemas[] PROTOBUF_SECTION_VARIABLE(protodesc_cold) = {
   { 0, -1, sizeof(::loan::MsgLog)},
@@ -60,10 +63,12 @@ static ::PROTOBUF_NAMESPACE_ID::Message const * const file_default_instances[] =
 };
 
 const char descriptor_table_protodef_loan_2eproto[] PROTOBUF_SECTION_VARIABLE(protodesc_cold) =
-  "\n\nloan.proto\022\004loan\"l\n\006MsgLog\022\020\n\010msg_type"
-  "\030\001 \001(\t\022\017\n\007msg_cmd\030\002 \001(\005\022\024\n\014service_name\030"
-  "\003 \001(\t\022\024\n\014service_path\030\004 \001(\t\022\023\n\013LogConten"
-  "ts\030\005 \001(\tb\006proto3"
+  "\n\nloan.proto\022\004loan\"\263\001\n\006MsgLog\022\020\n\010msg_typ"
+  "e\030\001 \001(\t\022\017\n\007msg_cmd\030\002 \001(\005\022\030\n\020log_time_sec"
+  "onds\030\003 \001(\003\022\026\n\016log_time_index\030\004 \001(\005\022\024\n\014se"
+  "rvice_name\030\005 \001(\t\022\024\n\014service_path\030\006 \001(\t\022\024"
+  "\n\014log_contents\030\007 \001(\t\022\022\n\nlog_option\030\010 \001(\t"
+  "b\006proto3"
   ;
 static const ::PROTOBUF_NAMESPACE_ID::internal::DescriptorTable*const descriptor_table_loan_2eproto_deps[1] = {
 };
@@ -72,7 +77,7 @@ static ::PROTOBUF_NAMESPACE_ID::internal::SCCInfoBase*const descriptor_table_loa
 };
 static ::PROTOBUF_NAMESPACE_ID::internal::once_flag descriptor_table_loan_2eproto_once;
 const ::PROTOBUF_NAMESPACE_ID::internal::DescriptorTable descriptor_table_loan_2eproto = {
-  false, false, descriptor_table_protodef_loan_2eproto, "loan.proto", 136,
+  false, false, descriptor_table_protodef_loan_2eproto, "loan.proto", 208,
   &descriptor_table_loan_2eproto_once, descriptor_table_loan_2eproto_sccs, descriptor_table_loan_2eproto_deps, 1, 0,
   schemas, file_default_instances, TableStruct_loan_2eproto::offsets,
   file_level_metadata_loan_2eproto, 1, file_level_enum_descriptors_loan_2eproto, file_level_service_descriptors_loan_2eproto,
@@ -112,12 +117,19 @@ MsgLog::MsgLog(const MsgLog& from)
     service_path_.Set(::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::EmptyDefault{}, from._internal_service_path(), 
       GetArena());
   }
-  logcontents_.UnsafeSetDefault(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited());
-  if (!from._internal_logcontents().empty()) {
-    logcontents_.Set(::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::EmptyDefault{}, from._internal_logcontents(), 
+  log_contents_.UnsafeSetDefault(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited());
+  if (!from._internal_log_contents().empty()) {
+    log_contents_.Set(::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::EmptyDefault{}, from._internal_log_contents(), 
       GetArena());
   }
-  msg_cmd_ = from.msg_cmd_;
+  log_option_.UnsafeSetDefault(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited());
+  if (!from._internal_log_option().empty()) {
+    log_option_.Set(::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::EmptyDefault{}, from._internal_log_option(), 
+      GetArena());
+  }
+  ::memcpy(&log_time_seconds_, &from.log_time_seconds_,
+    static_cast<size_t>(reinterpret_cast<char*>(&log_time_index_) -
+    reinterpret_cast<char*>(&log_time_seconds_)) + sizeof(log_time_index_));
   // @@protoc_insertion_point(copy_constructor:loan.MsgLog)
 }
 
@@ -126,8 +138,12 @@ void MsgLog::SharedCtor() {
   msg_type_.UnsafeSetDefault(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited());
   service_name_.UnsafeSetDefault(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited());
   service_path_.UnsafeSetDefault(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited());
-  logcontents_.UnsafeSetDefault(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited());
-  msg_cmd_ = 0;
+  log_contents_.UnsafeSetDefault(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited());
+  log_option_.UnsafeSetDefault(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited());
+  ::memset(reinterpret_cast<char*>(this) + static_cast<size_t>(
+      reinterpret_cast<char*>(&log_time_seconds_) - reinterpret_cast<char*>(this)),
+      0, static_cast<size_t>(reinterpret_cast<char*>(&log_time_index_) -
+      reinterpret_cast<char*>(&log_time_seconds_)) + sizeof(log_time_index_));
 }
 
 MsgLog::~MsgLog() {
@@ -141,7 +157,8 @@ void MsgLog::SharedDtor() {
   msg_type_.DestroyNoArena(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited());
   service_name_.DestroyNoArena(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited());
   service_path_.DestroyNoArena(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited());
-  logcontents_.DestroyNoArena(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited());
+  log_contents_.DestroyNoArena(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited());
+  log_option_.DestroyNoArena(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited());
 }
 
 void MsgLog::ArenaDtor(void* object) {
@@ -168,8 +185,11 @@ void MsgLog::Clear() {
   msg_type_.ClearToEmpty();
   service_name_.ClearToEmpty();
   service_path_.ClearToEmpty();
-  logcontents_.ClearToEmpty();
-  msg_cmd_ = 0;
+  log_contents_.ClearToEmpty();
+  log_option_.ClearToEmpty();
+  ::memset(&log_time_seconds_, 0, static_cast<size_t>(
+      reinterpret_cast<char*>(&log_time_index_) -
+      reinterpret_cast<char*>(&log_time_seconds_)) + sizeof(log_time_index_));
   _internal_metadata_.Clear<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>();
 }
 
@@ -196,30 +216,53 @@ const char* MsgLog::_InternalParse(const char* ptr, ::PROTOBUF_NAMESPACE_ID::int
           CHK_(ptr);
         } else goto handle_unusual;
         continue;
-      // string service_name = 3;
+      // int64 log_time_seconds = 3;
       case 3:
-        if (PROTOBUF_PREDICT_TRUE(static_cast<::PROTOBUF_NAMESPACE_ID::uint8>(tag) == 26)) {
+        if (PROTOBUF_PREDICT_TRUE(static_cast<::PROTOBUF_NAMESPACE_ID::uint8>(tag) == 24)) {
+          log_time_seconds_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint64(&ptr);
+          CHK_(ptr);
+        } else goto handle_unusual;
+        continue;
+      // int32 log_time_index = 4;
+      case 4:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<::PROTOBUF_NAMESPACE_ID::uint8>(tag) == 32)) {
+          log_time_index_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint64(&ptr);
+          CHK_(ptr);
+        } else goto handle_unusual;
+        continue;
+      // string service_name = 5;
+      case 5:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<::PROTOBUF_NAMESPACE_ID::uint8>(tag) == 42)) {
           auto str = _internal_mutable_service_name();
           ptr = ::PROTOBUF_NAMESPACE_ID::internal::InlineGreedyStringParser(str, ptr, ctx);
           CHK_(::PROTOBUF_NAMESPACE_ID::internal::VerifyUTF8(str, "loan.MsgLog.service_name"));
           CHK_(ptr);
         } else goto handle_unusual;
         continue;
-      // string service_path = 4;
-      case 4:
-        if (PROTOBUF_PREDICT_TRUE(static_cast<::PROTOBUF_NAMESPACE_ID::uint8>(tag) == 34)) {
+      // string service_path = 6;
+      case 6:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<::PROTOBUF_NAMESPACE_ID::uint8>(tag) == 50)) {
           auto str = _internal_mutable_service_path();
           ptr = ::PROTOBUF_NAMESPACE_ID::internal::InlineGreedyStringParser(str, ptr, ctx);
           CHK_(::PROTOBUF_NAMESPACE_ID::internal::VerifyUTF8(str, "loan.MsgLog.service_path"));
           CHK_(ptr);
         } else goto handle_unusual;
         continue;
-      // string LogContents = 5;
-      case 5:
-        if (PROTOBUF_PREDICT_TRUE(static_cast<::PROTOBUF_NAMESPACE_ID::uint8>(tag) == 42)) {
-          auto str = _internal_mutable_logcontents();
+      // string log_contents = 7;
+      case 7:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<::PROTOBUF_NAMESPACE_ID::uint8>(tag) == 58)) {
+          auto str = _internal_mutable_log_contents();
           ptr = ::PROTOBUF_NAMESPACE_ID::internal::InlineGreedyStringParser(str, ptr, ctx);
-          CHK_(::PROTOBUF_NAMESPACE_ID::internal::VerifyUTF8(str, "loan.MsgLog.LogContents"));
+          CHK_(::PROTOBUF_NAMESPACE_ID::internal::VerifyUTF8(str, "loan.MsgLog.log_contents"));
+          CHK_(ptr);
+        } else goto handle_unusual;
+        continue;
+      // string log_option = 8;
+      case 8:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<::PROTOBUF_NAMESPACE_ID::uint8>(tag) == 66)) {
+          auto str = _internal_mutable_log_option();
+          ptr = ::PROTOBUF_NAMESPACE_ID::internal::InlineGreedyStringParser(str, ptr, ctx);
+          CHK_(::PROTOBUF_NAMESPACE_ID::internal::VerifyUTF8(str, "loan.MsgLog.log_option"));
           CHK_(ptr);
         } else goto handle_unusual;
         continue;
@@ -267,34 +310,56 @@ failure:
     target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::WriteInt32ToArray(2, this->_internal_msg_cmd(), target);
   }
 
-  // string service_name = 3;
+  // int64 log_time_seconds = 3;
+  if (this->log_time_seconds() != 0) {
+    target = stream->EnsureSpace(target);
+    target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::WriteInt64ToArray(3, this->_internal_log_time_seconds(), target);
+  }
+
+  // int32 log_time_index = 4;
+  if (this->log_time_index() != 0) {
+    target = stream->EnsureSpace(target);
+    target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::WriteInt32ToArray(4, this->_internal_log_time_index(), target);
+  }
+
+  // string service_name = 5;
   if (this->service_name().size() > 0) {
     ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(
       this->_internal_service_name().data(), static_cast<int>(this->_internal_service_name().length()),
       ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::SERIALIZE,
       "loan.MsgLog.service_name");
     target = stream->WriteStringMaybeAliased(
-        3, this->_internal_service_name(), target);
+        5, this->_internal_service_name(), target);
   }
 
-  // string service_path = 4;
+  // string service_path = 6;
   if (this->service_path().size() > 0) {
     ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(
       this->_internal_service_path().data(), static_cast<int>(this->_internal_service_path().length()),
       ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::SERIALIZE,
       "loan.MsgLog.service_path");
     target = stream->WriteStringMaybeAliased(
-        4, this->_internal_service_path(), target);
+        6, this->_internal_service_path(), target);
   }
 
-  // string LogContents = 5;
-  if (this->logcontents().size() > 0) {
+  // string log_contents = 7;
+  if (this->log_contents().size() > 0) {
     ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(
-      this->_internal_logcontents().data(), static_cast<int>(this->_internal_logcontents().length()),
+      this->_internal_log_contents().data(), static_cast<int>(this->_internal_log_contents().length()),
       ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::SERIALIZE,
-      "loan.MsgLog.LogContents");
+      "loan.MsgLog.log_contents");
     target = stream->WriteStringMaybeAliased(
-        5, this->_internal_logcontents(), target);
+        7, this->_internal_log_contents(), target);
+  }
+
+  // string log_option = 8;
+  if (this->log_option().size() > 0) {
+    ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(
+      this->_internal_log_option().data(), static_cast<int>(this->_internal_log_option().length()),
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::SERIALIZE,
+      "loan.MsgLog.log_option");
+    target = stream->WriteStringMaybeAliased(
+        8, this->_internal_log_option(), target);
   }
 
   if (PROTOBUF_PREDICT_FALSE(_internal_metadata_.have_unknown_fields())) {
@@ -320,25 +385,39 @@ size_t MsgLog::ByteSizeLong() const {
         this->_internal_msg_type());
   }
 
-  // string service_name = 3;
+  // string service_name = 5;
   if (this->service_name().size() > 0) {
     total_size += 1 +
       ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::StringSize(
         this->_internal_service_name());
   }
 
-  // string service_path = 4;
+  // string service_path = 6;
   if (this->service_path().size() > 0) {
     total_size += 1 +
       ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::StringSize(
         this->_internal_service_path());
   }
 
-  // string LogContents = 5;
-  if (this->logcontents().size() > 0) {
+  // string log_contents = 7;
+  if (this->log_contents().size() > 0) {
     total_size += 1 +
       ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::StringSize(
-        this->_internal_logcontents());
+        this->_internal_log_contents());
+  }
+
+  // string log_option = 8;
+  if (this->log_option().size() > 0) {
+    total_size += 1 +
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::StringSize(
+        this->_internal_log_option());
+  }
+
+  // int64 log_time_seconds = 3;
+  if (this->log_time_seconds() != 0) {
+    total_size += 1 +
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::Int64Size(
+        this->_internal_log_time_seconds());
   }
 
   // int32 msg_cmd = 2;
@@ -346,6 +425,13 @@ size_t MsgLog::ByteSizeLong() const {
     total_size += 1 +
       ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::Int32Size(
         this->_internal_msg_cmd());
+  }
+
+  // int32 log_time_index = 4;
+  if (this->log_time_index() != 0) {
+    total_size += 1 +
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::Int32Size(
+        this->_internal_log_time_index());
   }
 
   if (PROTOBUF_PREDICT_FALSE(_internal_metadata_.have_unknown_fields())) {
@@ -388,11 +474,20 @@ void MsgLog::MergeFrom(const MsgLog& from) {
   if (from.service_path().size() > 0) {
     _internal_set_service_path(from._internal_service_path());
   }
-  if (from.logcontents().size() > 0) {
-    _internal_set_logcontents(from._internal_logcontents());
+  if (from.log_contents().size() > 0) {
+    _internal_set_log_contents(from._internal_log_contents());
+  }
+  if (from.log_option().size() > 0) {
+    _internal_set_log_option(from._internal_log_option());
+  }
+  if (from.log_time_seconds() != 0) {
+    _internal_set_log_time_seconds(from._internal_log_time_seconds());
   }
   if (from.msg_cmd() != 0) {
     _internal_set_msg_cmd(from._internal_msg_cmd());
+  }
+  if (from.log_time_index() != 0) {
+    _internal_set_log_time_index(from._internal_log_time_index());
   }
 }
 
@@ -420,8 +515,14 @@ void MsgLog::InternalSwap(MsgLog* other) {
   msg_type_.Swap(&other->msg_type_, &::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), GetArena());
   service_name_.Swap(&other->service_name_, &::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), GetArena());
   service_path_.Swap(&other->service_path_, &::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), GetArena());
-  logcontents_.Swap(&other->logcontents_, &::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), GetArena());
-  swap(msg_cmd_, other->msg_cmd_);
+  log_contents_.Swap(&other->log_contents_, &::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), GetArena());
+  log_option_.Swap(&other->log_option_, &::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), GetArena());
+  ::PROTOBUF_NAMESPACE_ID::internal::memswap<
+      PROTOBUF_FIELD_OFFSET(MsgLog, log_time_index_)
+      + sizeof(MsgLog::log_time_index_)
+      - PROTOBUF_FIELD_OFFSET(MsgLog, log_time_seconds_)>(
+          reinterpret_cast<char*>(&log_time_seconds_),
+          reinterpret_cast<char*>(&other->log_time_seconds_));
 }
 
 ::PROTOBUF_NAMESPACE_ID::Metadata MsgLog::GetMetadata() const {

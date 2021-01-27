@@ -1,5 +1,10 @@
 #include <stdio.h>
 #include <thread>
+#include <chrono>
+#include <iostream>
+#include <iomanip>
+#include <sstream>
+#include <time.h>
 #include "Conf_Yaml.hpp"
 #include "protobuf/loan.pb.h"
 #include "Run.hpp"
@@ -68,7 +73,7 @@ DATA_POLICY g_Policy;
 // 				std::regex reg_ex(reg);
 // 				std::smatch result;
 
-// 				if( std::regex_search(_Packet.logcontents(), result, reg_ex) )
+// 				if( std::regex_search(_Packet.log_contents(), result, reg_ex) )
 // 				{
 // 					bPass = true;
 // 					break;
@@ -117,7 +122,6 @@ bool Event_Write( __in std::ofstream &_ofstream, __in std::string &_strProtobufR
 	{
 		std::string strFilePath = Replace_Macro(g_Policy.m_strSavePath_Pattern);
 
-		//if( false == OpenFile( _ofstream, strFilePath.c_str(), m_strLocale.c_str() ) )
 		if( false == OpenFile( strFilePath.c_str(), "ko_KR.UTF-8", _ofstream ) )
 			return false;
 	}
@@ -128,8 +132,13 @@ bool Event_Write( __in std::ofstream &_ofstream, __in std::string &_strProtobufR
 		msgLog.ParseFromString( _strProtobufRaw );
 
 		// 프로토버프 디코딩한 로그데이터만 저장한다 
-		_ofstream << msgLog.logcontents() << std::endl;
-		std::cout << "[Write_Data] Data << " << msgLog.logcontents() << std::endl;
+		struct tm localtime;
+		time_t tlog = (time_t)msgLog.log_time_seconds();
+		localtime_r( &tlog, &localtime );
+
+		//_ofstream << "[" << std::put_time( &localtime, "%Y-%m-%d %H:%M:%S") << "]" << msgLog.log_contents() << std::endl;
+		_ofstream << msgLog.log_contents() << std::endl;
+		std::cout << "[Write_Data] Data << " << msgLog.log_contents() << std::endl;
 	}
 	catch(std::exception const &e)
 	{

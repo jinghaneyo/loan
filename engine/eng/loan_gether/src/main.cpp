@@ -4,15 +4,18 @@
 #include "protobuf/loan.pb.h"
 #include "Run.hpp"
 #include <glog/logging.h>
+#include <chrono>
 
-void Read_Tail( __in std::ifstream &_fsLog, __inout MsgLog_Q &_LogQ )
+void Read_Tail( __in std::ifstream &_fsLog, 
+				__in bool &_bThreadRun,
+				__inout MsgLog_Q &_LogQ )
 {
 	try
 	{
 		std::string strline("");
-		while (true) 
+		while (true == _bThreadRun) 
 		{
-			while(true)
+			while(true == _bThreadRun)
 			{
 				strline = "";
 				if(getline(_fsLog, strline))
@@ -20,8 +23,11 @@ void Read_Tail( __in std::ifstream &_fsLog, __inout MsgLog_Q &_LogQ )
 					loan::MsgLog msgLog;
 					msgLog.set_msg_type("MSG_TYPE_GEN");
 					msgLog.set_msg_cmd(1);
+					msgLog.set_log_time_seconds( std::chrono::system_clock::to_time_t(std::chrono::system_clock::now()) );
+					//msgLog.set_log_time_seconds( std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count() );
 					msgLog.set_service_name("crolling");
-					msgLog.set_logcontents(strline);
+					msgLog.set_log_contents(strline);
+					//msgLog.set_log_option(strline);
 
 					std::cout << strline << std::endl;
 
@@ -54,11 +60,13 @@ void Read_Tail( __in std::ifstream &_fsLog, __inout MsgLog_Q &_LogQ )
 	return ;
 }
 
-std::thread Run_Tail( __in const char *_pszFilePath, __inout MsgLog_Q &_LogQ )
+std::thread Run_Tail( 	__in const char *_pszFilePath, 
+						__in bool &_bThreadRun,
+						__inout MsgLog_Q &_LogQ )
 {
-	std::thread thr = std::thread( [_pszFilePath, &_LogQ]() 
+	std::thread thr = std::thread( [_pszFilePath, &_bThreadRun, &_LogQ]() 
 	{
-		while(true)
+		while(true == _bThreadRun)
 		{
 			std::cout << "[Run_Tail][Fail] 2" << _pszFilePath << " is not exist." << std::endl;
 
@@ -74,7 +82,7 @@ std::thread Run_Tail( __in const char *_pszFilePath, __inout MsgLog_Q &_LogQ )
 			}
 
 			std::cout << "[SUCC] file open (" << _pszFilePath << ")" << std::endl;
-			Read_Tail(fsLog, _LogQ);
+			Read_Tail(fsLog, _bThreadRun, _LogQ);
 		}
 	});
 	thr.detach();
@@ -107,15 +115,20 @@ int main( int argc, char* argv[])
 	MsgLog_Q LogQ;
 	TCP_ClientMgr clientMgr(&LogQ, &Policy);
 
-	// for( auto &service : Policy.m_mapLogService )
-	// {
-
-	// }
-
-	std::thread Thr_tail = Run_Tail( "/share/engine/log.txt", LogQ );
+	bool bThreadRun = true;
+	std::vector<std::thread> vecThr;
+	for( auto &service : Policy.m_mapLogService )
+		vecThr.emplace_back( Run_Tail( service.second.c_str(), bThreadRun, LogQ ) );
 
 	Loan_Run run;
 	run.Run( Policy, &clientMgr, Thr_Client, nullptr, -1 );
+
+	bThreadRun = false;
+	for(auto &thr : vecThr)
+	{
+		if(true == thr.joinable())
+			thr.join();
+	}
 
     std::cout << "[FINISH] << loan_gether stop" << std::endl;
 	run.Stop_All(&clientMgr, nullptr, Thr_Client, LogQ);

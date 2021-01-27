@@ -178,10 +178,13 @@ class MsgLog PROTOBUF_FINAL :
 
   enum : int {
     kMsgTypeFieldNumber = 1,
-    kServiceNameFieldNumber = 3,
-    kServicePathFieldNumber = 4,
-    kLogContentsFieldNumber = 5,
+    kServiceNameFieldNumber = 5,
+    kServicePathFieldNumber = 6,
+    kLogContentsFieldNumber = 7,
+    kLogOptionFieldNumber = 8,
+    kLogTimeSecondsFieldNumber = 3,
     kMsgCmdFieldNumber = 2,
+    kLogTimeIndexFieldNumber = 4,
   };
   // string msg_type = 1;
   void clear_msg_type();
@@ -199,7 +202,7 @@ class MsgLog PROTOBUF_FINAL :
   std::string* _internal_mutable_msg_type();
   public:
 
-  // string service_name = 3;
+  // string service_name = 5;
   void clear_service_name();
   const std::string& service_name() const;
   void set_service_name(const std::string& value);
@@ -215,7 +218,7 @@ class MsgLog PROTOBUF_FINAL :
   std::string* _internal_mutable_service_name();
   public:
 
-  // string service_path = 4;
+  // string service_path = 6;
   void clear_service_path();
   const std::string& service_path() const;
   void set_service_path(const std::string& value);
@@ -231,20 +234,45 @@ class MsgLog PROTOBUF_FINAL :
   std::string* _internal_mutable_service_path();
   public:
 
-  // string LogContents = 5;
-  void clear_logcontents();
-  const std::string& logcontents() const;
-  void set_logcontents(const std::string& value);
-  void set_logcontents(std::string&& value);
-  void set_logcontents(const char* value);
-  void set_logcontents(const char* value, size_t size);
-  std::string* mutable_logcontents();
-  std::string* release_logcontents();
-  void set_allocated_logcontents(std::string* logcontents);
+  // string log_contents = 7;
+  void clear_log_contents();
+  const std::string& log_contents() const;
+  void set_log_contents(const std::string& value);
+  void set_log_contents(std::string&& value);
+  void set_log_contents(const char* value);
+  void set_log_contents(const char* value, size_t size);
+  std::string* mutable_log_contents();
+  std::string* release_log_contents();
+  void set_allocated_log_contents(std::string* log_contents);
   private:
-  const std::string& _internal_logcontents() const;
-  void _internal_set_logcontents(const std::string& value);
-  std::string* _internal_mutable_logcontents();
+  const std::string& _internal_log_contents() const;
+  void _internal_set_log_contents(const std::string& value);
+  std::string* _internal_mutable_log_contents();
+  public:
+
+  // string log_option = 8;
+  void clear_log_option();
+  const std::string& log_option() const;
+  void set_log_option(const std::string& value);
+  void set_log_option(std::string&& value);
+  void set_log_option(const char* value);
+  void set_log_option(const char* value, size_t size);
+  std::string* mutable_log_option();
+  std::string* release_log_option();
+  void set_allocated_log_option(std::string* log_option);
+  private:
+  const std::string& _internal_log_option() const;
+  void _internal_set_log_option(const std::string& value);
+  std::string* _internal_mutable_log_option();
+  public:
+
+  // int64 log_time_seconds = 3;
+  void clear_log_time_seconds();
+  ::PROTOBUF_NAMESPACE_ID::int64 log_time_seconds() const;
+  void set_log_time_seconds(::PROTOBUF_NAMESPACE_ID::int64 value);
+  private:
+  ::PROTOBUF_NAMESPACE_ID::int64 _internal_log_time_seconds() const;
+  void _internal_set_log_time_seconds(::PROTOBUF_NAMESPACE_ID::int64 value);
   public:
 
   // int32 msg_cmd = 2;
@@ -254,6 +282,15 @@ class MsgLog PROTOBUF_FINAL :
   private:
   ::PROTOBUF_NAMESPACE_ID::int32 _internal_msg_cmd() const;
   void _internal_set_msg_cmd(::PROTOBUF_NAMESPACE_ID::int32 value);
+  public:
+
+  // int32 log_time_index = 4;
+  void clear_log_time_index();
+  ::PROTOBUF_NAMESPACE_ID::int32 log_time_index() const;
+  void set_log_time_index(::PROTOBUF_NAMESPACE_ID::int32 value);
+  private:
+  ::PROTOBUF_NAMESPACE_ID::int32 _internal_log_time_index() const;
+  void _internal_set_log_time_index(::PROTOBUF_NAMESPACE_ID::int32 value);
   public:
 
   // @@protoc_insertion_point(class_scope:loan.MsgLog)
@@ -266,8 +303,11 @@ class MsgLog PROTOBUF_FINAL :
   ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr msg_type_;
   ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr service_name_;
   ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr service_path_;
-  ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr logcontents_;
+  ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr log_contents_;
+  ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr log_option_;
+  ::PROTOBUF_NAMESPACE_ID::int64 log_time_seconds_;
   ::PROTOBUF_NAMESPACE_ID::int32 msg_cmd_;
+  ::PROTOBUF_NAMESPACE_ID::int32 log_time_index_;
   mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
   friend struct ::TableStruct_loan_2eproto;
 };
@@ -363,7 +403,47 @@ inline void MsgLog::set_msg_cmd(::PROTOBUF_NAMESPACE_ID::int32 value) {
   // @@protoc_insertion_point(field_set:loan.MsgLog.msg_cmd)
 }
 
-// string service_name = 3;
+// int64 log_time_seconds = 3;
+inline void MsgLog::clear_log_time_seconds() {
+  log_time_seconds_ = PROTOBUF_LONGLONG(0);
+}
+inline ::PROTOBUF_NAMESPACE_ID::int64 MsgLog::_internal_log_time_seconds() const {
+  return log_time_seconds_;
+}
+inline ::PROTOBUF_NAMESPACE_ID::int64 MsgLog::log_time_seconds() const {
+  // @@protoc_insertion_point(field_get:loan.MsgLog.log_time_seconds)
+  return _internal_log_time_seconds();
+}
+inline void MsgLog::_internal_set_log_time_seconds(::PROTOBUF_NAMESPACE_ID::int64 value) {
+  
+  log_time_seconds_ = value;
+}
+inline void MsgLog::set_log_time_seconds(::PROTOBUF_NAMESPACE_ID::int64 value) {
+  _internal_set_log_time_seconds(value);
+  // @@protoc_insertion_point(field_set:loan.MsgLog.log_time_seconds)
+}
+
+// int32 log_time_index = 4;
+inline void MsgLog::clear_log_time_index() {
+  log_time_index_ = 0;
+}
+inline ::PROTOBUF_NAMESPACE_ID::int32 MsgLog::_internal_log_time_index() const {
+  return log_time_index_;
+}
+inline ::PROTOBUF_NAMESPACE_ID::int32 MsgLog::log_time_index() const {
+  // @@protoc_insertion_point(field_get:loan.MsgLog.log_time_index)
+  return _internal_log_time_index();
+}
+inline void MsgLog::_internal_set_log_time_index(::PROTOBUF_NAMESPACE_ID::int32 value) {
+  
+  log_time_index_ = value;
+}
+inline void MsgLog::set_log_time_index(::PROTOBUF_NAMESPACE_ID::int32 value) {
+  _internal_set_log_time_index(value);
+  // @@protoc_insertion_point(field_set:loan.MsgLog.log_time_index)
+}
+
+// string service_name = 5;
 inline void MsgLog::clear_service_name() {
   service_name_.ClearToEmpty();
 }
@@ -424,7 +504,7 @@ inline void MsgLog::set_allocated_service_name(std::string* service_name) {
   // @@protoc_insertion_point(field_set_allocated:loan.MsgLog.service_name)
 }
 
-// string service_path = 4;
+// string service_path = 6;
 inline void MsgLog::clear_service_path() {
   service_path_.ClearToEmpty();
 }
@@ -485,65 +565,126 @@ inline void MsgLog::set_allocated_service_path(std::string* service_path) {
   // @@protoc_insertion_point(field_set_allocated:loan.MsgLog.service_path)
 }
 
-// string LogContents = 5;
-inline void MsgLog::clear_logcontents() {
-  logcontents_.ClearToEmpty();
+// string log_contents = 7;
+inline void MsgLog::clear_log_contents() {
+  log_contents_.ClearToEmpty();
 }
-inline const std::string& MsgLog::logcontents() const {
-  // @@protoc_insertion_point(field_get:loan.MsgLog.LogContents)
-  return _internal_logcontents();
+inline const std::string& MsgLog::log_contents() const {
+  // @@protoc_insertion_point(field_get:loan.MsgLog.log_contents)
+  return _internal_log_contents();
 }
-inline void MsgLog::set_logcontents(const std::string& value) {
-  _internal_set_logcontents(value);
-  // @@protoc_insertion_point(field_set:loan.MsgLog.LogContents)
+inline void MsgLog::set_log_contents(const std::string& value) {
+  _internal_set_log_contents(value);
+  // @@protoc_insertion_point(field_set:loan.MsgLog.log_contents)
 }
-inline std::string* MsgLog::mutable_logcontents() {
-  // @@protoc_insertion_point(field_mutable:loan.MsgLog.LogContents)
-  return _internal_mutable_logcontents();
+inline std::string* MsgLog::mutable_log_contents() {
+  // @@protoc_insertion_point(field_mutable:loan.MsgLog.log_contents)
+  return _internal_mutable_log_contents();
 }
-inline const std::string& MsgLog::_internal_logcontents() const {
-  return logcontents_.Get();
+inline const std::string& MsgLog::_internal_log_contents() const {
+  return log_contents_.Get();
 }
-inline void MsgLog::_internal_set_logcontents(const std::string& value) {
+inline void MsgLog::_internal_set_log_contents(const std::string& value) {
   
-  logcontents_.Set(::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::EmptyDefault{}, value, GetArena());
+  log_contents_.Set(::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::EmptyDefault{}, value, GetArena());
 }
-inline void MsgLog::set_logcontents(std::string&& value) {
+inline void MsgLog::set_log_contents(std::string&& value) {
   
-  logcontents_.Set(
+  log_contents_.Set(
     ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::EmptyDefault{}, ::std::move(value), GetArena());
-  // @@protoc_insertion_point(field_set_rvalue:loan.MsgLog.LogContents)
+  // @@protoc_insertion_point(field_set_rvalue:loan.MsgLog.log_contents)
 }
-inline void MsgLog::set_logcontents(const char* value) {
+inline void MsgLog::set_log_contents(const char* value) {
   GOOGLE_DCHECK(value != nullptr);
   
-  logcontents_.Set(::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::EmptyDefault{}, ::std::string(value), GetArena());
-  // @@protoc_insertion_point(field_set_char:loan.MsgLog.LogContents)
+  log_contents_.Set(::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::EmptyDefault{}, ::std::string(value), GetArena());
+  // @@protoc_insertion_point(field_set_char:loan.MsgLog.log_contents)
 }
-inline void MsgLog::set_logcontents(const char* value,
+inline void MsgLog::set_log_contents(const char* value,
     size_t size) {
   
-  logcontents_.Set(::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::EmptyDefault{}, ::std::string(
+  log_contents_.Set(::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::EmptyDefault{}, ::std::string(
       reinterpret_cast<const char*>(value), size), GetArena());
-  // @@protoc_insertion_point(field_set_pointer:loan.MsgLog.LogContents)
+  // @@protoc_insertion_point(field_set_pointer:loan.MsgLog.log_contents)
 }
-inline std::string* MsgLog::_internal_mutable_logcontents() {
+inline std::string* MsgLog::_internal_mutable_log_contents() {
   
-  return logcontents_.Mutable(::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::EmptyDefault{}, GetArena());
+  return log_contents_.Mutable(::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::EmptyDefault{}, GetArena());
 }
-inline std::string* MsgLog::release_logcontents() {
-  // @@protoc_insertion_point(field_release:loan.MsgLog.LogContents)
-  return logcontents_.Release(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), GetArena());
+inline std::string* MsgLog::release_log_contents() {
+  // @@protoc_insertion_point(field_release:loan.MsgLog.log_contents)
+  return log_contents_.Release(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), GetArena());
 }
-inline void MsgLog::set_allocated_logcontents(std::string* logcontents) {
-  if (logcontents != nullptr) {
+inline void MsgLog::set_allocated_log_contents(std::string* log_contents) {
+  if (log_contents != nullptr) {
     
   } else {
     
   }
-  logcontents_.SetAllocated(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), logcontents,
+  log_contents_.SetAllocated(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), log_contents,
       GetArena());
-  // @@protoc_insertion_point(field_set_allocated:loan.MsgLog.LogContents)
+  // @@protoc_insertion_point(field_set_allocated:loan.MsgLog.log_contents)
+}
+
+// string log_option = 8;
+inline void MsgLog::clear_log_option() {
+  log_option_.ClearToEmpty();
+}
+inline const std::string& MsgLog::log_option() const {
+  // @@protoc_insertion_point(field_get:loan.MsgLog.log_option)
+  return _internal_log_option();
+}
+inline void MsgLog::set_log_option(const std::string& value) {
+  _internal_set_log_option(value);
+  // @@protoc_insertion_point(field_set:loan.MsgLog.log_option)
+}
+inline std::string* MsgLog::mutable_log_option() {
+  // @@protoc_insertion_point(field_mutable:loan.MsgLog.log_option)
+  return _internal_mutable_log_option();
+}
+inline const std::string& MsgLog::_internal_log_option() const {
+  return log_option_.Get();
+}
+inline void MsgLog::_internal_set_log_option(const std::string& value) {
+  
+  log_option_.Set(::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::EmptyDefault{}, value, GetArena());
+}
+inline void MsgLog::set_log_option(std::string&& value) {
+  
+  log_option_.Set(
+    ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::EmptyDefault{}, ::std::move(value), GetArena());
+  // @@protoc_insertion_point(field_set_rvalue:loan.MsgLog.log_option)
+}
+inline void MsgLog::set_log_option(const char* value) {
+  GOOGLE_DCHECK(value != nullptr);
+  
+  log_option_.Set(::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::EmptyDefault{}, ::std::string(value), GetArena());
+  // @@protoc_insertion_point(field_set_char:loan.MsgLog.log_option)
+}
+inline void MsgLog::set_log_option(const char* value,
+    size_t size) {
+  
+  log_option_.Set(::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::EmptyDefault{}, ::std::string(
+      reinterpret_cast<const char*>(value), size), GetArena());
+  // @@protoc_insertion_point(field_set_pointer:loan.MsgLog.log_option)
+}
+inline std::string* MsgLog::_internal_mutable_log_option() {
+  
+  return log_option_.Mutable(::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::EmptyDefault{}, GetArena());
+}
+inline std::string* MsgLog::release_log_option() {
+  // @@protoc_insertion_point(field_release:loan.MsgLog.log_option)
+  return log_option_.Release(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), GetArena());
+}
+inline void MsgLog::set_allocated_log_option(std::string* log_option) {
+  if (log_option != nullptr) {
+    
+  } else {
+    
+  }
+  log_option_.SetAllocated(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), log_option,
+      GetArena());
+  // @@protoc_insertion_point(field_set_allocated:loan.MsgLog.log_option)
 }
 
 #ifdef __GNUC__

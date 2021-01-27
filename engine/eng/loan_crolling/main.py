@@ -202,9 +202,9 @@ def Thread_Send_Log(server_ip, port):
                             msg.msg_type = "MSG_TYPE_GEN" #MsgLog_Type.CROLLING
                             msg.msg_cmd = 1 #MsgLog_Cmd_Crolling.SENDLING
                             msg.service_name = d.service_name
-                            #msg.LogContents = bytes(d.log_contents, 'utf-8')
-                            #msg.LogContents = d.log_contents
-                            msg.LogContents = d.log_contents.encode('utf-8')
+                            #msg.log_contents = bytes(d.log_contents, 'utf-8')
+                            #msg.log_contents = d.log_contents
+                            msg.log_contents = d.log_contents.encode('utf-8')
                             client_socket.send( msg.SerializeToString() )
                     else:
                         time.sleep(1)

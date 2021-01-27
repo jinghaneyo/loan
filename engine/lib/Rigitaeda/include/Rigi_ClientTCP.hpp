@@ -107,11 +107,11 @@ namespace Rigitaeda
 			}
 			catch( std::exception const & e)
 			{
-				std::cerr << "[Exception][Reconnect] Err = " << e.what() << "\n";
+				//std::cerr << "[Exception][Reconnect] Err = " << e.what() << "\n";
 			}
 			catch( ... )
 			{
-				std::cerr << "[Exception][Reconnect] Err = Unknown " << "\n";
+				//std::cerr << "[Exception][Reconnect] Err = Unknown " << "\n";
 			}
 			return false;
 		}

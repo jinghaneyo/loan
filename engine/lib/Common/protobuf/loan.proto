@@ -3,9 +3,18 @@ syntax = "proto3";
 package loan;
 
 message MsgLog {
+  // 전송 헤더 타입 
   string msg_type = 1;
+  // 헤더 타입에 속한 명령 
   int32 msg_cmd = 2;
-  string service_name = 3;
-  string service_path = 4;
-  string LogContents = 5;
+  // 시간(단위 초)
+  int64 log_time_seconds = 3;
+  // 같은 초 안에서의 전송 순서
+  int32 log_time_index = 4;
+  string service_name = 5;
+  string service_path = 6;
+  // 전송할 로그 내용 
+  string log_contents = 7;
+  // 혹시 모를 전송할 추가 옵션 
+  string log_option = 8;
 }
