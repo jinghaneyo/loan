@@ -132,7 +132,8 @@ void Loan_Run::Stop_All(__in TCP_ClientMgr *_pClientMgr,
 	if(nullptr !=_pClientMgr)
 	{
 		_pClientMgr->Stop();
-		//_Thr_Clinet.join();
+		if(true == _Thr_Clinet.joinable())
+			_Thr_Clinet.join();
 	}
 
 	if(nullptr != _pServerMgr)
