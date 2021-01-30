@@ -137,7 +137,7 @@ bool Event_Write( __in std::ofstream &_ofstream, __in std::string &_strProtobufR
 		localtime_r( &tlog, &localtime );
 
 		//_ofstream << "[" << std::put_time( &localtime, "%Y-%m-%d %H:%M:%S") << "]" << msgLog.log_contents() << std::endl;
-		_ofstream << msgLog.log_contents() << std::endl;
+		_ofstream << "{\"reg_dt\":" << std::to_string(msgLog.log_time_seconds) << ",\"msg\":\"" << msgLog.log_contents() << "\"}" << std::endl;
 		std::cout << "[Write_Data] Data << " << msgLog.log_contents() << std::endl;
 	}
 	catch(std::exception const &e)
