@@ -32,7 +32,16 @@ send-rule:
             active: 2
 
 log-service:
-    test: "/share/engine/log.txt"
+    test_service: 
+        0: 
+            path: "/share/engine/log.txt"
+            open_read: "read_all"
+        1: 
+            path: "/share/engine/log_1_[CURRENT_TIME:%y-%m-%d_%H%M].txt"
+            open_read: "last"
+        2: 
+            path: "/share/engine/log_2_[CURRENT_TIME:%y-%m-%d_%H%M].txt"
+            open_read: "read_all"
 
 destination:
     # 재접속 주기
@@ -40,4 +49,4 @@ destination:
     # milisecond
     time-out: 3000
     send-rule: "round-robin"
-    log-service: "test"
+    log-service: test

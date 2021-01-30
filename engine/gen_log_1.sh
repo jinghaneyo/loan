@@ -7,8 +7,8 @@ do
 	now=$(date)
 	now+=" >> $count"
 	
-	echo "$now" >> "log.txt"
-	#echo "$now" >> log_1_${file_name}.log
+	#echo "$now" >> "$(pwd)\log.txt"
+	echo "$now" >> log_1_${file_name}.log
 
 	count=$(expr $count + 1)
 

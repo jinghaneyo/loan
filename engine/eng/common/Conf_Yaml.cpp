@@ -133,11 +133,45 @@ void Conf_Yaml::Parse_LogService( 	__in const YAML::Node &_node, __out DATA_POLI
 {
 	for( auto &itr : _node )
 	{
-		auto find = _pPolicy->m_mapLogService.find( itr.first.as<std::string>() );
-		if( find == _pPolicy->m_mapLogService.end() )
-			_pPolicy->m_mapLogService.insert( std::make_pair(itr.first.as<std::string>(),itr.second.as<std::string>()) );
-		// else
-		// 	find.second = itr.second.as<std::string>();
+		for( auto &service : itr.second )
+		{
+			//std::cout << "[LOG SERVICE 2][" << itr.first.as<std::string>() << "][" << service.first.as<std::string>() << "][" << std::endl;
+
+			if( true == itr.first.as<std::string>().empty() )
+				continue;
+
+			MAP_LOG_CONFIG mapConfig;
+
+			for( auto &config : service.second )
+			{
+				//std::cout << "[LOG SERVICE 2][" << itr.first.as<std::string>() << "][" << service.first.as<std::string>() << "][" << config.first.as<std::string>() << "][" << config.second.as<std::string>() << std::endl;
+
+				if( false == config.first.as<std::string>().empty() && false == config.second.as<std::string>().empty() )
+				{
+					auto find = mapConfig.find( config.first.as<std::string>() );
+					if( find == mapConfig.end() )
+						mapConfig.insert( std::make_pair( config.first.as<std::string>(), config.second.as<std::string>()) );
+					else
+						find->second = config.second.as<std::string>();
+				}
+			}
+
+			if(false == mapConfig.empty())
+			{
+				auto find = _pPolicy->m_mapLogService.find( itr.first.as<std::string>() );
+				if( find == _pPolicy->m_mapLogService.end() )
+				{
+					VEC_LOG_CONFIG vecConfig;
+					vecConfig.emplace_back(mapConfig);
+
+					_pPolicy->m_mapLogService.insert( std::make_pair( itr.first.as<std::string>(), vecConfig ) );
+				}
+				else
+				{
+					find->second.emplace_back( mapConfig );
+				}
+			}
+		}
 	}
 }
 
@@ -172,36 +206,16 @@ bool Conf_Yaml::Load_yaml( __in const char *_pszPath_Conf, __out DATA_POLICY *_p
 
 	if ( node["server"] )
 		Parse_Server( node["server"], _pPolicy );
-	else
-	{
-		std::cout << "not exist section => server" << std::endl;
-		//return false;
-	}
 
 	std::map<std::string, std::string> mapGroup;
 	if ( node["group"] )
 		Parse_Group( node["group"], mapGroup );
-	else
-	{
-		std::cout << "not exist section => group" << std::endl;
-		//return false;
-	}
 
 	if ( node["send-rule"] )
 		Parse_SendRule( node["send-rule"], _pPolicy );
-	else
-	{
-		std::cout << "not exist section => send-rule" << std::endl;
-		//return false;
-	}
 
 	if ( node["log-service"] )
 		Parse_LogService( node["log-service"], _pPolicy );
-	else
-	{
-		std::cout << "not exist section => send-rule" << std::endl;
-		//return false;
-	}
 
 	if ( node["destination"] )
 		Parse_Destination( node["destination"], _pPolicy );
@@ -228,7 +242,22 @@ bool Conf_Yaml::Load_yaml( __in const char *_pszPath_Conf, __out DATA_POLICY *_p
 	std::cout << "[SEND-RULE][FAIL-BACK][KEY = stand-by][VALUE = " << _pPolicy->m_vecFailBack_Change_Limit[INDEX_STANDBY] << "]" << std::endl;
 
 	std::cout << "[SEND-RULE][DESTINATION][CONNECT TIME = " << _pPolicy->m_period_retry_connect_time << "]" << std::endl;
+
+	for(auto &mapLog : _pPolicy->m_mapLogService)
+	{
+		for(auto &vec : mapLog.second)
+		{
+			for(auto &config : vec )
+			{
+				std::cout << "[LOG SERVICE][" << mapLog.first << "][" << mapLog.first 
+				<< "][KEY = " << config.first 
+				<< "][VALUE = " << config.second 
+				<< "]" << std::endl;
+			}
+		}
+	}
 	//*/
+
 	std::cout << "[SEND-RULE][DESTINATION][SEND-RULE = " << _pPolicy->m_SendRule << "]" << std::endl;
 
 	return true;

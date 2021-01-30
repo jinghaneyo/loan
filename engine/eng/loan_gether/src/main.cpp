@@ -8,43 +8,57 @@
 
 void Read_Tail( __in std::ifstream &_fsLog, 
 				__in bool &_bThreadRun,
-				__inout MsgLog_Q &_LogQ )
+				__inout MsgLog_Q &_LogQ,
+				__inout long &_Pos_seek )
 {
 	try
 	{
+		int nEof_try_count = 0;
+		int nEof_Limit_try_count = 10;
+
 		std::string strline("");
-		while (true == _bThreadRun) 
+		while(true == _bThreadRun)
 		{
-			while(true == _bThreadRun)
+			strline = "";
+			if(getline(_fsLog, strline))
 			{
-				strline = "";
-				if(getline(_fsLog, strline))
-				{
-					loan::MsgLog msgLog;
-					msgLog.set_msg_type("MSG_TYPE_GEN");
-					msgLog.set_msg_cmd(1);
-					msgLog.set_log_time_seconds( std::chrono::system_clock::to_time_t(std::chrono::system_clock::now()) );
-					//msgLog.set_log_time_seconds( std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count() );
-					msgLog.set_service_name("crolling");
-					msgLog.set_log_contents(strline);
-					//msgLog.set_log_option(strline);
+				if( true == strline.empty() )
+					continue;
 
-					std::cout << strline << std::endl;
+				loan::MsgLog msgLog;
+				msgLog.set_msg_type("MSG_TYPE_GEN");
+				msgLog.set_msg_cmd(1);
+				msgLog.set_log_time_seconds( std::chrono::system_clock::to_time_t(std::chrono::system_clock::now()) );
+				//msgLog.set_log_time_seconds( std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count() );
+				msgLog.set_service_name("crolling");
+				msgLog.set_log_contents(strline);
+				//msgLog.set_log_option(strline);
 
-					std::string *pstrLine = new std::string();
-					msgLog.SerializeToString(&(*pstrLine));
+				std::cout << strline << std::endl;
 
-					_LogQ.Push_back(pstrLine);
-				}
-				else
-					break;
+				std::string *pstrLine = new std::string();
+				msgLog.SerializeToString(&(*pstrLine));
+
+				_Pos_seek += strline.length() + 1;	// \n 도 더한다
+
+				_LogQ.Push_back(pstrLine);
 			}
-
-			if (!_fsLog.eof()) 
-				break; 
-				
-			_fsLog.clear();
+			else
+			{
+				if ( true == _fsLog.eof() ) 
+				{
+					if( nEof_try_count < nEof_Limit_try_count )
+					{
+						nEof_try_count++;
+						sleep(1);
+					}
+					else
+						break; 
+				}
+			}
 		}
+
+		_fsLog.clear();
 	}
 	catch(std::exception const& e)
 	{
@@ -56,6 +70,8 @@ void Read_Tail( __in std::ifstream &_fsLog,
 	}
 
 	_fsLog.close();
+	std::cout << "file close" << std::endl;
+	sleep(1);
       
 	return ;
 }
@@ -66,26 +82,30 @@ std::thread Run_Tail( 	__in const char *_pszFilePath,
 {
 	std::thread thr = std::thread( [_pszFilePath, &_bThreadRun, &_LogQ]() 
 	{
+		long nPos_seek = 0;
+
 		while(true == _bThreadRun)
 		{
-			std::cout << "[Run_Tail][Fail] 2" << _pszFilePath << " is not exist." << std::endl;
-
 			std::ifstream fsLog;
-			//fsLog.open( _pszFilePath, std::ios::in | std::ios::ate);
-			fsLog.open( _pszFilePath, std::ios::in );
+			fsLog.open( _pszFilePath, std::ios::in | std::ios::ate);
+			//fsLog.open( _pszFilePath, std::ios::in );
 
 			if (false == fsLog.is_open()) 
 			{
-				std::cout << "[Run_Tail][Fail]" << _pszFilePath << " is not exist." << std::endl;
-				sleep(1000);
+				nPos_seek = 0;
+				sleep(1);
 				continue;
 			}
 
-			std::cout << "[SUCC] file open (" << _pszFilePath << ")" << std::endl;
-			Read_Tail(fsLog, _bThreadRun, _LogQ);
+			std::cout << "[SUCC] file open => path = " << _pszFilePath << " | seek = " << std::to_string(nPos_seek) << std::endl;
+			fsLog.seekg(nPos_seek);
+			Read_Tail(fsLog, _bThreadRun, _LogQ, nPos_seek);
 		}
+
+		std::cout << "[FINISH] thread " << _pszFilePath << std::endl;
 	});
 	thr.detach();
+
 
 	return thr;
 }
@@ -117,8 +137,13 @@ int main( int argc, char* argv[])
 
 	bool bThreadRun = true;
 	std::vector<std::thread> vecThr;
-	for( auto &service : Policy.m_mapLogService )
-		vecThr.emplace_back( Run_Tail( service.second.c_str(), bThreadRun, LogQ ) );
+	for( auto &mapLog: Policy.m_mapLogService )
+	{
+		for( auto &config : mapLog.second )
+		{
+			vecThr.emplace_back( Run_Tail( config["path"].c_str(), bThreadRun, LogQ ) );
+		}
+	}
 
 	Loan_Run run;
 	run.Run( Policy, &clientMgr, Thr_Client, nullptr, -1 );
