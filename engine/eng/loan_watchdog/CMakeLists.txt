@@ -1,4 +1,4 @@
-set(APP_NAME loan_buffer)
+set(APP_NAME loan_watchdog)
 PROJECT(${APP_NAME})
 
 cmake_minimum_required(VERSION 2.8)
