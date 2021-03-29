@@ -9,20 +9,33 @@ networks:
 services:
   # db => elasticsearch
   ela:
-    image: loan_dev
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.7.1
     container_name: ela
     privileged: true
     privileged: true
     volumes:
-    - /Users/leegiljae/Disk/01_Project/log_analyzer/loan:/share
+      - /Users/leegiljae/Disk/01_Project/log_analyzer/loan:/share
     ports:
-    - 9200:9200/tcp
-    - 9300:9300/tcp
+      - 9200:9200/tcp
+      - 9300:9300/tcp
     stdin_open: true
     tty: true
     networks:
       bridge:
         ipv4_address: 172.20.0.2
+    environment:
+      - node.name=es01
+      - cluster.name=es-docker-cluster
+      - discovery.seed_hosts=es02,es03
+      - cluster.initial_master_nodes=es01,es02,es03
+      - bootstrap.memory_lock=true
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    command: yum install net-tools
+    command: curl
 
   # 로그 분석기 
   anal_1:
@@ -30,9 +43,9 @@ services:
     container_name: anal_1
     privileged: true
     volumes:
-    - /Users/leegiljae/Disk/01_Project/log_analyzer/loan:/share
+      - /Users/leegiljae/Disk/01_Project/log_analyzer/loan:/share
     ports:
-    - 4444:4444/tcp
+      - 4444:4444/tcp
     stdin_open: true
     tty: true
     networks:
@@ -45,9 +58,9 @@ services:
     container_name: anal_2
     privileged: true
     volumes:
-    - /Users/leegiljae/Disk/01_Project/log_analyzer/loan:/share
+      - /Users/leegiljae/Disk/01_Project/log_analyzer/loan:/share
     ports:
-    - 5555:5555/tcp
+      - 5555:5555/tcp
     stdin_open: true
     tty: true
     networks:
@@ -60,9 +73,9 @@ services:
     container_name: buffer
     privileged: true
     ports:
-    - 3333:3333/tcp
+      - 3333:3333/tcp
     volumes:
-    - /Users/leegiljae/Disk/01_Project/log_analyzer/loan:/share
+      - /Users/leegiljae/Disk/01_Project/log_analyzer/loan:/share
     stdin_open: true
     tty: true
     networks:
@@ -75,7 +88,7 @@ services:
     container_name: col_1
     privileged: true
     volumes:
-    - /Users/leegiljae/Disk/01_Project/log_analyzer/loan:/share
+      - /Users/leegiljae/Disk/01_Project/log_analyzer/loan:/share
     stdin_open: true
     tty: true
     networks:
@@ -88,7 +101,7 @@ services:
     container_name: col_2
     privileged: true
     volumes:
-    - /Users/leegiljae/Disk/01_Project/log_analyzer/loan:/share
+      - /Users/leegiljae/Disk/01_Project/log_analyzer/loan:/share
     stdin_open: true
     tty: true
     networks:
