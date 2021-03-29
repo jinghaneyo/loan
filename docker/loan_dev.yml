@@ -35,7 +35,7 @@ services:
         soft: -1
         hard: -1
     command: yum install net-tools
-    command: curl
+    command: yum install curl
 
   # 로그 분석기 
   anal_1:
