@@ -1,0 +1,94 @@
+version: '3.7'
+
+networks:
+  bridge:
+    ipam:
+      config:
+        - subnet: 172.20.0.0/24
+
+services:
+  crate:
+    image: loan_crate
+    container_name: crate
+    privileged: true
+    volumes:
+      - /Users/leegiljae/Disk/01_Project/log_analyzer/loan:/share
+    ports:
+      - 9200:9200/tcp
+      - 9300:9300/tcp
+    stdin_open: true
+    tty: true
+    networks:
+      bridge:
+        ipv4_address: 172.20.0.2
+
+  # 로그 분석기 
+  log_1:
+    image: loan_dev
+    container_name: log_1
+    privileged: true
+    volumes:
+      - /Users/leegiljae/Disk/01_Project/log_analyzer/loan:/share
+    ports:
+      - 4444:4444/tcp
+    stdin_open: true
+    tty: true
+    networks:
+      bridge:
+        ipv4_address: 172.20.0.3
+
+  # 로그 분석기 
+  log_2:
+    image: loan_dev
+    container_name: log_2
+    privileged: true
+    volumes:
+      - /Users/leegiljae/Disk/01_Project/log_analyzer/loan:/share
+    ports:
+      - 5555:5555/tcp
+    stdin_open: true
+    tty: true
+    networks:
+      bridge:
+        ipv4_address: 172.20.0.4
+
+  # 중간 버퍼 엔진
+  buffer:
+    image: loan_dev
+    container_name: buffer
+    privileged: true
+    ports:
+      - 3333:3333/tcp
+    volumes:
+      - /Users/leegiljae/Disk/01_Project/log_analyzer/loan:/share
+    stdin_open: true
+    tty: true
+    networks:
+      bridge:
+        ipv4_address: 172.20.0.5
+
+  # 로그 수집기
+  col_1:
+    image: loan_dev
+    container_name: col_1
+    privileged: true
+    volumes:
+      - /Users/leegiljae/Disk/01_Project/log_analyzer/loan:/share
+    stdin_open: true
+    tty: true
+    networks:
+      bridge:
+        ipv4_address: 172.20.0.6
+
+  # 로그 수집기
+  col_2:
+    image: loan_dev
+    container_name: col_2
+    privileged: true
+    volumes:
+      - /Users/leegiljae/Disk/01_Project/log_analyzer/loan:/share
+    stdin_open: true
+    tty: true
+    networks:
+      bridge:
+        ipv4_address: 172.20.0.7
