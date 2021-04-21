@@ -12,3 +12,6 @@ RUN curl -o crash https://cdn.crate.io/downloads/releases/crash_standalone_0.23.
 RUN chmod 755 crash
 RUN mv crash /usr/bin/.
 
+VOLUME [ "/sys/fs/cgroup" ]
+
+CMD ["/usr/sbin/init"]
