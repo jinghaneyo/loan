@@ -10,8 +10,13 @@ services:
   crate:
     image: loan_crate
     container_name: crate
-    privileged: true
+    cap_add:
+      - SYS_ADMIN
+    environment:
+      - container=docker
+    #privileged: false
     volumes:
+      - /sys/fs/cgroup:/sys/fs/cgroup:ro
       - /Users/leegiljae/Disk/01_Project/log_analyzer/loan:/share
     ports:
       - 9200:9200/tcp
@@ -26,8 +31,13 @@ services:
   log_1:
     image: loan_dev
     container_name: log_1
-    privileged: true
+    cap_add:
+      - SYS_ADMIN
+    environment:
+      - container=docker
+    #privileged: false
     volumes:
+      - /sys/fs/cgroup:/sys/fs/cgroup:ro
       - /Users/leegiljae/Disk/01_Project/log_analyzer/loan:/share
     ports:
       - 4444:4444/tcp
@@ -41,8 +51,13 @@ services:
   log_2:
     image: loan_dev
     container_name: log_2
-    privileged: true
+    cap_add:
+      - SYS_ADMIN
+    environment:
+      - container=docker
+    #privileged: false
     volumes:
+      - /sys/fs/cgroup:/sys/fs/cgroup:ro
       - /Users/leegiljae/Disk/01_Project/log_analyzer/loan:/share
     ports:
       - 5555:5555/tcp
@@ -56,10 +71,15 @@ services:
   buffer:
     image: loan_dev
     container_name: buffer
-    privileged: true
+    cap_add:
+      - SYS_ADMIN
+    environment:
+      - container=docker
+    #privileged: false
     ports:
       - 3333:3333/tcp
     volumes:
+      - /sys/fs/cgroup:/sys/fs/cgroup:ro
       - /Users/leegiljae/Disk/01_Project/log_analyzer/loan:/share
     stdin_open: true
     tty: true
@@ -71,7 +91,7 @@ services:
   col_1:
     image: loan_dev
     container_name: col_1
-    privileged: true
+    #privileged: false
     volumes:
       - /Users/leegiljae/Disk/01_Project/log_analyzer/loan:/share
     stdin_open: true
@@ -84,7 +104,7 @@ services:
   col_2:
     image: loan_dev
     container_name: col_2
-    privileged: true
+    #privileged: false
     volumes:
       - /Users/leegiljae/Disk/01_Project/log_analyzer/loan:/share
     stdin_open: true
