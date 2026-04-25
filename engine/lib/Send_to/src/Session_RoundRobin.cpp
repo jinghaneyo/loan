@@ -1,6 +1,6 @@
 #include "Session_RoundRobin.hpp"
 
-Session_RoundRobin::Session_RoundRobin( __in POLICY *_pPolicy, __in boost::asio::io_service *_pio_service ) : Session_Pool(_pPolicy)
+Session_RoundRobin::Session_RoundRobin( __in POLICY *_pPolicy, __in boost::asio::io_context *_pio_service ) : Session_Pool(_pPolicy)
 {
 	m_pio_service = _pio_service;
 }

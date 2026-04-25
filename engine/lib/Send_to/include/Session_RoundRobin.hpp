@@ -8,7 +8,7 @@
 class Session_RoundRobin : public Session_Pool
 {
 public:
-	Session_RoundRobin( __in POLICY *_pPolicy, __in boost::asio::io_service *_pio_service );
+	Session_RoundRobin( __in POLICY *_pPolicy, __in boost::asio::io_context *_pio_service );
 	virtual ~Session_RoundRobin();
 	// Session_RoundRobin( __in Session_FailOver &r) delete;
 private:
@@ -17,7 +17,7 @@ private:
 	std::mutex									m_mtxSessionPool_DisConnect;
 	std::deque<Rigitaeda::Rigi_ClientTCP *>  	m_DqSessionPool_DisConnect;
 
-	boost::asio::io_service 					*m_pio_service;
+	boost::asio::io_context 					*m_pio_service;
 public:
 	virtual bool Add_SessionPool_Connected( __in Rigitaeda::Rigi_ClientTCP *_pSession, __in bool _bActive );
 	virtual bool Add_SessionPool_DisConnected( __in Rigitaeda::Rigi_ClientTCP *_pSession, __in bool _bActive );

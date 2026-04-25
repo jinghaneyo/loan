@@ -8,14 +8,14 @@
 class Session_FailOver : public Session_Pool
 {
 public:
-	Session_FailOver(  __in POLICY *_pPolicy, __in boost::asio::io_service *_pio_service );
+	Session_FailOver(  __in POLICY *_pPolicy, __in boost::asio::io_context *_pio_service );
 	virtual ~Session_FailOver();
 	// Session_FailOver( __in Session_FailOver &r ) delete;
 private:
 	Session_RoundRobin 		*m_pSession_Active;
 	Session_RoundRobin 		*m_pSession_Standby;
 
-	boost::asio::io_service *m_pio_service;
+	boost::asio::io_context *m_pio_service;
 
 	bool 					m_bActive;
 public:

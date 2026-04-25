@@ -21,8 +21,8 @@ std::string Replace_All(	__in const std::string &_strSource,
 
 std::string Get_LocalHostIP()
 {
-	boost::asio::io_service io_service;
-	boost::asio::ip::tcp::resolver resolver(io_service);
+	boost::asio::io_context io_context;
+	boost::asio::ip::tcp::resolver resolver(io_context);
 	boost::asio::ip::tcp::resolver::query query(boost::asio::ip::host_name(), "");
 	boost::asio::ip::tcp::resolver::iterator iter = resolver.resolve( query );
 	boost::asio::ip::tcp::endpoint ep = *iter;

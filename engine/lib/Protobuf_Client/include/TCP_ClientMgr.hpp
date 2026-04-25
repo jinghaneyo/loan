@@ -1,6 +1,7 @@
 #ifndef TCP_CLIENT_MGR_H_
 #define TCP_CLIENT_MGR_H_
 
+#include <atomic>
 #include <mutex>
 #include <deque>
 #include <thread>
@@ -32,7 +33,7 @@ public:
 	TCP_ClientMgr( __in MsgLog_Q *_pLogQ, __in POLICY *_pPolicy );
 	virtual ~TCP_ClientMgr();
 private:
-	boost::asio::io_service m_io_service;
+	boost::asio::io_context m_io_context;
 
 	Session_Pool 	*m_pSendSession;
 	std::ofstream	m_of_Data;
@@ -40,9 +41,9 @@ private:
 	MsgLog_Q	*m_pLogQ;
 	POLICY *m_pPolicy;
 
-	bool		m_bRun_Thread;
-	std::thread	m_thr_conn;
-	std::thread	m_thr_send;
+	std::atomic<bool>	m_bRun_Thread;
+	std::thread			m_thr_conn;
+	std::thread			m_thr_send;
 
 	LoanEvent_Send_Filter	m_Event_Send_Filter;
 	LoanEvent_Write			m_Event_Write;
